@@ -8,6 +8,7 @@ import { autopsy, loadIncidents } from "./autopsy.js";
 import { resolveAddress, multichainApprovals } from "./onchain.js";
 import { AlarmEngine, pollTopPools, replayDrain } from "./alarm.js";
 import { surgeonAuthorize, surgeonStatus, surgeonSelfCheck } from "./surgeon.js";
+import { verifyWorldProof, WORLD } from "./world.js";
 import { cardSVG, sharePageHTML } from "./card.js";
 import { gql } from "./autopsy.js";
 
@@ -262,6 +263,23 @@ const server = http.createServer(async (req, res) => {
       const a = await surgeonAuthorize({ headers: req.headers, url: req.url });
       return send(200, a);
     }
+    // ---- World ID: two prize tracks off one verify path ----
+    // Selfie Check (surgeon-liveness) arms the Surgeon; Identity Check (recourse-eligibility)
+    // unlocks the recourse panel. The client learns the public app id + action names here so
+    // there is a single source of truth (the .env), never a hard-coded id in the bundle.
+    if (url.pathname === "/world/config") {
+      return send(200, { appId: WORLD.appId, configured: WORLD.configured, actions: WORLD.actions });
+    }
+    if (url.pathname === "/world/verify") {
+      if (req.method !== "POST") return send(405, { error: "POST a { action, proof } body" });
+      // Each call round-trips to World's cloud verifier — meter it like the other paid paths.
+      if (rateLimited(clientIp(req)) && !isAdmin(req)) return send(429, { error: `rate limit: ${RL_MAX} / ${RL_WINDOW_MS / 1000}s` });
+      let body = "";
+      for await (const chunk of req) { body += chunk; if (body.length > 20_000) { req.destroy(); return; } }
+      let payload; try { payload = JSON.parse(body || "{}"); } catch { return send(400, { verified: false, reason: "bad json" }); }
+      const v = await verifyWorldProof(payload);
+      return send(v.verified ? 200 : 400, v);
+    }
     if (url.pathname === "/scan/wounds") {
       const input = (url.searchParams.get("address") || "").trim();
       let resolved; try { resolved = await resolveAddress(input); } catch (e) { return send(400, { error: e.message }); }
@@ -275,7 +293,7 @@ const server = http.createServer(async (req, res) => {
       const full = cached ? cached.report : await runFull(resolved, input, addr);
       return send(200, { approvals: full.surfaces.approvals, cooked: full.cooked });
     }
-    if (url.pathname !== "/scan") return send(404, { error: "routes: /scan, /scan/wounds, /alarms, /surgeon/*, /health" });
+    if (url.pathname !== "/scan") return send(404, { error: "routes: /scan, /scan/wounds, /alarms, /surgeon/*, /world/*, /health" });
     const input = (url.searchParams.get("address") || "").trim();
     let resolved;
     try { resolved = await resolveAddress(input); }

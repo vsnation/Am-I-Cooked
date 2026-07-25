@@ -560,6 +560,7 @@
     <div class="sheet" onclick="event.stopPropagation()">
       <h4 class="heal">🌍 You got rekt. Officially. Here's your recourse</h4>
       <div class="minimize">Identity check asks exactly <b style="color:var(--bone)">two booleans</b> — jurisdiction ✓ · 18+ ✓ — nothing stored.</div>
+      <div id="recGate"></div>
       <div id="recList">
         <div class="rec-opt"><span class="st open">OPEN · claims process</span><b>DogVault exploit — recovery claims</b><br>Window until Sep 2026. Your €4,120 qualifies. → file a claim</div>
         <div class="rec-opt"><span class="st open">OPEN · report</span><b>EU / national cybercrime portal</b><br>Drainer approvals are reportable fraud here. → pre-filled report</div>
@@ -579,6 +580,65 @@
   function esc(x){ return String(x == null ? '' : x).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
   function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
+
+  // ---- World ID: two real verifications, one path ----
+  // Selfie Check (surgeon-liveness) arms the Surgeon; Identity Check (recourse-eligibility)
+  // unlocks recourse. Inside World App we use native MiniKit (no QR); on mobile web / desktop
+  // IDKit renders a QR to scan with World App. Either way the proof is verified server-side
+  // (/world/verify) — the UI never grants authority on its own say-so. The SDK loads lazily so
+  // the landing stays fast, and demo mode (?demo=1) never touches any of this.
+  var __idkitP, __worldCfg;
+  function loadIDKit(){
+    if (window.IDKit) return Promise.resolve(window.IDKit);
+    if (__idkitP) return __idkitP;
+    __idkitP = new Promise(function(res, rej){
+      var s = document.createElement('script');
+      s.src = 'vendor/idkit.js'; s.async = true;
+      s.onload = function(){ window.IDKit ? res(window.IDKit) : rej(new Error('idkit missing')); };
+      s.onerror = function(){ rej(new Error('idkit failed to load')); };
+      document.head.appendChild(s);
+    });
+    return __idkitP;
+  }
+  async function worldConfig(){
+    if (__worldCfg) return __worldCfg;
+    var r = await fetch('/cooked-api/world/config'); __worldCfg = await r.json();
+    return __worldCfg;
+  }
+  // Obtain a proof from the World App (native or via QR), normalised to the 4 fields the
+  // verifier needs. Rejects if there is no World App reachable (caller keeps the interlock held).
+  function getWorldProof(appId, action, kind){
+    var mk = window.MiniKit;
+    if (mk && mk.isInstalled && mk.isInstalled() && mk.commandsAsync && mk.commandsAsync.verify){
+      return mk.commandsAsync.verify({ action: action, verification_level: 'orb' }).then(function(res){
+        var p = res && res.finalPayload;
+        if (!p || p.status === 'error') throw new Error((p && p.error_code) || 'verification cancelled');
+        return { nullifier_hash: p.nullifier_hash, merkle_root: p.merkle_root, proof: p.proof, verification_level: p.verification_level };
+      });
+    }
+    var desc = kind === 'identity'
+      ? 'Confirm you are a real, of-age human to unlock your recourse routes'
+      : 'Confirm a live human is authorising the Surgeon before it proposes a revoke';
+    return loadIDKit().then(function(IDKit){
+      return new Promise(function(resolve, reject){
+        IDKit.init({ app_id: appId, action: action, verification_level: 'orb', action_description: desc,
+          onSuccess: function(res){ resolve({ nullifier_hash: res.nullifier_hash, merkle_root: res.merkle_root, proof: res.proof, verification_level: res.verification_level }); },
+          onError: function(e){ reject(new Error((e && e.code) || 'verification closed')); } });
+        IDKit.open();
+      });
+    });
+  }
+  // Run a real World ID check for `kind` ('selfie' | 'identity') and have the server verify it.
+  async function worldVerify(kind){
+    var cfg = await worldConfig();
+    if (!cfg || !cfg.configured) throw new Error('World verification not configured on this host');
+    var action = kind === 'identity' ? cfg.actions.identity : cfg.actions.selfie;
+    var proof = await getWorldProof(cfg.appId, action, kind);
+    var r = await fetch('/cooked-api/world/verify', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ action: action, proof: proof }) });
+    var d = await r.json();
+    if (!d.verified) throw new Error(d.reason || 'World could not verify that');
+    return d;
+  }
 
   function show(n){
     clearTimers(); CUR = n;
@@ -817,11 +877,13 @@
 
   // ---- surgeon ----
   async function loadSurgeonStatus(){
+    window.__surgeonHuman = false; // authority is earned by a live Selfie Check, never granted on page load
     try {
       var r = await fetch('/cooked-api/surgeon/status'); var d = await r.json();
       if (d.agent) document.getElementById('srgAgent').textContent = d.agent.slice(0,6)+'…'+d.agent.slice(-4);
-      window.__surgeonHuman = !!d.humanBacked;
-      document.getElementById('authLvl').textContent = d.humanBacked ? 'REVOKE — human-backed ✓ (AgentBook)' : 'NONE — agent not yet human-backed';
+      document.getElementById('authLvl').textContent = d.humanBacked
+        ? 'DIAGNOSE — agent registered · pass Selfie Check to arm'
+        : 'NONE — anonymous · pass Selfie Check to arm';
     } catch(e){}
   }
   function resetSurgeon(){
@@ -848,42 +910,50 @@
     var b = document.getElementById('verifyBtn');
     var lock = document.getElementById('lock');
     b.disabled = true;
-    b.innerHTML = '<span class="spin"></span> checking AgentBook…';
+    b.innerHTML = '<span class="spin"></span> checking backing…';
     if (new URLSearchParams(location.search).get('demo') === '1'){
-      // The staged story only: a LABELED simulation of the backing beat. The live
-      // path below always asks AgentBook, and demo mode has no wallet, so nothing
+      // The staged story only: a LABELED simulation of the backing beat. The live path
+      // below runs a real World ID Selfie Check, and demo mode has no wallet, so nothing
       // here hands out real signing authority.
       await new Promise(function(res){ setTimeout(res, 900); });
       window.__surgeonHuman = true;
-      b.disabled = false; b.innerHTML = '✅ Human-backed · demo';
-      document.getElementById('authLvl').textContent = 'REVOKE — human-backed · DEMO';
+      b.disabled = false; b.innerHTML = '✅ Human-backed · Selfie Check (demo)';
+      document.getElementById('authLvl').textContent = 'REVOKE — human-backed · Selfie Check (demo)';
       lock.className = 'interlock ok';
-      lock.innerHTML = '<span class="tag">🔓 Interlock open · demo</span>Staged backing for the demo story — the live gate requires a real human in AgentBook.';
+      lock.innerHTML = '<span class="tag">🔓 Interlock open · demo</span>Staged backing for the demo story — the live gate runs a real World ID <b>Selfie Check</b> on a live human.';
       document.getElementById('operateBtn').disabled = false;
       return;
     }
-    var granted = false, reason = 'the verifier did not answer';
+    // --- LIVE: the operative gate is a real World ID Selfie Check on a live human. The agent's
+    // AgentBook standing (AgentKit) is read alongside as its registration credential. ---
+    var agentBooked = false;
     try {
       var r = await fetch('/cooked-api/surgeon/status');
       var d = await r.json();
-      granted = !!d.humanBacked;
-      reason = (d.check && d.check.reason) || (granted ? '' : 'this agent is not human-backed in AgentBook');
+      agentBooked = !!d.humanBacked;
       if (d.agent) document.getElementById('srgAgent').textContent = d.agent.slice(0,6)+'…'+d.agent.slice(-4);
-    } catch(e){ granted = false; }
-    window.__surgeonHuman = granted;
-    if (!granted){
-      document.getElementById('authLvl').textContent = 'NONE — not human-backed';
+    } catch(e){}
+    b.innerHTML = '<span class="spin"></span> scan with World App…';
+    var v;
+    try { v = await worldVerify('selfie'); }
+    catch(e){
+      window.__surgeonHuman = false;
+      document.getElementById('authLvl').textContent = 'NONE — awaiting live human';
       lock.className = 'interlock';
-      lock.innerHTML = '<span class="tag">🔒 Interlock holding</span>Verification did not pass, so the Surgeon keeps <b>zero signing authority</b>. ' +
-        '<span class="dim">' + esc(reason) + '</span>';
+      lock.innerHTML = '<span class="tag">🔒 Interlock holding</span>Open in <b>World App</b> and pass the <b>Selfie Check</b> to arm the Surgeon — a live human must back every cut. ' +
+        '<span class="dim">' + esc(e.message) + '</span>';
       document.getElementById('operateBtn').disabled = true;
-      b.disabled = false; b.innerHTML = '☀️ Retry human backing · World';
+      b.disabled = false; b.innerHTML = '☀️ Retry Selfie Check · World';
       return;
     }
-    b.innerHTML = '✅ Human-backed · AgentBook ✓';
-    document.getElementById('authLvl').textContent = 'REVOKE — human-backed ✓ (AgentBook)';
+    // Selfie Check passed → a live, verified human backs this session's revokes.
+    window.__surgeonHuman = true;
+    document.getElementById('authLvl').textContent = 'REVOKE — human-backed ✓ · Selfie Check' + (v.level ? ' (' + esc(v.level) + ')' : '');
     lock.className = 'interlock ok';
-    lock.innerHTML = '<span class="tag">🔓 Interlock open</span>A verified human backs this agent. It may now propose <b>defensive revocations</b> — you still sign each one in World App.';
+    lock.innerHTML = '<span class="tag">🔓 Interlock open</span>A live human passed World ID <b>Selfie Check</b>' +
+      (agentBooked ? ' and the agent is registered in AgentBook' : '') +
+      '. The Surgeon may now propose <b>defensive revocations</b> — you still sign each one in your own wallet.';
+    b.disabled = false; b.innerHTML = '✅ Human-backed · Selfie Check ✓';
     document.getElementById('operateBtn').disabled = false;
   }
   function operate(){
@@ -999,11 +1069,41 @@
   }
 
   // ---- recourse sheet ----
+  // The recourse routes are gated by a real World ID Identity Check (recourse-eligibility):
+  // World confirms a real, of-age human before we surface reporting/claims routes. Demo mode
+  // shows a labeled staged pass; live mode holds the list until the check clears.
   function openRecourse(){
     openModal('recModal');
-    var ro = document.querySelectorAll('#recList .rec-opt');
+    var gate = document.getElementById('recGate');
+    var list = document.getElementById('recList');
+    if (new URLSearchParams(location.search).get('demo') === '1'){
+      gate.innerHTML = '<div class="dim" style="font-size:12px">🌍 <b>Identity Check</b> — staged pass for the demo (18+ ✓ · ID-verified ✓). Live, this runs a real World ID check.</div>';
+      revealRecourse();
+      return;
+    }
+    list.style.display = 'none';
+    gate.innerHTML = '<button class="btn hot" id="recVerifyBtn" onclick="verifyRecourse()">🌍 Verify eligibility · World Identity Check</button>' +
+      '<div class="dim" style="margin-top:8px;font-size:12px">World confirms you&rsquo;re a real, of-age human — you&rsquo;ll see only your routes. Nothing about you is stored.</div>';
+  }
+  function revealRecourse(){
+    var list = document.getElementById('recList');
+    list.style.display = '';
+    var ro = list.querySelectorAll('.rec-opt');
     for (var q = 0; q < ro.length; q++) ro[q].classList.remove('on');
     for (var k = 0; k < ro.length; k++) (function(k){ later(function(){ ro[k].classList.add('on'); }, 250 + k * 280); })(k);
+  }
+  async function verifyRecourse(){
+    var btn = document.getElementById('recVerifyBtn');
+    var gate = document.getElementById('recGate');
+    if (btn){ btn.disabled = true; btn.innerHTML = '<span class="spin"></span> scan with World App…'; }
+    try {
+      await worldVerify('identity');
+      gate.innerHTML = '<div class="dim" style="font-size:12px">✅ <b>Identity Check</b> passed — 18+ ✓ · ID-verified ✓. Only your eligible routes are shown; nothing was stored.</div>';
+      revealRecourse();
+    } catch(e){
+      gate.innerHTML = '<button class="btn hot" id="recVerifyBtn" onclick="verifyRecourse()">🌍 Retry · World Identity Check</button>' +
+        '<div class="dim" style="margin-top:8px;font-size:12px">Open in World App to confirm eligibility. <span style="opacity:.8">' + esc(e.message) + '</span></div>';
+    }
   }
 
   // ---- shared: particles, counter, modals ----
