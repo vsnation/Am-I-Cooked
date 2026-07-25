@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-const URL = 'https://freenodalvpn.xyz/cooked/';
+const URL = 'https://freenodalvpn.xyz/cooked/?demo=1';
 const results = [];
 const ok = (name, cond, detail) => results.push({ name, pass: !!cond, detail: detail || '' });
 const b = await chromium.launch();

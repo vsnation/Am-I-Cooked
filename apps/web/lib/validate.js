@@ -1,7 +1,8 @@
 // Data-path validation: run the real queries against the live gateway before any UI
 // claims to show this data. Usage: node apps/web/lib/validate.js [address]
 import { readFileSync } from "node:fs";
-import { autopsy } from "./autopsy.js";
+import { autopsy, loadIncidents } from "./autopsy.js";
+loadIncidents(JSON.parse(readFileSync(new URL("../../../hacks/incidents.json", import.meta.url), "utf8")));
 
 const env = Object.fromEntries(
   readFileSync(new URL("../../../.env", import.meta.url), "utf8")

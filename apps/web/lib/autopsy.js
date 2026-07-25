@@ -3,10 +3,16 @@
 // ONE query shape covers every conforming market — that is why a 10-second autopsy
 // is feasible. Designed for extraction as a standalone skill package.
 
-import { readFileSync } from "node:fs";
-
 const GATEWAY = "https://gateway.thegraph.com/api";
-const INCIDENTS = JSON.parse(readFileSync(new URL("../../../hacks/incidents.json", import.meta.url), "utf8"));
+
+// Incident registry is injected (browser fetches it, server reads it) — keeps this
+// module dependency-free and isomorphic.
+let INCIDENTS = null;
+export function loadIncidents(data) { INCIDENTS = data; }
+function registry() {
+  if (!INCIDENTS) throw new Error("incidents registry not loaded — call loadIncidents(json) first");
+  return INCIDENTS;
+}
 
 /** Subgraph registry. `schema` names the query dialect a source conforms to —
  *  adding a lending protocol that follows the Messari standard is one line here. */
@@ -103,14 +109,14 @@ export async function dexSurface(apiKey, address) {
 export function incidentSurface(universe) {
   const terms = [...new Set(universe.map(t => t.toLowerCase()).filter(Boolean))];
   const matches = [];
-  for (const inc of INCIDENTS.incidents) {
+  for (const inc of registry().incidents) {
     const hit = terms.find(term =>
       inc.matchKeys.some(k => k === term || (k.length >= 5 && term.includes(k)) || (term.length >= 5 && k.includes(term))));
     if (hit) matches.push({ target: inc.target, date: inc.date, lostUSD: inc.lostUSD, type: inc.type, recovered: inc.recovered, matchedOn: hit });
   }
   return {
     method: "name/symbol cross-reference vs curated registry (176 incidents, address-level matching pending approvals feed)",
-    registrySize: INCIDENTS.incidents.length,
+    registrySize: registry().incidents.length,
     matches,
     incidentLossUSD: matches.reduce((a, m) => a + m.lostUSD, 0),
   };
@@ -124,13 +130,13 @@ export function ghostSurface(lending, dex) {
   for (const p of dex.lpPositions) {
     if (Number(p.liquidity) > 0 && p.poolTvlUSD < 10_000)
       items.push({ where: `LP ${p.pair}`, why: `pool TVL $${Math.round(p.poolTvlUSD)} — effectively dead` });
-    const dead = INCIDENTS.incidents.find(i => i.recovered === "gone" &&
+    const dead = registry().incidents.find(i => i.recovered === "gone" &&
       p.pair.toLowerCase().split("/").some(t => i.matchKeys.includes(t)));
     if (dead && Number(p.liquidity) > 0)
       items.push({ where: `LP ${p.pair}`, why: `${dead.target} never recovered (${dead.date})` });
   }
   for (const src of lending) for (const p of src.openPositions) {
-    const dead = INCIDENTS.incidents.find(i => i.recovered === "gone" &&
+    const dead = registry().incidents.find(i => i.recovered === "gone" &&
       i.matchKeys.some(k => (p.market ?? "").toLowerCase().includes(k)));
     if (dead) items.push({ where: `${src.source} · ${p.market}`, why: `${dead.target} (${dead.date})` });
   }
