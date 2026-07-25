@@ -61,7 +61,7 @@ await p.click('#sealModal button');
 await p.click('text=Share the misery'); await p.waitForTimeout(400);
 ok('misery card opens', await p.isVisible('#shareModal .cardwrap'));
 await shot('t5-misery');
-await p.click('#shareModal button');
+await p.click('#shareModal button:has-text("close")'); // the modal's first button is now the X share CTA
 
 // 7 · THE GATE: anonymous surgeon cannot operate
 await p.click('text=Want the knives out'); await p.waitForTimeout(700);
