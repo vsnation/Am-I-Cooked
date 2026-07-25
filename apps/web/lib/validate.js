@@ -1,0 +1,25 @@
+// Data-path validation: run the real queries against the live gateway before any UI
+// claims to show this data. Usage: node apps/web/lib/validate.js [address]
+import { readFileSync } from "node:fs";
+import { autopsy } from "./autopsy.js";
+
+const env = Object.fromEntries(
+  readFileSync(new URL("../../../.env", import.meta.url), "utf8")
+    .split("\n").filter(l => l.includes("=") && !l.startsWith("#"))
+    .map(l => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1).trim()])
+);
+const key = env.GRAPH_API_KEY;
+if (!key) { console.error("GRAPH_API_KEY missing from .env"); process.exit(1); }
+
+const address = process.argv[2] ?? "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"; // vitalik.eth
+const t0 = Date.now();
+const report = await autopsy(key, address);
+const ms = Date.now() - t0;
+
+const d = report.surfaces.dex;
+console.log(`address        ${address}`);
+for (const l of report.surfaces.lending)
+  console.log(`lending        ${l.source} · protocol TVL $${Math.round(l.protocolTvlUSD).toLocaleString("en-US")} · account positions ${l.positionCount}`);
+console.log(`dex            ${d.source} · LP positions ${d.lpPositions.length} · recent swaps ${d.recentSwaps.length}`);
+if (d.recentSwaps[0]) console.log(`latest swap    ${d.recentSwaps[0].pair} $${Math.round(d.recentSwaps[0].amountUSD)} @ ${new Date(d.recentSwaps[0].ts * 1000).toISOString()}`);
+console.log(`elapsed        ${ms}ms · all data live from gateway (no mocks)`);
