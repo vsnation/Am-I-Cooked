@@ -8,6 +8,10 @@
 const WINDOW_MS = 12 * 60 * 1000;   // look back this far for a drop
 const MIN_TVL = 250_000;            // ignore dust pools — a $200 pool "draining" is noise
 const DROP_TRIGGER = 0.25;          // ≥25% TVL gone in the window = alarm
+// The top-40 pool set churns, and this engine runs for the life of the process: without
+// eviction every pool ever polled stayed in memory forever.
+const RETAIN_MS = 60 * 60 * 1000;   // drop pools that stopped reporting an hour ago
+const PRUNE_EVERY = 250;            // observations between sweeps
 
 export class AlarmEngine {
   constructor(opts = {}) {
@@ -16,13 +20,26 @@ export class AlarmEngine {
     this.alarms = new Map();    // poolId -> alarm
     this.meta = new Map();      // poolId -> {protocol, pair}
     this.listeners = new Set();
+    this.seen = 0;
   }
 
   onAlarm(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
 
+  /** Forget pools that stopped reporting — history, alarm and metadata together. */
+  prune(now = this.now()) {
+    for (const [poolId, hist] of this.history) {
+      const last = hist.length ? hist[hist.length - 1].ts : 0;
+      if (now - last <= RETAIN_MS) continue;
+      this.history.delete(poolId);
+      this.alarms.delete(poolId);
+      this.meta.delete(poolId);
+    }
+  }
+
   // Feed one liquidity sample. Returns an alarm if this sample triggered/updated one.
   observe({ poolId, protocol, pair, tvlUSD, ts, replay = false }) {
     ts = ts ?? this.now();
+    if (++this.seen % PRUNE_EVERY === 0) this.prune(ts);
     if (protocol || pair) this.meta.set(poolId, { protocol: protocol ?? this.meta.get(poolId)?.protocol, pair: pair ?? this.meta.get(poolId)?.pair });
     const hist = this.history.get(poolId) ?? [];
     hist.push({ ts, tvlUSD });

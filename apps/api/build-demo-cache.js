@@ -38,7 +38,7 @@ for (const input of inputs) {
   }
   const skipped = report.surfaces.approvals.skipped ?? [];
   if (skipped.length && !process.env.ALLOW_SKIPPED) {
-    console.log(`INCOMPLETE (skipped: ${skipped.join(",")}) — NOT stored. A pinned demo report must cover every chain; re-run, or ALLOW_SKIPPED=1 to override.`);
+    console.log(`INCOMPLETE (skipped: ${skipped.map(s => `${s.chain} — ${s.reason}`).join(" · ")}) — NOT stored. A pinned demo report must cover every chain; re-run, or ALLOW_SKIPPED=1 to override.`);
     continue;
   }
   out.entries[keyOf(resolved.toLowerCase())] = report;

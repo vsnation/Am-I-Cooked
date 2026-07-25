@@ -115,10 +115,15 @@ export async function dexSurface(apiKey, address) {
  *  with the approvals feed. */
 export function incidentSurface(universe) {
   const terms = [...new Set(universe.map(t => t.toLowerCase()).filter(Boolean))];
+  // Word-level matching, not substring: the old bidirectional `includes` let the alias
+  // "multi" (Multichain) fire on any name containing those five letters, and every false
+  // positive is worth a flat +34 on the exploit-exposure component.
+  const wordsOf = t => new Set(t.split(/[^a-z0-9]+/).filter(Boolean));
+  const termWords = new Map(terms.map(t => [t, wordsOf(t)]));
   const byProtocol = new Map(); // normalized protocol root -> best (largest-loss) match
   for (const inc of registry().incidents) {
     const hit = terms.find(term =>
-      inc.matchKeys.some(k => k === term || (k.length >= 5 && term.includes(k)) || (term.length >= 5 && k.includes(term))));
+      inc.matchKeys.some(k => k === term || termWords.get(term).has(k)));
     if (!hit) continue;
     const root = inc.target.toLowerCase().split(/\s+/)[0]; // "abracadabra money" -> "abracadabra"
     const prev = byProtocol.get(root);
@@ -127,7 +132,7 @@ export function incidentSurface(universe) {
   }
   const matches = [...byProtocol.values()];
   return {
-    method: "name/symbol cross-reference vs curated registry (176 incidents), one match per protocol; NOT time-bound to holdings — a brush, not proof of loss",
+    method: "name/symbol cross-reference vs curated registry, word-level match, one match per protocol; NOT time-bound to holdings — a brush, not proof of loss",
     registrySize: registry().incidents.length,
     matches,
     incidentLossUSD: matches.reduce((a, m) => a + m.lostUSD, 0),
@@ -191,12 +196,20 @@ export function cookedScore(surfaces) {
   // contributes nothing and forces partial — never a full-confidence 0.
   const feedDown = !a || a.status === "pending-feed" || a.status === "unavailable" || a.chainsScanned === 0;
   const wounds = !feedDown && typeof a.score === "number" ? a.score : null;
+  // A scan that lost SOME chains is not a full verdict either: the wounds it did not
+  // look for cannot raise the score, so "clean" would be a claim the data cannot make.
+  const missed = feedDown ? [] : (a.skipped ?? []).map(s => s.chain ?? s);
+  const pendingFeeds = wounds === null
+    ? ["approvals(40%)"]
+    : missed.length ? [`approvals(40%): ${missed.length}/${a.coverage?.total ?? "?"} chains unscanned — ${missed.join(", ")}`] : [];
   // rubric weights: wounds .40 · exploit .25 · ghost .20 · behavioral .15
   const score = Math.round((wounds ?? 0) * 0.40 + exploit * 0.25 + ghost * 0.20 + behavioral * 0.15);
   const bands = [[20, "RARE"], [40, "MEDIUM RARE"], [60, "MEDIUM WELL"], [80, "COOKED"], [100, "CHARCOAL"]];
   return {
-    partial: wounds === null,
-    pendingFeeds: wounds === null ? ["approvals(40%)"] : [],
+    partial: wounds === null || missed.length > 0,
+    feedDown: wounds === null,
+    unscannedChains: missed,
+    pendingFeeds,
     components: { openWounds: wounds, exploitExposure: exploit, ghostPortfolio: ghost, behavioral },
     score,
     band: bands.find(([max]) => score <= max)[1],

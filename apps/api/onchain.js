@@ -73,47 +73,69 @@ export async function resolveAddress(input, ensRpcs = ENS_RPCS) {
   throw new Error(`ENS resolution unavailable (${lastErr?.shortMessage || lastErr?.message || "all RPCs failed"})`);
 }
 
-async function chainTip(rpc) {
+async function chainTip(rpc, signal) {
   const r = await fetch(rpc, { method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_blockNumber", params: [] }) });
-  return parseInt((await r.json()).result, 16);
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_blockNumber", params: [] }), signal });
+  if (!r.ok) throw new Error(`eth_blockNumber: HTTP ${r.status}`);
+  const tip = parseInt((await r.json())?.result, 16);
+  // NaN here used to flow into fromBlock as "0xNaN", so the chain failed one RPC call
+  // later and was written off as "skipped" with no idea why. Fail where it happens.
+  if (!Number.isFinite(tip)) throw new Error("eth_blockNumber returned no usable tip");
+  return tip;
 }
 
 /** Multichain open-wounds surface: run the shared engine on every chain, tag each wound
  *  with its chain and a prepared revoke tx, merge, and combine the score. */
+// A wallet can hold thousands of approvals; the response is JSON in memory on both ends
+// and every item carries a prepared revoke tx. Keep the risk-sorted head, count the rest.
+const MAX_ITEMS = Number(process.env.MAX_WOUND_ITEMS || 500);
+
 export async function multichainApprovals(owner, incidents, opts = {}) {
-  const budget = opts.perChainMs ?? 22000;
+  // The UI tells users a heavy wallet's first scan takes ~30s, but the old 22s cap meant
+  // mainnet's chunked history reliably lost the race and got written off as "skipped".
+  const budget = opts.perChainMs ?? Number(process.env.PER_CHAIN_MS || 45000);
   const skipped = [];
   const perChain = await Promise.all(CHAINS.map(async ch => {
+    // Losing a Promise.race does NOT stop the loser: the old code left a full chunked
+    // log scan running against the provider for minutes after the answer was discarded.
+    const ctl = new AbortController();
+    const kill = setTimeout(() => ctl.abort(), budget);
     try {
-      const run = (async () => {
-        let fromBlock = ch.fromBlock;
-        if (ch.lookback) { const tip = await chainTip(ch.rpc); fromBlock = Math.max(0, tip - ch.lookback); }
-        const surface = await approvalsSurface(ch.rpc, owner, incidents, { fromBlock, blockSeconds: ch.blockSeconds });
-        return (surface.wounds || []).map(w => ({
-          ...w, chain: ch.name, chainId: ch.id, explorer: ch.explorer,
-          revoke: buildRevoke(ch.id, w.token, w.spender),
-        }));
-      })();
-      return await Promise.race([run, new Promise((_, r) => setTimeout(() => r(new Error("chain timeout")), budget))]);
-    } catch { skipped.push(ch.name); return []; }
+      let fromBlock = ch.fromBlock;
+      if (ch.lookback) { const tip = await chainTip(ch.rpc, ctl.signal); fromBlock = Math.max(0, tip - ch.lookback); }
+      const surface = await approvalsSurface(ch.rpc, owner, incidents,
+        { fromBlock, blockSeconds: ch.blockSeconds, signal: ctl.signal });
+      return (surface.wounds || []).map(w => ({
+        ...w, chain: ch.name, chainId: ch.id, explorer: ch.explorer,
+        revoke: buildRevoke(ch.id, w.token, w.spender),
+      }));
+    } catch (e) {
+      skipped.push({ chain: ch.name, reason: ctl.signal.aborted ? `timeout after ${budget}ms` : (e.message || "failed") });
+      return [];
+    } finally { clearTimeout(kill); }
   }));
 
-  const items = perChain.flat().sort((a, b) =>
-    ({ critical: 0, high: 1, medium: 2, low: 3 })[a.risk] - ({ critical: 0, high: 1, medium: 2, low: 3 })[b.risk]);
+  const rank = { critical: 0, high: 1, medium: 2, low: 3 };
+  const all = perChain.flat().sort((a, b) => rank[a.risk] - rank[b.risk]);
+  const items = all.slice(0, MAX_ITEMS);
 
-  const n = r => items.filter(w => w.risk === r).length;
+  const n = r => all.filter(w => w.risk === r).length;
   const score = Math.min(100, Math.max(
     n("critical") > 0 ? 70 : 0,
     n("critical") * 55 + n("high") * 18 + n("medium") * 8 + n("low") * 3,
   ));
+  const scanned = CHAINS.length - skipped.length;
   return {
-    method: `multichain approval-log scan (${CHAINS.length} EVM chains) + live allowance re-check; each wound carries a prepared approve(spender,0) revoke tx`,
+    method: `multichain approval-log scan (${scanned}/${CHAINS.length} EVM chains) + live allowance re-check; each wound carries a prepared approve(spender,0) revoke tx`,
     items,
+    itemsTruncated: all.length - items.length,
     score,
-    chains: [...new Set(items.map(i => i.chain))],
-    chainsScanned: CHAINS.length - skipped.length,
+    chains: [...new Set(all.map(i => i.chain))],
+    chainsScanned: scanned,
     skipped,
-    counts: { total: items.length, critical: n("critical"), unlimited: items.filter(i => i.unlimited).length },
+    // Explicit so nothing downstream has to infer coverage from array lengths: a scan
+    // that lost chains cannot claim "no open wounds", it can only claim "none found here".
+    coverage: { scanned, total: CHAINS.length, complete: skipped.length === 0 },
+    counts: { total: all.length, critical: n("critical"), unlimited: all.filter(i => i.unlimited).length },
   };
 }

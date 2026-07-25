@@ -33,10 +33,19 @@ const KNOWN_SPENDERS = {
 
 const pad32 = v => v.toLowerCase().replace(/^0x/, "").padStart(64, "0");
 
-async function rpc(url, method, params) {
+/** Sleep that gives up the moment the caller's scan is abandoned. */
+const nap = (ms, signal) => new Promise((res, rej) => {
+  if (signal?.aborted) return rej(new Error("aborted"));
+  const t = setTimeout(() => { signal?.removeEventListener?.("abort", onAbort); res(); }, ms);
+  function onAbort() { clearTimeout(t); rej(new Error("aborted")); }
+  signal?.addEventListener?.("abort", onAbort, { once: true });
+});
+
+async function rpc(url, method, params, signal) {
   const body = JSON.stringify({ jsonrpc: "2.0", id: 1, method, params });
   for (let attempt = 0; ; attempt++) {
-    const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body });
+    if (signal?.aborted) throw new Error("aborted");
+    const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body, signal });
     const text = await r.text();
     if (r.ok && text.trimStart().startsWith("{")) {
       const out = JSON.parse(text);
@@ -44,7 +53,7 @@ async function rpc(url, method, params) {
         // -32005 / "rate limit": a QUOTA window, not a malformed request — waiting works,
         // retrying instantly never does. Patient callers (the demo builder) ride it out.
         if (attempt < 6 && /rate limit|-32005|too many/i.test(out.error.message)) {
-          await new Promise(res => setTimeout(res, Math.min(45_000, 1500 * 2 ** attempt)));
+          await nap(Math.min(45_000, 1500 * 2 ** attempt), signal);
           continue;
         }
         throw new Error(`${method}: ${out.error.message}`);
@@ -53,7 +62,7 @@ async function rpc(url, method, params) {
     }
     // rate-limited or an HTML error page — back off and retry, JSON-RPC errors throw above
     if (attempt >= (r.status === 429 ? 6 : 4)) throw new Error(`${method}: provider unavailable (HTTP ${r.status})`);
-    await new Promise(res => setTimeout(res, r.status === 429 ? Math.min(45_000, 1500 * 2 ** attempt) : 800 * 2 ** attempt));
+    await nap(r.status === 429 ? Math.min(45_000, 1500 * 2 ** attempt) : 800 * 2 ** attempt, signal);
   }
 }
 
@@ -105,14 +114,15 @@ export function decodeTryAggregate(ret, n) {
 
 /** Plain JSON-RPC batching — the fallback when Multicall3 is absent. Batches are
  *  tiny because providers 429 anything bigger these days. */
-async function rpcBatchRaw(url, calls, { chunkSize = 5, spacingMs = 600 } = {}) {
+async function rpcBatchRaw(url, calls, { chunkSize = 5, spacingMs = 600, signal } = {}) {
   const results = new Array(calls.length).fill(null);
   for (let i = 0; i < calls.length; i += chunkSize) {
+    if (signal?.aborted) throw new Error("aborted");
     const chunk = calls.slice(i, i + chunkSize);
     const body = JSON.stringify(chunk.map((c, j) =>
       ({ jsonrpc: "2.0", id: i + j, method: "eth_call", params: [c, "latest"] })));
     for (let attempt = 0; ; attempt++) {
-      const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body });
+      const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body, signal });
       const text = await r.text();
       if (r.ok && text.trimStart().startsWith("[")) {
         for (const item of JSON.parse(text))
@@ -120,41 +130,47 @@ async function rpcBatchRaw(url, calls, { chunkSize = 5, spacingMs = 600 } = {}) 
         break;
       }
       if (attempt >= 4) throw new Error(`eth_call batch failed after retries (HTTP ${r.status})`);
-      await new Promise(res => setTimeout(res, r.status === 429 ? Math.min(45_000, 1500 * 2 ** attempt) : 800 * 2 ** attempt));
+      await nap(r.status === 429 ? Math.min(45_000, 1500 * 2 ** attempt) : 800 * 2 ** attempt, signal);
     }
-    if (i + chunkSize < calls.length) await new Promise(res => setTimeout(res, spacingMs));
+    if (i + chunkSize < calls.length) await nap(spacingMs, signal);
   }
   return results;
 }
 
 /** Batched eth_call; returns results aligned to `calls`, null for individual failures
  *  (a token with a reverting symbol() must not sink the whole surface). */
-async function rpcBatch(url, calls, { chunkSize = 300, spacingMs = 300 } = {}) {
+async function rpcBatch(url, calls, { chunkSize = 300, spacingMs = 300, signal } = {}) {
   const results = new Array(calls.length).fill(null);
   for (let i = 0; i < calls.length; i += chunkSize) {
+    if (signal?.aborted) throw new Error("aborted");
     const chunk = calls.slice(i, i + chunkSize);
     let decoded = null;
     try {
-      const ret = await rpc(url, "eth_call", [{ to: MULTICALL3, data: encodeTryAggregate(chunk) }, "latest"]);
+      const ret = await rpc(url, "eth_call", [{ to: MULTICALL3, data: encodeTryAggregate(chunk) }, "latest"], signal);
       decoded = decodeTryAggregate(ret, chunk.length);
-    } catch { /* no Multicall3 here (e.g. zkSync's differs) or provider refused — raw batches */ }
+    } catch (e) {
+      if (signal?.aborted || e.name === "AbortError") throw e;
+      /* no Multicall3 here (e.g. zkSync's differs) or provider refused — raw batches */
+    }
     if (decoded) decoded.forEach((d, j) => { if (d !== null) results[i + j] = d; });
-    else (await rpcBatchRaw(url, chunk)).forEach((v, j) => { results[i + j] = v; });
-    if (i + chunkSize < calls.length) await new Promise(res => setTimeout(res, spacingMs));
+    else (await rpcBatchRaw(url, chunk, { signal })).forEach((v, j) => { results[i + j] = v; });
+    if (i + chunkSize < calls.length) await nap(spacingMs, signal);
   }
   return results;
 }
 
 /** All Approval logs where `owner` granted: full-range first, 50k-block chunks with
  *  gentle pacing when the provider caps the range. */
-export async function approvalEvents(rpcUrl, owner, { fromBlock = DEFAULT_FROM_BLOCK } = {}) {
+export async function approvalEvents(rpcUrl, owner, { fromBlock = DEFAULT_FROM_BLOCK, signal } = {}) {
   const filter = topics => ({ fromBlock: "0x" + fromBlock.toString(16), toBlock: "latest", topics });
   const topics = [APPROVAL_TOPIC, "0x" + pad32(owner)];
-  const tip = parseInt(await rpc(rpcUrl, "eth_blockNumber", []), 16);
+  const tip = parseInt(await rpc(rpcUrl, "eth_blockNumber", [], signal), 16);
+  if (!Number.isFinite(tip)) throw new Error("eth_blockNumber returned no usable tip");
   try {
-    const logs = await rpc(rpcUrl, "eth_getLogs", [filter(topics)]);
+    const logs = await rpc(rpcUrl, "eth_getLogs", [filter(topics)], signal);
     return { logs, tip, chunked: false };
-  } catch {
+  } catch (e) {
+    if (signal?.aborted || e.name === "AbortError") throw e;
     // Full-range refused — providers phrase it a dozen ways ("block range too wide",
     // "query returned more than 10000 results", "response size exceeded", …).
     // Chunking is the correct response to all of them; a genuinely dead provider
@@ -167,30 +183,35 @@ export async function approvalEvents(rpcUrl, owner, { fromBlock = DEFAULT_FROM_B
     for (let attempt = 0; ; attempt++) {
       try {
         logs.push(...await rpc(rpcUrl, "eth_getLogs",
-          [{ fromBlock: "0x" + from.toString(16), toBlock: "0x" + to.toString(16), topics }]));
+          [{ fromBlock: "0x" + from.toString(16), toBlock: "0x" + to.toString(16), topics }], signal));
         break;
       } catch (e) {
+        if (signal?.aborted || e.name === "AbortError") throw e;
         if (attempt >= 3) throw new Error(`log scan failed at block ${from}: ${e.message}`);
-        await new Promise(r => setTimeout(r, 400 * 2 ** attempt));
+        await nap(400 * 2 ** attempt, signal);
       }
     }
-    await new Promise(r => setTimeout(r, 120));
+    await nap(120, signal);
   }
   return { logs, tip, chunked: true };
 }
 
-/** Latest Approval per (token, spender) — later events overwrite earlier ones. */
+/** Latest Approval per (token, spender) — later events overwrite earlier ones.
+ *  Most tokens carry `value` in data, but some index it as a third topic; reading only
+ *  data made those look like value-0 grants and silently dropped the wound. */
 export function latestPairs(logs) {
   const pairs = new Map();
+  const toBig = h => { try { return h == null || h === "0x" ? 0n : BigInt(h); } catch { return 0n; } };
   for (const log of logs) {
     const key = `${log.address.toLowerCase()}:${log.topics[2]}`;
     const prev = pairs.get(key);
     const bn = parseInt(log.blockNumber, 16), ix = parseInt(log.logIndex, 16);
     if (!prev || bn > prev.bn || (bn === prev.bn && ix > prev.ix)) {
+      const fromData = toBig(log.data);
       pairs.set(key, {
         token: log.address.toLowerCase(),
         spender: "0x" + log.topics[2].slice(26),
-        approvedValue: BigInt(log.data === "0x" ? 0 : log.data),
+        approvedValue: fromData > 0n ? fromData : toBig(log.topics[3]),
         bn, ix,
       });
     }
@@ -219,9 +240,10 @@ export async function approvalsSurface(rpcUrl, owner, incidents, opts = {}) {
   const { logs, tip, chunked } = await approvalEvents(rpcUrl, owner, opts);
   const pairs = latestPairs(logs).filter(p => p.approvedValue > 0n);
 
+  const signal = opts.signal;
   const allowances = await rpcBatch(rpcUrl, pairs.map(p => ({
     to: p.token, data: SEL_ALLOWANCE + pad32(owner) + pad32(p.spender),
-  })));
+  })), { signal });
   // A FAILED allowance re-check (per-item RPC error, malformed return) fails CLOSED:
   // the pair stays open at its granted value, flagged unverified — a wound is never
   // silently reported as revoked just because a provider hiccuped. "0x" (empty return,
@@ -268,8 +290,8 @@ export async function approvalsSurface(rpcUrl, owner, incidents, opts = {}) {
   // Token metadata only where it will be read (top of the sorted list) — a wallet can
   // hold thousands of spam-token approvals and symbol() calls are the expensive part.
   const metaTokens = [...new Set(wounds.slice(0, META_TOP).map(w => w.token))];
-  const symbols = await rpcBatch(rpcUrl, metaTokens.map(t => ({ to: t, data: SEL_SYMBOL })));
-  const decimals = await rpcBatch(rpcUrl, metaTokens.map(t => ({ to: t, data: SEL_DECIMALS })));
+  const symbols = await rpcBatch(rpcUrl, metaTokens.map(t => ({ to: t, data: SEL_SYMBOL })), { signal });
+  const decimals = await rpcBatch(rpcUrl, metaTokens.map(t => ({ to: t, data: SEL_DECIMALS })), { signal });
   const meta = Object.fromEntries(metaTokens.map((t, i) => [t, {
     symbol: decodeString(symbols[i]) ?? t.slice(0, 8) + "…",
     decimals: decimals[i] ? parseInt(decimals[i], 16) : 18,
