@@ -29,6 +29,11 @@ const KNOWN_SPENDERS = {
   "0xc92e8bdf79f0507f65a392b0ab4667716bfe0110": "CoW Protocol relayer",
   "0xdef1c0ded9bec7f1a1670819833240f027b25eff": "0x Exchange Proxy",
   "0x881d40237659c251811cec9c364ef91dc08d300c": "MetaMask Swap Router",
+  // Uniswap redeploys its routers per chain at different addresses (keys are plain
+  // addresses, so cross-chain collisions can't mislabel). Both verified on-chain:
+  // factory() → canonical Base V3/V2 factories, WETH() → 0x4200…0006.
+  "0x2626664c2603336e57b271c5c0b26f421741e481": "Uniswap V3 Router 2 (Base)",
+  "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24": "Uniswap V2 Router (Base)",
 };
 
 const pad32 = v => v.toLowerCase().replace(/^0x/, "").padStart(64, "0");

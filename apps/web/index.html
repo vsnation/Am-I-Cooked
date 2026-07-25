@@ -681,6 +681,14 @@
     }, 380 + 5 * 300 + 420);
   }
 
+  // "dangerous" is a measured claim (risk critical/high from the scan), not a synonym
+  // for "open" — a wallet full of medium/low wounds must not be headlined as dangerous.
+  function woundsLine(items, chains){
+    var dng = items.filter(function(x){ return x.risk === 'critical' || x.risk === 'high'; }).length;
+    return items.length + ' live approval' + (items.length>1?'s':'') + ' across ' + chains + ' chain' + (chains>1?'s':'')
+      + (dng ? ' · ' + dng + ' dangerous' : ' · none flagged dangerous');
+  }
+
   function mapReport(rep){
     var m = rep.surfaces.incidents.matches, g = rep.surfaces.ghost, b = rep.surfaces.behavioral, c = rep.cooked;
     var M = function(x){ return (x / 1e6).toFixed(1); };
@@ -691,7 +699,7 @@
         ev: m.length ? m.map(function(x){ return '⚠ <b>' + esc(x.target) + '</b> — $' + M(x.lostUSD) + 'M drained · ' + esc(x.date) + ' · via ' + esc(String(x.matchedOn).toUpperCase()) + ' · funds ' + esc(x.recovered); }).join('<br>') : 'not a single hacked protocol in this history' },
       (function(){ var ap = rep.surfaces.approvals || {}; var w = ap.items || []; var pend = !!c.partial && !w.length;
         return { k: 'Open wounds', bad: w.length > 0, open: w.length > 0, dim: pend,
-          v: pend ? '<span class="scanw">⏳ scanning 21 chains for live approvals…</span>' : (w.length ? w.length + ' live dangerous approval' + (w.length>1?'s':'') + ' across ' + (ap.chains||[]).length + ' chain' + ((ap.chains||[]).length>1?'s':'') : 'no open wounds — approvals are clean'),
+          v: pend ? '<span class="scanw">⏳ scanning 21 chains for live approvals…</span>' : (w.length ? woundsLine(w, (ap.chains||[]).length) : 'no open wounds — approvals are clean'),
           ev: pend ? 'checking every token approval against known drainers across the EVM' : (w.length ? w.slice(0,6).map(function(x){ return '🔪 <b>'+esc(x.symbol||x.token.slice(0,8))+'</b> → '+esc(x.spenderLabel||(x.spender.slice(0,10)+'…'))+' · '+esc(x.chain)+' · '+esc(x.risk)+(x.unlimited?' · unlimited':''); }).join('<br>') : 'nothing to revoke — nice') };
       })(),
       { k: 'Ghost portfolio', bad: g.items.length > 0,
@@ -1091,7 +1099,7 @@
       var v = rows[i].querySelector('.v'), ev = rows[i].querySelector('.ev');
       if (items.length){
         v.className = 'v bad';
-        v.textContent = items.length + ' live dangerous approval' + (items.length>1?'s':'') + ' across ' + (d.approvals.chains||[]).length + ' chains';
+        v.textContent = woundsLine(items, (d.approvals.chains||[]).length);
         rows[i].classList.add('open');
         ev.innerHTML = items.slice(0,6).map(function(x){ return '🔪 <b>'+esc(x.symbol||x.token.slice(0,8))+'</b> → '+esc(x.spenderLabel||(x.spender.slice(0,10)+'…'))+' · '+esc(x.chain)+' · '+esc(x.risk)+(x.unlimited?' · unlimited':''); }).join('<br>')
           + (missed.length ? '<br><span class="scanw">⚠ ' + esc(missed.join(', ')) + ' could not be scanned — wounds there were not checked</span>' : '');
