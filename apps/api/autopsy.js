@@ -186,7 +186,11 @@ export function cookedScore(surfaces) {
   const exploit = Math.min(100, surfaces.incidents.matches.length * 34);
   const ghost = surfaces.ghost?.score ?? 0;
   const behavioral = surfaces.behavioral?.score ?? 0;
-  const wounds = typeof surfaces.approvals?.score === "number" ? surfaces.approvals.score : null;
+  const a = surfaces.approvals;
+  // Rubric missing-surface rule: a feed that is absent, down, or scanned zero chains
+  // contributes nothing and forces partial — never a full-confidence 0.
+  const feedDown = !a || a.status === "pending-feed" || a.status === "unavailable" || a.chainsScanned === 0;
+  const wounds = !feedDown && typeof a.score === "number" ? a.score : null;
   // rubric weights: wounds .40 · exploit .25 · ghost .20 · behavioral .15
   const score = Math.round((wounds ?? 0) * 0.40 + exploit * 0.25 + ghost * 0.20 + behavioral * 0.15);
   const bands = [[20, "RARE"], [40, "MEDIUM RARE"], [60, "MEDIUM WELL"], [80, "COOKED"], [100, "CHARCOAL"]];

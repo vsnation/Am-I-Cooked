@@ -29,11 +29,16 @@ for (const input of inputs) {
   const resolved = await resolveAddress(input);
   process.stdout.write(`${input} -> ${resolved} … `);
   const report = await autopsy(KEY, resolved, {
-    approvals: addr => multichainApprovals(addr, REGISTRY, { perChainMs: 120000 }), // patient: build-time, not request-time
+    approvals: addr => multichainApprovals(addr, REGISTRY, { perChainMs: 600000 }), // patient: build-time, not request-time
   });
   report.input = input; report.resolved = resolved;
   if (report.cooked.partial) {
     console.log(`PARTIAL (pending: ${report.cooked.pendingFeeds.join(",")}) — NOT stored, fix the feed and re-run`);
+    continue;
+  }
+  const skipped = report.surfaces.approvals.skipped ?? [];
+  if (skipped.length && !process.env.ALLOW_SKIPPED) {
+    console.log(`INCOMPLETE (skipped: ${skipped.join(",")}) — NOT stored. A pinned demo report must cover every chain; re-run, or ALLOW_SKIPPED=1 to override.`);
     continue;
   }
   out.entries[keyOf(resolved.toLowerCase())] = report;
