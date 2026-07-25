@@ -19,6 +19,11 @@ const SCHEMA = 8;
 const SELF_ORIGIN = process.env.SELF_ORIGIN || ("http://127.0.0.1:" + PORT); // bump to invalidate all cached reports after a scoring change
 if (!KEY) { console.error("[cooked-api] GRAPH_API_KEY missing"); process.exit(1); }
 
+// Availability over purity: a stray rejection from a provider SDK timer must log,
+// not kill the service — a dead process is a 502 for every user until systemd notices.
+process.on("unhandledRejection", e => console.error("[cooked-api] unhandledRejection:", e?.stack || e));
+process.on("uncaughtException", e => console.error("[cooked-api] uncaughtException:", e?.stack || e));
+
 const REGISTRY = JSON.parse(readFileSync(new URL("./incidents.json", import.meta.url), "utf8"));
 loadIncidents(REGISTRY);
 const DRAINERS = REGISTRY.addresses.map(a => a.address);

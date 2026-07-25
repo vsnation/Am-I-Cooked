@@ -43,17 +43,34 @@ export function buildRevoke(chainId, token, spender) {
   return { chainId, to: getAddress(token), value: "0x0", data: SEL_APPROVE + pad(spender) + pad("0") };
 }
 
+// ENS resolution must never hinge on one provider being up: short per-RPC timeout,
+// no viem retries (the fallback list IS the retry), next RPC on transport failure.
+const ENS_RPCS = [
+  "https://ethereum-rpc.publicnode.com",
+  "https://mainnet.gateway.tenderly.co",
+  "https://cloudflare-eth.com",
+];
+
 /** Accepts a 0x address or an ENS name; returns a checksummed address. */
-export async function resolveAddress(input, ensRpc = "https://ethereum-rpc.publicnode.com") {
+export async function resolveAddress(input, ensRpcs = ENS_RPCS) {
   const raw = (input || "").trim();
   if (/^0x[0-9a-fA-F]{40}$/.test(raw)) return getAddress(raw);
-  if (/\.eth$/i.test(raw)) {
-    const client = createPublicClient({ chain: mainnet, transport: http(ensRpc) });
-    const addr = await client.getEnsAddress({ name: normalize(raw) });
-    if (!addr) throw new Error(`ENS name "${raw}" does not resolve to an address`);
-    return getAddress(addr);
+  if (!/\.eth$/i.test(raw)) throw new Error("input must be a 0x… address or an ENS name (…​.eth)");
+  const name = normalize(raw);
+  let lastErr;
+  for (const rpc of Array.isArray(ensRpcs) ? ensRpcs : [ensRpcs]) {
+    try {
+      const client = createPublicClient({ chain: mainnet, transport: http(rpc, { timeout: 4000, retryCount: 0 }) });
+      const addr = await client.getEnsAddress({ name });
+      // null is an authoritative answer (name has no address) — not a transport error
+      if (!addr) throw Object.assign(new Error(`ENS name "${raw}" does not resolve to an address`), { permanent: true });
+      return getAddress(addr);
+    } catch (e) {
+      if (e.permanent) throw e;
+      lastErr = e;
+    }
   }
-  throw new Error("input must be a 0x… address or an ENS name (…​.eth)");
+  throw new Error(`ENS resolution unavailable (${lastErr?.shortMessage || lastErr?.message || "all RPCs failed"})`);
 }
 
 async function chainTip(rpc) {
@@ -91,7 +108,7 @@ export async function multichainApprovals(owner, incidents, opts = {}) {
     n("critical") * 55 + n("high") * 18 + n("medium") * 8 + n("low") * 3,
   ));
   return {
-    method: "multichain approval-log scan (7 EVM chains) + live allowance re-check; each wound carries a prepared approve(spender,0) revoke tx",
+    method: `multichain approval-log scan (${CHAINS.length} EVM chains) + live allowance re-check; each wound carries a prepared approve(spender,0) revoke tx`,
     items,
     score,
     chains: [...new Set(items.map(i => i.chain))],

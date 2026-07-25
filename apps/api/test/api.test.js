@@ -301,6 +301,28 @@ describe("resolveAddress", () => {
     await assert.rejects(resolveAddress(""), /0x… address or an ENS name/);
     await assert.rejects(resolveAddress("0x1234"), /0x… address or an ENS name/);
   });
+
+  test("every ENS RPC down → clean 'unavailable' error, not a crash", async () => {
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = async () => { throw new Error("ECONNREFUSED"); };
+    try {
+      await assert.rejects(
+        resolveAddress("vitalik.eth", ["http://rpc-one.invalid", "http://rpc-two.invalid"]),
+        /ENS resolution unavailable/,
+      );
+    } finally { globalThis.fetch = realFetch; }
+  });
+
+  test("a single string ensRpcs argument still works (back-compat)", async () => {
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = async () => { throw new Error("ECONNREFUSED"); };
+    try {
+      await assert.rejects(
+        resolveAddress("vitalik.eth", "http://rpc-one.invalid"),
+        /ENS resolution unavailable/,
+      );
+    } finally { globalThis.fetch = realFetch; }
+  });
 });
 
 describe("CHAINS registry", () => {
