@@ -28,8 +28,8 @@ These gate everything below.
   picked on the dashboard. We are From Scratch — the repo was born at the event.
 - **AI usage** is allowed (Claude, Codex, Cursor), but judges will ask how AI was
   used and expect every team member to fully understand the project. They
-  recommend committing plan files to the repo — our `CLAUDE.md`, `ccb.js` and
-  the AI-usage answer in `docs/SUBMISSION.md` are exactly that. Their explicit
+  recommend committing plan files to the repo — our CLAUDE.md, ccb.js and
+  the AI-usage answer in docs/SUBMISSION.md are exactly that. Their explicit
   anti-pattern: pitching AI as the idea's author.
 - **Key to a good submission**, in their words: record a video; less slides,
   more demo; use git properly (many commits, smaller diffs); add detailed
@@ -48,7 +48,7 @@ These gate everything below.
 | The Graph | Best AI Use Case | \$2,000 | Graph is load-bearing; the judge is the AI reasoning layer |
 | The Graph | Composable / Standardized | \$2,000 | Messari standardized schemas plus Uniswap v3 composition |
 
-**ENS is used, not selected.** The `.eth` input (3-RPC fallback resolver, ENS demo
+**ENS is used, not selected.** The .eth input (3-RPC fallback resolver, ENS demo
 wallets) stays a product feature and a pitch line, but with the 3-partner cap it
 doesn't make the cut — no ENS booth, no ENS form.
 
@@ -76,7 +76,7 @@ Continuity tracks are for prior-event projects; we take the standard ones.
 ### Best Infrastructure & Tooling (\$1,500, up to 3 teams)
 
 - [x] At least one working example agent using the framework — seal ships
-      `examples/goldfish.ts` and `examples/desk-check.ts`
+      examples/goldfish.ts and examples/desk-check.ts
 - [ ] Architecture diagram (recommended) — one diagram of app → SEAL (MCP) → 0G
       serves both 0G tracks
 
@@ -85,7 +85,7 @@ Continuity tracks are for prior-event projects; we take the standard ones.
 ### AgentKit New Use Cases (\$4,000 / \$2,500 / \$1,500)
 
 - [x] AgentKit used meaningfully — AgentBook verifier on World Chain, agent
-      self-check, `/surgeon/status|authorize|probe` (commit 9493c6a)
+      self-check, /surgeon/status|authorize|probe (commit 9493c6a)
 - [x] Human-backed agent verification — the "no face, no scalpel" interlock
 - [ ] End-to-end working flow — biggest gap: revoke signing in World App is
       staged in the UI, MiniKit wiring pending (t15, blocked by APP_ID from t6,
@@ -100,14 +100,14 @@ documentation** with both **developer feedback** and **user feedback**".
 Identity Check additionally: "Explains why the requested attribute is necessary
 and how the app minimizes data collection".
 
-The scaffolding already exists in `docs/world-testing/`: `dev-feedback-log.md`
-(live SDK-friction log), `venue-walk-form.md` (anonymous ~20-person venue user
+The scaffolding already exists in docs/world-testing/: dev-feedback-log.md
+(live SDK-friction log), venue-walk-form.md (anonymous ~20-person venue user
 test) and a README with the data-minimization statement that covers the Identity
 Check extra (two booleans, nothing persisted).
 
 - [ ] Real Selfie Check integration (currently designed, not wired)
 - [ ] Identity Check: two-boolean recourse (jurisdiction, 18+) per t15
-- [ ] Fill `dev-feedback-log.md` **during** the t6/t15 integration — one entry
+- [ ] Fill dev-feedback-log.md **during** the t6/t15 integration — one entry
       per friction point as it happens; an empty template does not qualify
 - [ ] Run the venue walk (Saturday evening) and fill the tally — this is the
       user-feedback half of the requirement
@@ -118,7 +118,7 @@ Common to all three tracks: public repo, a 2–4 minute demo video (t17's 2:50
 fits every sponsor's window), live data via the Graph gateway, no mocks.
 
 - **Best AI Tooling** (judging: usefulness 30%, reusability 25%, Graph use 20%,
-  execution 15%, innovation 10%) — cooked-skill is an MCP server with `SKILL.md`
+  execution 15%, innovation 10%) — cooked-skill is an MCP server with SKILL.md
   and README. Pitch: "any agent can borrow our coroner"; show a second client
   consuming it.
 - **Best AI Use Case** (Graph effectiveness 35%, usefulness 25%, execution 20%) —
@@ -137,7 +137,7 @@ fits every sponsor's window), live data via the Graph gateway, no mocks.
 - [ ] Demo video uploaded — 2:50 fits every limit (0G under 3, Graph 2–4,
       Finalist track requires one)
 - [ ] Project page: detailed description and screenshots
-- [ ] "How we used AI" answer rehearsed — it lives in `docs/SUBMISSION.md`;
+- [ ] "How we used AI" answer rehearsed — it lives in docs/SUBMISSION.md;
       everyone pitching must be able to explain any part of the code unaided
 - [ ] Live demo healthy at judging time — freeze deploys before Sunday morning,
       keep the demo-wallet cache warm (t35)
@@ -155,6 +155,6 @@ fits every sponsor's window), live data via the Graph gateway, no mocks.
 | CookedRegistry deploy on Galileo | t7 | 0G "rubric hash on-chain" claim |
 | Live TEE attestation in demo (not stub) | t4 | 0G "proof of Compute usage" |
 | 2:50 video and clips | t17 | every track |
-| Filled World testing docs (`docs/world-testing/`) | t6 / t15 | both World beta prizes |
+| Filled World testing docs (docs/world-testing/) | t6 / t15 | both World beta prizes |
 | Venue walk user test (~20 people, Saturday evening) | — | user-feedback half of World testing docs |
 | Team Telegram and X contacts | — | 0G submission field |
