@@ -21,8 +21,11 @@ export const REGISTRY = [
     id: "5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV" },
 ];
 
-export async function gql(apiKey, subgraphId, query, variables = {}) {
-  const r = await fetch(`${GATEWAY}/${apiKey}/subgraphs/id/${subgraphId}`, {
+export async function gql(auth, subgraphId, query, variables = {}) {
+  // auth: an API key (server/CLI use) OR { proxyBase } (browser use — the key stays
+  // server-side in a reverse proxy that injects it)
+  const base = typeof auth === "object" && auth?.proxyBase ? auth.proxyBase : `${GATEWAY}/${auth}`;
+  const r = await fetch(`${base}/subgraphs/id/${subgraphId}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ query, variables }),
@@ -84,6 +87,7 @@ export async function dexSurface(apiKey, address) {
     source: src.name,
     lpPositions: (d.positions ?? []).map(p => ({
       pair: `${p.pool.token0.symbol}/${p.pool.token1.symbol}`, liquidity: p.liquidity,
+      poolTvlUSD: Number(p.pool.totalValueLockedUSD ?? 0),
     })),
     recentSwaps: (d.swaps ?? []).map(s => ({
       ts: Number(s.timestamp), pair: `${s.token0.symbol}/${s.token1.symbol}`,
@@ -112,19 +116,65 @@ export function incidentSurface(universe) {
   };
 }
 
+/** Ghost-portfolio surface: value parked where nothing lives anymore — LP positions in
+ *  near-empty pools, positions in protocols from the incident registry that never
+ *  recovered. Signals, not balances: precise USD sizing needs per-position accounting. */
+export function ghostSurface(lending, dex) {
+  const items = [];
+  for (const p of dex.lpPositions) {
+    if (Number(p.liquidity) > 0 && p.poolTvlUSD < 10_000)
+      items.push({ where: `LP ${p.pair}`, why: `pool TVL $${Math.round(p.poolTvlUSD)} — effectively dead` });
+    const dead = INCIDENTS.incidents.find(i => i.recovered === "gone" &&
+      p.pair.toLowerCase().split("/").some(t => i.matchKeys.includes(t)));
+    if (dead && Number(p.liquidity) > 0)
+      items.push({ where: `LP ${p.pair}`, why: `${dead.target} never recovered (${dead.date})` });
+  }
+  for (const src of lending) for (const p of src.openPositions) {
+    const dead = INCIDENTS.incidents.find(i => i.recovered === "gone" &&
+      i.matchKeys.some(k => (p.market ?? "").toLowerCase().includes(k)));
+    if (dead) items.push({ where: `${src.source} · ${p.market}`, why: `${dead.target} (${dead.date})` });
+  }
+  return { items, score: Math.min(100, items.length * 45) };
+}
+
+/** Behavioral surface (heuristic v0, documented as such): the worst day is the day with
+ *  the largest swap outflow relative to this wallet's own typical size — a proxy until
+ *  realized-loss accounting lands. */
+export function behavioralSurface(dex) {
+  const swaps = dex.recentSwaps.filter(s => s.amountUSD > 0);
+  if (swaps.length < 3) return { worstDay: null, score: 0, note: "not enough swap history" };
+  const byDay = {};
+  for (const s of swaps) {
+    const day = new Date(s.ts * 1000).toISOString().slice(0, 10);
+    byDay[day] = byDay[day] ?? { volumeUSD: 0, biggest: 0, pair: "" };
+    byDay[day].volumeUSD += s.amountUSD;
+    if (s.amountUSD > byDay[day].biggest) { byDay[day].biggest = s.amountUSD; byDay[day].pair = s.pair; }
+  }
+  const [day, w] = Object.entries(byDay).sort((a, b) => b[1].volumeUSD - a[1].volumeUSD)[0];
+  const median = swaps.map(s => s.amountUSD).sort((a, b) => a - b)[Math.floor(swaps.length / 2)];
+  const ratio = median > 0 ? w.biggest / median : 0;
+  return {
+    worstDay: { date: day, volumeUSD: Math.round(w.volumeUSD), biggestSwapUSD: Math.round(w.biggest), pair: w.pair },
+    score: Math.min(100, Math.round(ratio * 4)),
+    note: "size-vs-typical heuristic; realized-loss accounting pending",
+  };
+}
+
 /** Partial cooked score. Transparent formula, final weights live in the sealed judge:
  *  open wounds 40 (pending approvals feed) · exploit exposure 25 · ghost 20 (pending) ·
  *  behavioral 15 (pending). Until the other feeds land, only exploit exposure scores —
  *  reported as partial, never presented as the full verdict. */
 export function cookedScore(surfaces) {
-  const nHits = surfaces.incidents.matches.length;
-  const exploit = Math.min(100, nHits * 34);            // 3+ brushes with disaster = maxed component
-  const score = Math.round(exploit * 0.25);             // remaining 75% of weight awaits its feeds
+  const exploit = Math.min(100, surfaces.incidents.matches.length * 34);
+  const ghost = surfaces.ghost?.score ?? 0;
+  const behavioral = surfaces.behavioral?.score ?? 0;
+  // rubric weights: wounds .40 (pending approvals feed) · exploit .25 · ghost .20 · behavioral .15
+  const score = Math.round(exploit * 0.25 + ghost * 0.20 + behavioral * 0.15);
   const bands = [[20, "RARE"], [40, "MEDIUM RARE"], [60, "MEDIUM WELL"], [80, "COOKED"], [100, "CHARCOAL"]];
   return {
     partial: true,
-    pendingFeeds: ["approvals(40%)", "ghost(20%)", "behavioral(15%)"],
-    components: { exploitExposure: exploit },
+    pendingFeeds: ["approvals(40%)"],
+    components: { exploitExposure: exploit, ghostPortfolio: ghost, behavioral },
     score,
     band: bands.find(([max]) => score <= max)[1],
   };
@@ -142,7 +192,12 @@ export async function autopsy(apiKey, address) {
     ...dex.recentSwaps.flatMap(s => s.pair.split("/")),
   ];
   const incidents = incidentSurface(universe);
-  const surfaces = { lending, dex, incidents, approvals: { status: "pending-feed" } };
+  const surfaces = {
+    lending, dex, incidents,
+    ghost: ghostSurface(lending, dex),
+    behavioral: behavioralSurface(dex),
+    approvals: { status: "pending-feed" },
+  };
   return {
     address,
     generatedAt: new Date().toISOString(),

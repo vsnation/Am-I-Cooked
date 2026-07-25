@@ -26,5 +26,8 @@ const inc = report.surfaces.incidents;
 console.log(`incidents      ${inc.matches.length} hacked-protocol brushes (registry: ${inc.registrySize})`);
 for (const m of inc.matches.slice(0, 6))
   console.log(`  ⚠ ${m.target} (${m.date}) · $${(m.lostUSD / 1e6).toFixed(1)}M lost · matched on "${m.matchedOn}" · ${m.recovered}`);
+const g = report.surfaces.ghost, b = report.surfaces.behavioral;
+console.log(`ghost          ${g.items.length} dead-value signals${g.items[0] ? ` · e.g. ${g.items[0].where} (${g.items[0].why})` : ""}`);
+if (b.worstDay) console.log(`worst day      ${b.worstDay.date} · $${b.worstDay.volumeUSD.toLocaleString("en-US")} moved · biggest ${b.worstDay.pair} $${b.worstDay.biggestSwapUSD.toLocaleString("en-US")}`);
 console.log(`cooked         ${report.cooked.score} (${report.cooked.band}) · PARTIAL — pending: ${report.cooked.pendingFeeds.join(", ")}`);
 console.log(`elapsed        ${ms}ms · all data live from gateway (no mocks)`);
