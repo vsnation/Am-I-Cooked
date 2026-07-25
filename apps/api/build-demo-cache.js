@@ -48,3 +48,4 @@ for (const input of inputs) {
 
 writeFileSync(new URL("./demo-cache.json", import.meta.url), JSON.stringify(out));
 console.log(`demo-cache.json written: ${out.wallets.length}/${inputs.length} wallets, schema ${SCHEMA}`);
+process.exit(0); // the per-chain race timers would otherwise keep the process alive for minutes

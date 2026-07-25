@@ -83,8 +83,11 @@ export async function approvalEvents(rpcUrl, owner, { fromBlock = DEFAULT_FROM_B
   try {
     const logs = await rpc(rpcUrl, "eth_getLogs", [filter(topics)]);
     return { logs, tip, chunked: false };
-  } catch (e) {
-    if (!/range|limit|10000|50000/i.test(e.message)) throw e;
+  } catch {
+    // Full-range refused — providers phrase it a dozen ways ("block range too wide",
+    // "query returned more than 10000 results", "response size exceeded", …).
+    // Chunking is the correct response to all of them; a genuinely dead provider
+    // fails the first chunk below and surfaces there.
   }
   const logs = [];
   const STEP = 50_000;
