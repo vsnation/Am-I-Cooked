@@ -37,7 +37,8 @@ Live demo: https://freenodalvpn.xyz/cooked/
 | 0G | Best AI Product on 0G | $3,000 | **core** — sealed TEE judge + Storage + Agentic ID + registry |
 | 0G | Best Infrastructure & Tooling | $1,500×3 | SEAL as standalone dev tooling — we qualify for both automatically |
 | World | AgentKit New Use Cases | $4,000 | **core** — human-backed Surgeon via AgentBook |
-| World | Selfie Check Beta | $1,000 | the ON-DUTY gate; needs real integration + testing docs |
+| World | Selfie Check Beta | $1,000 | the ON-DUTY gate; needs real integration + testing docs (`docs/world-testing/`) |
+| World | Identity Check Beta | $1,000 | 2-boolean recourse (t15); same testing docs + data-minimization note |
 | The Graph | Best AI Tooling for The Graph | $2,500 | cooked-skill (MCP server + SKILL) is literally the brief |
 | The Graph | Best AI Use Case | $2,000 | Graph is load-bearing, judge is the AI reasoning layer |
 | The Graph | Composable/Standardized | $2,000 | Messari standardized schemas + Uniswap v3 composition |
@@ -85,12 +86,25 @@ diagram (recommended) — one diagram of app → SEAL(MCP) → 0G would serve bo
 - [ ] "Genuinely new workflow" — pitch line ready: an agent whose *authority*
       (not identity) is human-backed and expires daily
 
-### Selfie Check Beta ($1k/$750) — only if t6/t15 land
+### Selfie Check Beta ($1k/$750) + Identity Check Beta ($1k/$750) — only if t6/t15 land
+
+Both beta tracks hard-require (verbatim): "Includes **testing documentation** with
+both **developer feedback** and **user feedback**". Identity Check additionally:
+"Explains why the requested attribute is necessary and how the app minimizes data
+collection".
+
+The deliverable scaffolding already exists — `docs/world-testing/`:
+`dev-feedback-log.md` (live SDK-friction log), `venue-walk-form.md` (~20-person
+anonymous venue user test), README with the data-minimization statement (covers
+the Identity Check extra requirement: two booleans, nothing persisted).
 
 - [ ] Real Selfie Check integration (currently designed, not wired)
-- [ ] **Testing documentation** — REQUIRED: developer-friction log (SDK/API, docs)
-      + user feedback (UX, camera flow). t6 already plans a dev-feedback log —
-      keep notes from minute one of integration, it doubles as the deliverable.
+- [ ] Identity Check: 2-boolean recourse (jurisdiction + 18+) per t15
+- [ ] **Fill dev-feedback-log.md DURING t6/t15 integration** — one entry per
+      friction point at the moment it happens, not from memory; it's an empty
+      template until then, and an empty template does not qualify
+- [ ] **Run the venue walk (Sat evening) and fill the tally** — this is the
+      "user feedback" half of the requirement
 
 ## The Graph — three standard tracks (apply to all three)
 
@@ -135,5 +149,6 @@ windows), live data via Graph gateway ✓ (no mocks anywhere ✓).
 | CookedRegistry deploy on Galileo | t7 | 0G pitch: "rubric hash on-chain" claim |
 | Live TEE attestation in demo (not stub) | t4 | 0G "proof of Compute usage" |
 | 2:50 video + clips | t17 | every track |
-| Selfie Check + testing docs | t6/t15 | World Selfie Check Beta |
+| Selfie/Identity Check + filled testing docs (`docs/world-testing/`) | t6/t15 | both World beta prizes |
+| Venue walk user test (~20 ppl, Sat evening) | — | "user feedback" half of World testing docs |
 | Team Telegram/X contacts | — | 0G submission field |
