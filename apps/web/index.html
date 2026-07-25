@@ -527,8 +527,16 @@
       return;
     }
     VD = null;
-    SCANP = demoMode ? null : fetch('/cooked-api/scan?address=' + addr.toLowerCase())
-      .then(function(r){ return r.json(); }).catch(function(){ return null; });
+    // 75s client cap: first scan of a heavy wallet legitimately runs ~30s (7-chain
+    // approvals trace), but a stalled request must land in scanFailed, never hang the oven.
+    SCANP = demoMode ? null : (function(){
+      var ctl = new AbortController();
+      var kill = setTimeout(function(){ ctl.abort(); }, 75000);
+      return fetch('/cooked-api/scan?address=' + addr.toLowerCase(), { signal: ctl.signal })
+        .then(function(r){ return r.json(); })
+        .catch(function(){ return null; })
+        .finally(function(){ clearTimeout(kill); });
+    })();
     document.getElementById('addrBox').classList.add('gone');
     document.getElementById('mascot').classList.add('cooking');
     var box = document.getElementById('scanBox');
@@ -539,7 +547,14 @@
     })(k);
     later(async function(){
       if (SCANP){
+        // The scanlog animation is done but a cold deep scan may still be running —
+        // say so instead of freezing silently.
+        var hint = setTimeout(function(){
+          var fl = document.getElementById('scanlog').lastElementChild;
+          if (fl){ fl.textContent = '▸ deep scan running — a heavy wallet’s first scan takes ~30s, hang tight'; fl.classList.add('on'); }
+        }, 2500);
         var d = await SCANP;
+        clearTimeout(hint);
         if (d && d.report) { VD = mapReport(d.report); }
         else { scanFailed(); return; }   // real scan failed → honest error, never a fake demo
       }
