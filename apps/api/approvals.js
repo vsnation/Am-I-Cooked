@@ -40,19 +40,72 @@ async function rpc(url, method, params) {
     const text = await r.text();
     if (r.ok && text.trimStart().startsWith("{")) {
       const out = JSON.parse(text);
-      if (out.error) throw new Error(`${method}: ${out.error.message}`);
+      if (out.error) {
+        // -32005 / "rate limit": a QUOTA window, not a malformed request — waiting works,
+        // retrying instantly never does. Patient callers (the demo builder) ride it out.
+        if (attempt < 6 && /rate limit|-32005|too many/i.test(out.error.message)) {
+          await new Promise(res => setTimeout(res, Math.min(45_000, 1500 * 2 ** attempt)));
+          continue;
+        }
+        throw new Error(`${method}: ${out.error.message}`);
+      }
       return out.result;
     }
     // rate-limited or an HTML error page — back off and retry, JSON-RPC errors throw above
-    if (attempt >= 4) throw new Error(`${method}: provider unavailable (HTTP ${r.status})`);
-    await new Promise(res => setTimeout(res, 800 * 2 ** attempt));
+    if (attempt >= (r.status === 429 ? 6 : 4)) throw new Error(`${method}: provider unavailable (HTTP ${r.status})`);
+    await new Promise(res => setTimeout(res, r.status === 429 ? Math.min(45_000, 1500 * 2 ** attempt) : 800 * 2 ** attempt));
   }
 }
 
-/** Batched eth_call; returns results aligned to `calls`, null for individual failures
- *  (a token with a reverting symbol() must not sink the whole surface). Public RPCs
- *  rate-limit bursts, so batches are paced and 429/non-JSON responses retried. */
-async function rpcBatch(url, calls, { chunkSize = 250, spacingMs = 1200 } = {}) {
+// --- Multicall3: fold hundreds of eth_calls into one. Canonical address on ~every
+// EVM chain; chains without it (or providers rejecting it) fall back to small
+// JSON-RPC batches below. Providers now weight per-request quotas so hard that a
+// 250-item JSON-RPC batch 429s outright — one aggregated call is the only shape
+// that survives a heavy wallet.
+const MULTICALL3 = "0xca11bde05977b3631167028862be2a173976ca11";
+const word = n => n.toString(16).padStart(64, "0");
+
+/** calldata for tryAggregate(false, [(target, callData), …]) */
+export function encodeTryAggregate(calls) {
+  const heads = [];
+  const tails = [];
+  let tailOff = calls.length * 32; // element offsets are relative to the heads area
+  for (const c of calls) {
+    heads.push(word(tailOff));
+    const data = c.data.replace(/^0x/, "");
+    const padded = data.padEnd(Math.ceil(data.length / 64) * 64, "0");
+    const tuple = word(BigInt(c.to)) + word(0x40) + word(data.length / 2) + padded; // address left-padded, then dynamic bytes
+    tails.push(tuple);
+    tailOff += tuple.length / 2;
+  }
+  return "0xbce38bd7" + word(0) /* requireSuccess=false */ + word(0x40)
+    + word(calls.length) + heads.join("") + tails.join("");
+}
+
+/** decode tryAggregate return → per-call hex result, null where the call reverted */
+export function decodeTryAggregate(ret, n) {
+  const hex = (ret || "").replace(/^0x/, "");
+  if (hex.length < 128) throw new Error("multicall: short return");
+  const rd = pos => parseInt(hex.slice(pos * 2, pos * 2 + 64), 16); // 32-byte word at byte offset pos
+  const arrPos = rd(0);            // offset of the (bool,bytes)[] array
+  const len = rd(arrPos);
+  if (len !== n) throw new Error(`multicall: expected ${n} results, got ${len}`);
+  const base = arrPos + 32;        // heads area
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const el = base + rd(base + i * 32);
+    const ok = rd(el) === 1;
+    if (!ok) { out.push(null); continue; }
+    const bytesPos = el + rd(el + 32);
+    const blen = rd(bytesPos);
+    out.push("0x" + hex.slice((bytesPos + 32) * 2, (bytesPos + 32 + blen) * 2));
+  }
+  return out;
+}
+
+/** Plain JSON-RPC batching — the fallback when Multicall3 is absent. Batches are
+ *  tiny because providers 429 anything bigger these days. */
+async function rpcBatchRaw(url, calls, { chunkSize = 5, spacingMs = 600 } = {}) {
   const results = new Array(calls.length).fill(null);
   for (let i = 0; i < calls.length; i += chunkSize) {
     const chunk = calls.slice(i, i + chunkSize);
@@ -67,8 +120,26 @@ async function rpcBatch(url, calls, { chunkSize = 250, spacingMs = 1200 } = {}) 
         break;
       }
       if (attempt >= 4) throw new Error(`eth_call batch failed after retries (HTTP ${r.status})`);
-      await new Promise(res => setTimeout(res, 800 * 2 ** attempt));
+      await new Promise(res => setTimeout(res, r.status === 429 ? Math.min(45_000, 1500 * 2 ** attempt) : 800 * 2 ** attempt));
     }
+    if (i + chunkSize < calls.length) await new Promise(res => setTimeout(res, spacingMs));
+  }
+  return results;
+}
+
+/** Batched eth_call; returns results aligned to `calls`, null for individual failures
+ *  (a token with a reverting symbol() must not sink the whole surface). */
+async function rpcBatch(url, calls, { chunkSize = 300, spacingMs = 300 } = {}) {
+  const results = new Array(calls.length).fill(null);
+  for (let i = 0; i < calls.length; i += chunkSize) {
+    const chunk = calls.slice(i, i + chunkSize);
+    let decoded = null;
+    try {
+      const ret = await rpc(url, "eth_call", [{ to: MULTICALL3, data: encodeTryAggregate(chunk) }, "latest"]);
+      decoded = decodeTryAggregate(ret, chunk.length);
+    } catch { /* no Multicall3 here (e.g. zkSync's differs) or provider refused — raw batches */ }
+    if (decoded) decoded.forEach((d, j) => { if (d !== null) results[i + j] = d; });
+    else (await rpcBatchRaw(url, chunk)).forEach((v, j) => { results[i + j] = v; });
     if (i + chunkSize < calls.length) await new Promise(res => setTimeout(res, spacingMs));
   }
   return results;
