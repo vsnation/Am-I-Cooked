@@ -43,12 +43,14 @@ export function computeComponents(surfaces) {
     pending.push("approvals(40%)");
   } else {
     // Live shapes: multichain surface carries `items`, single-chain carries `wounds`.
-    // Rubric: 50 per address-level incident match, 20 per REMAINING unlimited
-    // approval — an incident-matched wound never double-counts its unlimited flag.
+    // Rubric formula over the feed-assigned risk tiers — identical to the engine
+    // (approvals.js / onchain.js), so the judge reproduces the surface's own score.
     const woundsList = a.items ?? a.wounds ?? [];
-    const incidentMatches = woundsList.filter(w => w?.incident).length;
-    const unlimitedRemaining = woundsList.filter(w => w?.unlimited && !w?.incident).length;
-    wounds = Math.min(100, incidentMatches * 50 + unlimitedRemaining * 20);
+    const n = r => woundsList.filter(w => w?.risk === r).length;
+    wounds = Math.min(100, Math.max(
+      n("critical") > 0 ? 70 : 0,
+      n("critical") * 55 + n("high") * 18 + n("medium") * 8 + n("low") * 3,
+    ));
   }
   const exploitExposure = Math.min(100, (surfaces.incidents?.matches?.length ?? 0) * 34);
   const ghostPortfolio = Math.min(100, (surfaces.ghost?.items?.length ?? 0) * 45);

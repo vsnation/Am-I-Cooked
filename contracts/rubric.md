@@ -15,10 +15,16 @@ The autopsy report produced by the cooked-skill library: `surfaces.lending`,
 Final score = round(wounds×0.40 + exploitExposure×0.25 + ghostPortfolio×0.20 + behavioral×0.15).
 Each component is an integer 0–100.
 
-1. **Open wounds — 0.40.** From the approvals surface: each active token approval to a
-   contract matching the incident registry at address level scores 50; each remaining
-   unlimited (max-allowance) approval scores 20. Cap at 100. If the approvals surface
-   reports `pending-feed`, the component is 0 and `approvals(40%)` MUST appear in
+1. **Open wounds — 0.40.** From the approvals surface's wound list (`items`; `wounds`
+   in the single-chain form). Each wound carries a `risk` tier assigned by the feed:
+   `critical` = spender or token matches the incident registry at address level;
+   `high` = unlimited (max-allowance) approval to an unrecognized contract;
+   `medium` = unlimited approval to a well-known labeled router, or a bounded approval
+   granted over two years ago and never revoked; `low` = any other surviving approval.
+   wounds = min(100, max(70 if any critical wound else 0,
+   55×critical + 18×high + 8×medium + 3×low)).
+   If the approvals surface is missing, reports `pending-feed` or `unavailable`, or
+   scanned zero chains, the component is 0 and `approvals(40%)` MUST appear in
    `pendingFeeds`.
 2. **Exploit exposure — 0.25.** min(100, 34 × count of incident-registry matches in the
    wallet's observed universe of markets, pools and traded tokens).
@@ -30,9 +36,12 @@ Each component is an integer 0–100.
 
 ## Missing-surface rule
 
-A missing or `pending-feed` surface contributes exactly 0 to its component, is listed in
-`pendingFeeds`, and forces `partial: true`. Weights are NEVER renormalized — a partial
-scan can only under-report doneness, never inflate it.
+A missing surface, a surface reporting `pending-feed` or `unavailable`, and an approvals
+surface that scanned zero chains all contribute exactly 0 to their component, are listed
+in `pendingFeeds`, and force `partial: true`. Weights are NEVER renormalized — a partial
+scan can only under-report doneness, never inflate it. Chains the approvals feed skipped
+for time appear in the surface's `skipped` list; skipped chains alone do not make the
+verdict partial.
 
 ## Bands
 

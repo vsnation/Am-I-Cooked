@@ -44,25 +44,32 @@ test("wounds reads the live multichain approvals shape (items + incident/unlimit
       { spender: "0x3", incident: null, unlimited: true, risk: "medium" },
       { spender: "0x4", incident: null, unlimited: false, risk: "low" },
     ],
-    score: 91,
+    score: 84,
     counts: { total: 4, critical: 1, unlimited: 3 },
   } });
-  // 1 incident match ×50 + 2 REMAINING unlimited ×20 — the matched wound's
-  // unlimited flag does not double-count.
-  assert.equal(live.components.wounds, 90);
+  // Engine-identical formula: min(100, max(70-if-critical, 55×1 + 18×1 + 8×1 + 3×1)) = 84.
+  assert.equal(live.components.wounds, 84);
   assert.deepEqual(live.pendingFeeds, []);
 });
 
 test("wounds reads the single-chain approvalsSurface shape (wounds[])", () => {
   const live = computeComponents({ ...SURFACES, approvals: {
     wounds: [
-      { spender: "0xa", incident: null, unlimited: true },
-      { spender: "0xb", incident: null, unlimited: true },
+      { spender: "0xa", incident: null, unlimited: true, risk: "high" },
+      { spender: "0xb", incident: null, unlimited: true, risk: "high" },
     ],
     openCount: 2, unlimitedCount: 2,
   } });
-  assert.equal(live.components.wounds, 40);
+  assert.equal(live.components.wounds, 36); // 18×2, no critical floor
   assert.deepEqual(live.pendingFeeds, []);
+});
+
+test("a single critical wound triggers the 70 floor", () => {
+  const live = computeComponents({ ...SURFACES, approvals: {
+    items: [{ spender: "0x1", incident: { target: "Ronin", kind: "exploiter" }, unlimited: false, risk: "critical" }],
+    counts: { total: 1, critical: 1, unlimited: 0 },
+  } });
+  assert.equal(live.components.wounds, 70); // max(70, 55×1)
 });
 
 test("unavailable approvals feed scores 0 and forces pendingFeeds (missing-surface rule)", () => {
