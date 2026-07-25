@@ -155,6 +155,29 @@ fits every sponsor's window), live data via the Graph gateway, no mocks.
 - [ ] If finalist (announced Sunday): dry-run the 4-minute demo and 3-minute Q&A
 - [ ] Checklist pass 3 hours before the deadline (t17)
 
+## Demo blockers confirmed on prod (25 Jul evening)
+
+Both verified against the live service, both would visibly break a judged demo.
+
+1. **The Surgeon is not human-backed in AgentBook** (t115).
+   `/surgeon/status` on prod returns `humanBacked: false`, `check.granted: false,
+   status: 402`. With the interlock really enforced, OPERATE stays disabled — we can
+   demo the BLOCKED half of the story but never the cut, which is exactly the
+   "shows a working end-to-end flow" the AgentKit track hard-requires.
+   **Fix:** register the Surgeon wallet `0x00ecc9545f23e59Ee4121F246c4eC4e26eA5657A`
+   with `@worldcoin/agentkit-cli register` and approve it in World App. This is a
+   human action of a couple of minutes and it does **not** depend on the App ID (t6).
+
+2. **The pinned demo cache is pre-fix** (t113). `demo-cache.json` on the API host was
+   generated 13:52 UTC, before 9bd6ed2 (dangerous-approval headline + Base router
+   labels) and da1bdc4 (behavioral copy). vitalik.eth therefore still serves
+   100/CHARCOAL with all four components capped at 100 and brushes against Slope
+   Wallet, Atomic Wallet, CoinsPaid and Grand Base — false positives a judge may well
+   poke at. **Fix:** re-run `build-demo-cache.js` on the API host (local's machine).
+
+Also outstanding: prod web is a deploy behind main again (live sw v32, main v33 —
+t120).
+
 ## Open gaps, by owner
 
 | Gap | Bridge task | Blocks |
