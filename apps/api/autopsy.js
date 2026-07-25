@@ -179,7 +179,7 @@ export function behavioralSurface(dex) {
   return {
     worstDay: { date: day, volumeUSD: Math.round(w.volumeUSD), biggestSwapUSD: Math.round(w.biggest), pair: w.pair },
     score: Math.min(100, Math.round(ratio * 4)),
-    note: "size-vs-typical heuristic; realized-loss accounting pending",
+    note: "your biggest trading day — money moved, not a loss (realized-loss P&L pending)",
   };
 }
 

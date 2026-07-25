@@ -396,7 +396,7 @@
       <div class="formrow" onclick="this.classList.toggle('open')"><div class="k">Exploit exposure<span class="chev">▸</span></div><div class="v">2 hacked protocols touched · <span id="amt1">€0</span> present at incident</div><div class="ev">DogVault (Mar 2025, drained) · JuiceFi (Nov 2024, oracle) · cross-referenced against your positions via standardized schemas</div></div>
       <div class="formrow" onclick="this.classList.toggle('open')"><div class="k">Open wounds<span class="chev">▸</span></div><div class="v bad">🔪 unlimited approval → flagged drainer · 🔪 dead contract</div><div class="ev">USDC → 0xdrain…f00d (spender flagged 41 min ago) · LP token → 0xdead…c0de (renounced)</div></div>
       <div class="formrow" onclick="this.classList.toggle('open')"><div class="k">Ghost portfolio<span class="chev">▸</span></div><div class="v"><span id="amt2">€0</span> still in protocols that died in 2024</div><div class="ev">HowlSwap LP €610 (TVL −99.2%) · BoneVault €290 (no tx for 14 months)</div></div>
-      <div class="formrow" onclick="this.classList.toggle('open')"><div class="k">The worst day<span class="chev">▸</span></div><div class="v">March 14, 2025 · <span id="amt3">−€0</span> in one signature</div><div class="ev">tx 0x81aa… · swap into GMEOW at the top · realized −€2,914 within 6 hours</div></div>
+      <div class="formrow" onclick="this.classList.toggle('open')"><div class="k">Your biggest day<span class="chev">▸</span></div><div class="v"><span id="amt3">€0</span> traded in one day · Mar 14, 2025</div><div class="ev">The single day this wallet moved the most through swaps — biggest trade GMEOW/WETH. (Money moved that day, not a realized loss.)</div></div>
     </div>
     <div class="gaugebox" id="gaugeV">
       <svg viewBox="0 0 240 155" width="240">
@@ -723,8 +723,8 @@
       { k: 'Ghost portfolio', bad: g.items.length > 0,
         v: g.items.length ? g.items.length + ' dead-value signals' : 'no value stranded in dead protocols',
         ev: g.items.map(function(i){ return esc(i.where) + ' — ' + esc(i.why); }).join('<br>') || '—' },
-      { k: 'The worst day', v: b.worstDay ? esc(b.worstDay.date) + ' · $' + esc(b.worstDay.volumeUSD.toLocaleString('en-US')) + ' moved' : 'quiet history',
-        ev: b.worstDay ? 'biggest: ' + esc(b.worstDay.pair) + ' $' + b.worstDay.biggestSwapUSD.toLocaleString('en-US') + ' · ' + esc(b.note) : '' }
+      { k: 'Your biggest day', v: b.worstDay ? '$' + esc(b.worstDay.volumeUSD.toLocaleString('en-US')) + ' traded in one day · ' + esc(b.worstDay.date) : 'quiet history',
+        ev: b.worstDay ? 'The single day this wallet moved the most money through swaps — where the costliest mistakes tend to hide. Biggest trade that day: ' + esc(b.worstDay.pair) + ' $' + b.worstDay.biggestSwapUSD.toLocaleString('en-US') + '. (Money moved through trades — not a realized loss.)' : '' }
     ];
     var roast;
     if (c.score <= 20) roast = top ? '"You brushed against ' + top.target + ' and lived. Respect."' : '"Suspiciously clean. Either a genius or a fresh wallet."';
@@ -788,7 +788,7 @@
       rows[k].classList.add('on');
       if (k === 0) animateMoney('amt1', 4120, 700, false);
       if (k === 2) animateMoney('amt2', 900, 700, false);
-      if (k === 3) animateMoney('amt3', 2914, 700, true);
+      if (k === 3) animateMoney('amt3', 38400, 700, false);
     }, 250 + k * 420); })(k);
     var t = 250 + 4 * 420;
     later(function(){
