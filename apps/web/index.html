@@ -753,7 +753,7 @@
         }, 2500);
         var d = await SCANP;
         clearTimeout(hint);
-        if (d && d.report) { VD = mapReport(d.report); window.__scanAddr = addr; window.__scanAddrResolved = (d.report.resolved || d.report.address || '').toLowerCase(); scanDoneAt = Date.now(); }
+        if (d && d.report) { VD = mapReport(d.report); window.__report = d.report; window.__scanAddr = addr; window.__scanAddrResolved = (d.report.resolved || d.report.address || '').toLowerCase(); scanDoneAt = Date.now(); }
         else { scanFailed(); return; }   // real scan failed → honest error, never a fake demo
       }
       show(2);
@@ -1081,12 +1081,33 @@
   // The recourse routes are gated by a real World ID Identity Check (recourse-eligibility):
   // World confirms a real, of-age human before we surface reporting/claims routes. Demo mode
   // shows a labeled staged pass; live mode holds the list until the check clears.
+  // The routes come from THIS wallet's scan — a real scan shows its real matched
+  // incidents, never the staged DogVault story (that stays demo-only).
+  function renderRecourseList(){
+    var list = document.getElementById('recList');
+    var rep = window.__report;
+    if (!rep) return; // demo / staged story keeps the built-in DogVault items
+    var m = (rep.surfaces && rep.surfaces.incidents && rep.surfaces.incidents.matches || [])
+      .slice().sort(function(a, z){ return (z.lostUSD || 0) - (a.lostUSD || 0); });
+    var wounds = (rep.surfaces.approvals && rep.surfaces.approvals.counts && rep.surfaces.approvals.counts.total) || 0;
+    var M = function(x){ return '$' + (x / 1e6).toFixed(1) + 'M'; };
+    var html = '';
+    if (m.length){
+      html += '<div class="rec-opt"><span class="st open">OPEN · claims process</span><b>' + esc(m[0].target) + ' — recovery claims</b><br>'
+        + 'Your wallet matched this incident (' + esc(M(m[0].lostUSD || 0)) + ' lost, funds ' + esc(m[0].recovered || 'unknown') + '). → check the claims process</div>';
+    }
+    html += '<div class="rec-opt"><span class="st open">OPEN · report</span><b>EU / national cybercrime portal</b><br>'
+      + (wounds ? wounds + ' live drainer-exposed approval' + (wounds > 1 ? 's are' : ' is') : 'Drainer approvals are') + ' reportable fraud here. → pre-filled report</div>';
+    html += '<div class="rec-opt"><span class="st info">INFO</span><b>MiCA complaint route</b><br>If a matched protocol was an EU-registered CASP, a complaint can join the queue.</div>';
+    list.innerHTML = html;
+  }
   function openRecourse(){
     openModal('recModal');
     var gate = document.getElementById('recGate');
     var list = document.getElementById('recList');
+    renderRecourseList();
     if (new URLSearchParams(location.search).get('demo') === '1'){
-      gate.innerHTML = '<div class="dim" style="font-size:12px">🌍 <b>Identity Check</b> — staged pass for the demo (18+ ✓ · ID-verified ✓). Live, this runs a real World ID check.</div>';
+      gate.innerHTML = '<div class="dim" style="font-size:12px">🌍 Staged pass for the demo — live, this runs a real World ID <b>Identity Check</b>.</div>';
       revealRecourse();
       return;
     }
