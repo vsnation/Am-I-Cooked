@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Morgue &mdash; DeFi &amp; Bridge Autopsy Map</title>
+<style>
+  :root {
+    --char: #141010;
+    --soot: #1b1512;
+    --soot-2: #221a15;
+    --bone: #EAE0CE;
+    --bone-dim: #b8ad98;
+    --muted: #8c8171;
+    --line: #3a2f27;
+    --ember: #FF6A2B;
+    --blood: #D6472F;
+    --wax: #86251F;
+    --healed: #7BA886;
+    --mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: system-ui, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body {
+    margin: 0;
+    background: radial-gradient(120% 80% at 50% -10%, #241a14 0%, var(--char) 55%) fixed;
+    color: var(--bone);
+    font-family: var(--serif);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: clamp(20px, 4vw, 56px) clamp(16px, 4vw, 40px) 80px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ember); margin: 0 0 14px; }
+  .eyebrow .sep { color: var(--line); margin: 0 8px; }
+  h1 { font-family: var(--sans); font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; font-size: clamp(38px, 8vw, 82px); line-height: 0.92; margin: 0; text-wrap: balance; color: var(--bone); text-shadow: 0 2px 0 #0c0908; }
+  h1 .knife { color: var(--blood); }
+  .dek { font-size: clamp(16px, 2.2vw, 20px); color: var(--bone-dim); max-width: 62ch; margin: 18px 0 0; }
+  .dek em { color: var(--bone); font-style: italic; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin: 40px 0 8px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .stat { background: var(--soot); padding: 20px 20px 18px; }
+  .stat .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .stat .v { font-family: var(--sans); font-weight: 800; font-size: clamp(24px, 3.4vw, 38px); line-height: 1.05; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .stat .s { font-size: 13px; color: var(--bone-dim); margin-top: 4px; }
+  .stat.hero .v { color: var(--ember); }
+  .stat.blood .v { color: var(--blood); }
+  .stat.healed .v { color: var(--healed); }
+  @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 32px 0 6px; }
+  .controls .label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+  .chip { font-family: var(--mono); font-size: 12px; letter-spacing: 0.03em; color: var(--bone-dim); background: var(--soot); border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+  .chip:hover { color: var(--bone); border-color: var(--bone-dim); }
+  .chip[aria-pressed="true"] { background: var(--ember); color: #1a0d05; border-color: var(--ember); font-weight: 700; }
+  .chip .n { opacity: .6; margin-left: 5px; }
+  .chip:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+
+  .panel { background: var(--soot); border: 1px solid var(--line); border-radius: 12px; padding: 20px clamp(12px, 2.5vw, 26px) 14px; margin-top: 14px; }
+  .panel h2 { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--bone-dim); margin: 0 0 2px; font-weight: 400; }
+  .panel .sub { font-family: var(--mono); font-size: 11px; color: var(--muted); margin: 0 0 10px; }
+  .chart-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  svg { display: block; width: 100%; height: auto; }
+  @media (max-width: 640px) { #scatter { min-width: 600px; } .chart-scroll { margin: 0 -6px; padding: 0 6px; } }
+  svg text { font-family: var(--mono); }
+  .grid line { stroke: var(--line); stroke-width: 1; }
+  .grid .zero { stroke: #4a3b30; }
+  .axis text { fill: var(--muted); font-size: 13px; }
+  .axis .unit { fill: var(--bone-dim); }
+  .bubble { cursor: pointer; transition: opacity .18s; }
+  .bubble circle { transition: stroke-width .12s; }
+  .bubble.dim { opacity: 0.06; pointer-events: none; }
+  .bubble:hover circle.mark, .bubble.active circle.mark { stroke: var(--bone); stroke-width: 2.5; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 20px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .legend .grp { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .legend .lab { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .legend .item { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; color: var(--bone-dim); }
+  .legend .sw { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
+
+  .tip { position: fixed; z-index: 40; pointer-events: none; background: #0e0a08; border: 1px solid var(--line); border-left: 3px solid var(--ember); border-radius: 8px; padding: 11px 13px; max-width: 300px; box-shadow: 0 12px 34px rgba(0,0,0,.6); opacity: 0; transition: opacity .12s; font-family: var(--sans); }
+  .tip.on { opacity: 1; }
+  .tip .t-name { font-weight: 800; font-size: 15px; letter-spacing: -0.01em; }
+  .tip .t-meta { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 3px 0 8px; }
+  .tip .t-amt { font-family: var(--sans); font-weight: 800; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .tip .t-vec { font-family: var(--serif); font-size: 13px; color: var(--bone-dim); margin-top: 7px; line-height: 1.4; }
+  .tip .t-addr { font-family: var(--mono); font-size: 10.5px; color: var(--bone-dim); margin-top: 8px; word-break: break-all; }
+  .tip .t-addr b { color: var(--ember); font-weight: 400; }
+  .tip .t-rec { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 8px; }
+
+  .bars { display: grid; gap: 9px; margin-top: 4px; }
+  .bar-row { display: grid; grid-template-columns: clamp(78px, 22vw, 128px) minmax(0,1fr) auto; align-items: center; gap: 12px; }
+  .bar-row .cat { font-family: var(--mono); font-size: clamp(10px,2.4vw,11.5px); letter-spacing: 0.05em; text-transform: uppercase; color: var(--bone-dim); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { height: 24px; min-width: 0; }
+  .bar-fill { height: 100%; border-radius: 3px 5px 5px 3px; border-right: 2px solid rgba(255,106,43,.55); min-width: 3px; }
+  .bar-val { font-family: var(--mono); font-size: clamp(10.5px,2.5vw,12px); color: var(--bone); white-space: nowrap; font-variant-numeric: tabular-nums; text-align: right; min-width: 44px; }
+
+  .files-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin: 44px 0 4px; flex-wrap: wrap; }
+  .files-head h2 { font-family: var(--sans); font-weight: 800; text-transform: uppercase; letter-spacing: -0.01em; font-size: clamp(22px, 3vw, 30px); margin: 0; }
+  .files-head .count { font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: 0.1em; }
+  .files { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-top: 18px; }
+  @media (max-width: 400px) { .files { grid-template-columns: 1fr; } }
+  .file { border: 1px solid var(--line); border-radius: 10px; padding: 15px 15px 14px; position: relative; overflow: hidden; min-height: 132px; display: flex; flex-direction: column; }
+  .file .band { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; opacity: .85; }
+  .file .fname { font-family: var(--sans); font-weight: 800; font-size: 17px; letter-spacing: -0.01em; margin: 5px 0 0; line-height: 1.1; }
+  .file .fmeta { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; opacity: .7; }
+  .file .famt { font-family: var(--sans); font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums; margin-top: auto; padding-top: 10px; }
+  .file .fvec { font-family: var(--serif); font-size: 12.5px; line-height: 1.4; margin-top: 6px; opacity: .92; }
+  .file .faddr { font-family: var(--mono); font-size: 10px; margin-top: 8px; opacity: .8; word-break: break-all; }
+  .file .frec { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 9px; display: inline-flex; align-items: center; gap: 6px; }
+  .file .stamp { position: absolute; top: 12px; right: 12px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; border: 1px solid currentColor; border-radius: 3px; padding: 2px 5px; opacity: .5; text-transform: uppercase; }
+  .file.hide { display: none; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  footer { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 11px; line-height: 1.7; color: var(--muted); letter-spacing: 0.03em; }
+  footer .big { color: var(--bone-dim); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Case file N&ordm; 0G-2026<span class="sep">/</span>Wallet Autopsy Division<span class="sep">/</span>on-chain DeFi &amp; bridge exploits, 2020&ndash;2026</p>
+    <h1>The <span class="knife">Morgue</span></h1>
+    <p class="dek">Every wallet got cooked. These are the pans it happened in &mdash; the protocols and bridges whose corpses litter the chain. Bigger the loss, <em>darker the char</em>. Hover a body for the autopsy. Centralized exchanges are not in this ward.</p>
+  </header>
+
+  <section class="stats" id="stats" aria-label="Summary"></section>
+
+  <div class="controls" role="group" aria-label="Filter by kind">
+    <span class="label">Filter</span>
+    <div id="chips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+  </div>
+
+  <section class="panel" aria-label="Autopsy timeline">
+    <h2>The autopsy timeline</h2>
+    <p class="sub">each body placed by date and loss / vertical axis is logarithmic / bridges wear an ember ring</p>
+    <div class="chart-scroll">
+      <svg id="scatter" viewBox="0 0 960 540" role="img" aria-label="Scatter plot of exploits by date and dollars lost"></svg>
+    </div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <section class="panel" aria-label="Total lost by category">
+    <h2>Body count by kind</h2>
+    <p class="sub">total dollars exhumed, by type of death</p>
+    <div class="bars" id="bars"></div>
+  </section>
+
+  <div class="files-head">
+    <h2>The case files</h2>
+    <span class="count" id="filecount"></span>
+  </div>
+  <section class="files" id="files" aria-label="Individual incident records"></section>
+
+  <footer>
+    <div class="big">Curated incident metadata for the <strong>AM I COOKED?</strong> autopsy engine. Amounts are approximate USD value <em>at time of hack</em> and vary by source &mdash; narrative metadata, not accounting. Centralized-exchange custody hacks are intentionally excluded.</div>
+    <div style="margin-top:10px">Addresses are research-grade (mixed exploited-contract / attacker EOA, several single-source) &mdash; verify on a block explorer before any on-chain use.</div>
+    <div style="margin-top:10px">Sources: Elliptic &middot; Chainalysis &middot; Rekt.news &middot; Halborn &middot; SlowMist &middot; CertiK &middot; The Block &middot; CoinDesk &middot; Cointelegraph.</div>
+  </footer>
+</div>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+const D = [
+  {"n":"Harvest Finance","y":2020.75,"a":24,"t":"yield","rec":"partial","br":false,"v":"Flash-loan manipulation of Curve stablecoin pool price to mint cheap vault shares","addr":"0xf224ab004461540778a914ea397c589b677e27bb","ch":"ethereum","ak":"attacker"},
+  {"n":"Pickle Finance","y":2020.83,"a":19.7,"t":"yield","rec":"no","br":false,"v":"Malicious 'evil jar' with unchecked swap tricked controller into draining cDAI"},
+  {"n":"Akropolis","y":2020.87,"a":2,"t":"yield","rec":"no","br":false,"v":"Reentrancy in savings pool deposit combined with flash loan drained DAI"},
+  {"n":"Origin Protocol","y":2020.88,"a":7,"t":"stablecoin","rec":"no","br":false,"v":"Reentrancy via flash loan and rebasing OUSD minted excess tokens"},
+  {"n":"Value DeFi","y":2020.88,"a":6,"t":"yield","rec":"partial","br":false,"v":"Flash-loan manipulation of Curve pool oracle in MultiStables vault"},
+  {"n":"Compounder Finance","y":2020.92,"a":10.8,"t":"rug","rec":"no","br":false,"v":"Hidden backdoor swapped strategy to malicious contract letting devs withdraw all funds"},
+  {"n":"Warp Finance","y":2020.96,"a":7.7,"t":"lending","rec":"partial","br":false,"v":"Flash-loan manipulation of LP-token collateral price enabled over-borrowing"},
+  {"n":"Cover Protocol","y":2020.99,"a":4,"t":"infra","rec":"full","br":false,"v":"Blacksmith farming reward bug allowed near-infinite COVER token minting"},
+  {"n":"Alpha Homora","y":2021.12,"a":37.5,"t":"lending","rec":"no","br":false,"v":"Rounding bug let attacker mint cyToken and repeatedly borrow from Iron Bank"},
+  {"n":"Furucombo","y":2021.12,"a":14,"t":"infra","rec":"no","br":false,"v":"'Evil contract' impersonating Aave v2 proxy abused unvalidated user approvals"},
+  {"n":"PAID Network","y":2021.18,"a":3,"t":"infra","rec":"no","br":false,"v":"Leaked deployer key used to mint and dump PAID tokens in infinite-mint attack"},
+  {"n":"DODO","y":2021.19,"a":3.8,"t":"dex","rec":"partial","br":false,"v":"Uninitialized pool init function reused to spoof tokens and drain via flash loan"},
+  {"n":"Meerkat Finance","y":2021.2,"a":31,"t":"rug","rec":"no","br":false,"v":"'Hacked' one day after launch. It was the team."},
+  {"n":"Roll","y":2021.22,"a":5.7,"t":"wallet","rec":"no","br":false,"v":"Hot wallet private key compromise drained social/creator token reserves"},
+  {"n":"EasyFi","y":2021.25,"a":80,"t":"lending","rec":"no","br":false,"v":"Malicious MetaMask on admin machine stole seed phrase and drained EASY plus stablecoins"},
+  {"n":"Uranium Finance","y":2021.3,"a":50,"t":"rug","rec":"no","br":false,"v":"Migration contract 'bug' that drained the pool. Insider."},
+  {"n":"Spartan Protocol","y":2021.33,"a":30,"t":"dex","rec":"no","br":false,"v":"Flawed liquidity-share calculation let flash-loaned balance inflate burn redemption"},
+  {"n":"Rari Capital","y":2021.33,"a":11,"t":"yield","rec":"no","br":false,"v":"Manipulated Alpha ibETH exchange rate to drain Fuse ETH pool via reentrancy"},
+  {"n":"Belt Finance","y":2021.33,"a":6.3,"t":"yield","rec":"no","br":false,"v":"Flash-loan imbalance of multi-strategy vault let attacker withdraw excess"},
+  {"n":"PancakeBunny","y":2021.4,"a":45,"t":"yield","rec":"no","br":false,"v":"Flash-loan price manipulation of the BUNNY token."},
+  {"n":"ChainSwap","y":2021.5,"a":8,"t":"bridge","rec":"no","br":true,"v":"Cross-chain mint quota logic let non-whitelisted addresses mint and drain tokens","addr":"0xEda5066780dE29D00dfb54581A707ef6F52D8113","ch":"ethereum","ak":"attacker"},
+  {"n":"Anyswap","y":2021.5,"a":7.9,"t":"bridge","rec":"no","br":true,"v":"Reused ECDSA R-value across signatures exposed the MPC account private key","addr":"0x0aE1554860E51844B61AE20823eF1268C3949f7C","ch":"bsc","ak":"attacker"},
+  {"n":"THORChain","y":2021.54,"a":8,"t":"bridge","rec":"partial","br":true,"v":"Forged deposit spoofing the ETH Bifrost router tricked node into releasing funds","addr":"0xace2d948fC7ea3Bc49eEE5526786d66d19BC470e","ch":"ethereum","ak":"attacker"},
+  {"n":"Popsicle Finance","y":2021.58,"a":20.7,"t":"yield","rec":"no","br":false,"v":"Sorbetto vault failed to update reward state on share transfer, enabling repeat claims"},
+  {"n":"Punk Protocol","y":2021.58,"a":8.9,"t":"yield","rec":"partial","br":false,"v":"Uninitialized contract let delegatecall reset forge address for arbitrary withdrawal"},
+  {"n":"Poly Network","y":2021.6,"a":611,"t":"bridge","rec":"full","br":true,"v":"Spoofed the cross-chain manager to authorise withdrawals - then returned every cent.","addr":"0xC8a65Fadf0e0dDAf421F28FEAb69Bf6E2E589963","ch":"ethereum","ak":"attacker"},
+  {"n":"Vee Finance","y":2021.67,"a":35,"t":"lending","rec":"no","br":false,"v":"Single Pangolin oracle price manipulated via crafted trading pairs on Avalanche"},
+  {"n":"pNetwork","y":2021.67,"a":12,"t":"bridge","rec":"no","br":true,"v":"Improper peg-out event-log validation let forged requests release 277 BTC","addr":"0x2bf5693dd3a5cea1139c4510fdce120cf042c934","ch":"bsc","ak":"attacker"},
+  {"n":"Cream Finance I","y":2021.7,"a":34,"t":"lending","rec":"no","br":false,"v":"Flash-loan reentrancy through the AMP token."},
+  {"n":"Indexed Finance","y":2021.75,"a":16,"t":"yield","rec":"no","br":false,"v":"Flash loans skewed index-pool valuation to mint and redeem tokens cheaply"},
+  {"n":"Cream Finance II","y":2021.8,"a":130,"t":"lending","rec":"no","br":false,"v":"Price-oracle and flash-loan manipulation. Second time.","addr":"0x24354d31bc9d90f62fe5f2454709c32049cf866b","ch":"ethereum","ak":"attacker"},
+  {"n":"AnubisDAO","y":2021.8,"a":60,"t":"rug","rec":"no","br":false,"v":"Raised in ~20 hours, drained the same day."},
+  {"n":"BXH","y":2021.83,"a":139,"t":"dex","rec":"no","br":false,"v":"Leaked administrator key drained the cross-chain exchange's contracts"},
+  {"n":"bZx","y":2021.83,"a":55,"t":"lending","rec":"partial","br":false,"v":"Phishing macro stole a developer's mnemonic controlling Polygon and BSC deployments","addr":"0x74487eed1e67f4787e8c0570e8d5d168a05254d4","ch":"ethereum","ak":"attacker"},
+  {"n":"Squid Game token","y":2021.85,"a":3.3,"t":"rug","rec":"no","br":false,"v":"Honeypot: buyers couldn't sell, devs cashed out."},
+  {"n":"Vulcan Forged","y":2021.92,"a":140,"t":"gaming","rec":"full","br":false,"v":"Compromised custodial keys of 96 users drained PYR from MyForge wallets"},
+  {"n":"MonoX Finance","y":2021.92,"a":31,"t":"dex","rec":"no","br":false,"v":"Self-swap of MONO token inflated its price in the swap contract, then drained pools"},
+  {"n":"BadgerDAO","y":2021.95,"a":120,"t":"yield","rec":"partial","br":false,"v":"Compromised Cloudflare key injected malicious approvals into the front-end.","addr":"0x1fcdb04d0c5364fbd92c73ca8af9baa72c269107","ch":"ethereum","ak":"attacker"},
+  {"n":"Visor Finance","y":2021.96,"a":8.2,"t":"yield","rec":"no","br":false,"v":"Access-control flaw in staking contract allowed arbitrary VISR minting"},
+  {"n":"Grim Finance","y":2021.98,"a":30,"t":"yield","rec":"no","br":false,"v":"Reentrancy in the vault deposit path."},
+  {"n":"Qubit (QBridge)","y":2022.05,"a":80,"t":"bridge","rec":"no","br":true,"v":"Deposit logic minted wrapped ETH with no deposit.","addr":"0xd01ae1a708614948b2b5e0b7ab5be6afa01325c7","ch":"bsc","ak":"attacker"},
+  {"n":"Wormhole","y":2022.12,"a":325,"t":"bridge","rec":"full","br":true,"v":"Signature-verification bypass spoofed a guardian. Jump Crypto refilled it.","addr":"0x629e7Da20197a5429d30da36E77d06CdF796b71A","ch":"ethereum","ak":"attacker"},
+  {"n":"Meter.io","y":2022.13,"a":4.4,"t":"bridge","rec":"partial","br":true,"v":"Flawed mint in the deposit wrapper.","addr":"0x8d3d13cac607B7297Ff61A5E1E71072758AF4D01","ch":"ethereum","ak":"attacker"},
+  {"n":"Cashio","y":2022.167,"a":52.8,"t":"stablecoin","rec":"partial","br":false,"v":"Missing collateral validation enabled infinite mint of CASH from valueless tokens"},
+  {"n":"Ronin","y":2022.22,"a":625,"t":"bridge","rec":"partial","br":true,"v":"Five of nine validator keys socially-engineered by Lazarus.","addr":"0x098b716b8aaf21512996dc57eb0615e2383e2f96","ch":"ethereum","ak":"attacker"},
+  {"n":"Inverse Finance","y":2022.25,"a":15.6,"t":"lending","rec":"no","br":false,"v":"Flash-loan manipulated INV price oracle to borrow DOLA against inflated collateral"},
+  {"n":"Elephant Money","y":2022.25,"a":11.2,"t":"stablecoin","rec":"no","br":false,"v":"Flash-loan pumped ELEPHANT price to repeatedly mint and redeem TRUNK"},
+  {"n":"Voltage Finance","y":2022.25,"a":4.67,"t":"lending","rec":"no","br":false,"v":"ERC677 callback reentrancy drained lending pool via flash loan"},
+  {"n":"Revest Finance","y":2022.25,"a":2,"t":"yield","rec":"no","br":false,"v":"ERC1155 reentrancy during FNFT minting drained token reserves"},
+  {"n":"Beanstalk","y":2022.28,"a":182,"t":"stablecoin","rec":"no","br":false,"v":"Flash-loan governance attack - passed its own malicious proposal.","addr":"0x1c5dcdd006ea78a7e4783f9e6021c32935a10fb4","ch":"ethereum","ak":"contract"},
+  {"n":"Rari / Fei (Fuse)","y":2022.3,"a":80,"t":"lending","rec":"no","br":false,"v":"Reentrancy in the Fuse lending pools."},
+  {"n":"Deus DAO","y":2022.333,"a":13.4,"t":"lending","rec":"no","br":false,"v":"Flash-loan manipulated DEI/USDC oracle to over-borrow against inflated collateral"},
+  {"n":"Saddle Finance","y":2022.333,"a":11.9,"t":"dex","rec":"partial","br":false,"v":"Wrong swap library math let flash-loan attacker drain sUSDv2 metapool"},
+  {"n":"Fortress Protocol","y":2022.333,"a":3,"t":"lending","rec":"no","br":false,"v":"Oracle and governance manipulation inflated FTS collateral to drain lending pools"},
+  {"n":"Maiar DEX (MultiversX)","y":2022.417,"a":113,"t":"dex","rec":"full","br":false,"v":"Smart contract bug let attacker mint and withdraw 1.65M EGLD from DEX pools"},
+  {"n":"Osmosis","y":2022.417,"a":5,"t":"dex","rec":"partial","br":false,"v":"JoinPool logic bug paid liquidity providers 50% extra on withdrawal"},
+  {"n":"XCarnival","y":2022.417,"a":3.8,"t":"nft","rec":"partial","br":false,"v":"Reused a withdrawn BAYC NFT as collateral to take multiple loans"},
+  {"n":"GYM Network","y":2022.417,"a":2.1,"t":"yield","rec":"no","br":false,"v":"Unauthenticated depositFromOtherContract let attacker fake deposits and withdraw"},
+  {"n":"Harmony Horizon","y":2022.47,"a":100,"t":"bridge","rec":"no","br":true,"v":"Two of five multisig keys compromised.","addr":"0x0d043128146654c7683fbf30ac98d7b2285ded00","ch":"ethereum","ak":"attacker"},
+  {"n":"Crema Finance","y":2022.5,"a":8.8,"t":"dex","rec":"partial","br":false,"v":"Fake tick account bypassed checks to drain concentrated liquidity via flash loan"},
+  {"n":"Nirvana Finance","y":2022.5,"a":3.5,"t":"stablecoin","rec":"no","br":false,"v":"Flash loan manipulated ANA price to mint and redeem against protocol reserves"},
+  {"n":"Audius","y":2022.55,"a":6,"t":"governance","rec":"no","br":false,"v":"Malformed governance proposal initialisation."},
+  {"n":"Nomad","y":2022.58,"a":190,"t":"bridge","rec":"partial","br":true,"v":"An init bug marked every message 'proven' - a free-for-all anyone could copy-paste.","addr":"0x88a69b4e698a4b090df6cf5bd7b2d47325ad30a3","ch":"ethereum","ak":"contract"},
+  {"n":"Slope Wallet","y":2022.583,"a":4.1,"t":"wallet","rec":"no","br":false,"v":"Mobile wallet leaked users' private keys to a third-party logging service"},
+  {"n":"Nereus Finance","y":2022.667,"a":0.37,"t":"lending","rec":"no","br":false,"v":"Flash-loan manipulated Trader Joe AVAX/USDC LP price to mint NXUSD"},
+  {"n":"Wintermute","y":2022.7,"a":160,"t":"wallet","rec":"no","br":false,"v":"Vanity address from the Profanity generator had guessable keys.","addr":"0xe74b28c2eae8679e3ccc3a94d5d0de83ccb84705","ch":"ethereum","ak":"attacker"},
+  {"n":"Transit Swap","y":2022.75,"a":23,"t":"dex","rec":"partial","br":false,"v":"Missing input validation in claimTokens let attacker drain user-approved tokens"},
+  {"n":"Team Finance","y":2022.75,"a":14.5,"t":"infra","rec":"partial","br":false,"v":"Flawed v2-to-v3 migration function let attacker drain locked liquidity"},
+  {"n":"Moola Market","y":2022.75,"a":9.1,"t":"lending","rec":"partial","br":false,"v":"Manipulated low-liquidity MOO price to over-borrow against inflated collateral"},
+  {"n":"QANplatform Bridge","y":2022.75,"a":2,"t":"bridge","rec":"no","br":true,"v":"Profanity vanity-address flaw exposed deployer key, draining the bridge"},
+  {"n":"Olympus DAO","y":2022.75,"a":0.3,"t":"yield","rec":"full","br":false,"v":"Bond teller redeem function lacked input validation, allowing token drain"},
+  {"n":"BNB Chain Bridge","y":2022.77,"a":100,"t":"bridge","rec":"partial","br":true,"v":"Forged an IAVL merkle proof and minted 2M BNB; validators froze most.","addr":"0x489a8756c18c0b8b24ec2a2b9ff3d4d447f79bec","ch":"bsc","ak":"attacker"},
+  {"n":"Mango Markets","y":2022.78,"a":114,"t":"perps","rec":"partial","br":false,"v":"Pumped the MNGO oracle to borrow against inflated collateral.","addr":"yUJw9a2PyoqKkH47i4yEGf4WXomSHMiK7Lp29Xs2NqM","ch":"solana","ak":"attacker"},
+  {"n":"pGALA","y":2022.833,"a":4.5,"t":"gaming","rec":"full","br":false,"v":"pGALA contract ownership takeover from leaked key allowed unlimited mint and dump"},
+  {"n":"Solend","y":2022.833,"a":1.26,"t":"lending","rec":"no","br":false,"v":"Manipulated USDH oracle price to borrow and drain isolated lending pools"},
+  {"n":"Helio Protocol","y":2022.917,"a":15,"t":"lending","rec":"partial","br":false,"v":"Borrowed HAY against aBNBc priced by stale oracle after Ankr mint exploit"},
+  {"n":"BitKeep","y":2022.917,"a":8,"t":"wallet","rec":"full","br":false,"v":"Hijacked malicious Android APK stole users' private keys"},
+  {"n":"Ankr","y":2022.917,"a":5,"t":"yield","rec":"partial","br":false,"v":"Compromised deployer key let attacker infinite-mint aBNBc staking token"},
+  {"n":"Rubic","y":2022.917,"a":1.4,"t":"dex","rec":"no","br":false,"v":"Misconfigured router address let attacker withdraw users' approved USDC"},
+  {"n":"BonqDAO","y":2023.083,"a":120,"t":"lending","rec":"no","br":false,"v":"Tellor oracle manipulated to inflate WALBT collateral and mint excess BEUR"},
+  {"n":"dForce","y":2023.083,"a":3.65,"t":"lending","rec":"full","br":false,"v":"Read-only reentrancy via Curve oracle integration on Arbitrum and Optimism"},
+  {"n":"Hope Finance","y":2023.083,"a":2,"t":"rug","rec":"no","br":false,"v":"Attacker altered TradingHelper contract to redirect and drain genesis funds; exit scam"},
+  {"n":"Platypus I","y":2023.1,"a":8.5,"t":"stablecoin","rec":"partial","br":false,"v":"Logic error in the solvency check.","addr":"0xeff003d64046a6f521ba31f39405cb720e953958","ch":"avalanche","ak":"attacker"},
+  {"n":"SafeMoon","y":2023.167,"a":8.9,"t":"dex","rec":"partial","br":false,"v":"Public burn function bug let attacker inflate SFM price and drain WBNB from the pool"},
+  {"n":"Tender.fi","y":2023.167,"a":1.59,"t":"lending","rec":"partial","br":false,"v":"Misconfigured oracle let attacker borrow against 1 GMX; white hat returned most"},
+  {"n":"Euler Finance","y":2023.2,"a":197,"t":"lending","rec":"full","br":false,"v":"donateToReserve imbalance enabled self-liquidation - attacker returned it all with an apology.","addr":"0xb2698c2d99ad2c302a95a8db26b08d17a77cedd4","ch":"ethereum","ak":"attacker"},
+  {"n":"MEV Bots (0xbad)","y":2023.25,"a":25,"t":"infra","rec":"no","br":false,"v":"Rogue Ethereum validator reordered a bait block to seize sandwich-bot transactions"},
+  {"n":"Yearn Finance","y":2023.25,"a":11.5,"t":"yield","rec":"no","br":false,"v":"Misconfigured legacy yUSDT vault (wrong iToken) let attacker mint and drain stablecoins"},
+  {"n":"Merlin DEX","y":2023.25,"a":1.8,"t":"rug","rec":"partial","br":false,"v":"Insider used privileged access to drain liquidity pools during token sale; rug pull"},
+  {"n":"Sentiment","y":2023.25,"a":1,"t":"lending","rec":"partial","br":false,"v":"Read-only reentrancy via Balancer integration used to over-borrow and drain funds"},
+  {"n":"Hundred Finance","y":2023.28,"a":7,"t":"lending","rec":"no","br":false,"v":"Compound-v2-fork rounding on an empty market."},
+  {"n":"Jimbos Protocol","y":2023.333,"a":7.5,"t":"dex","rec":"no","br":false,"v":"Missing slippage control let attacker imbalance pool and extract ETH via shift/swap"},
+  {"n":"Deus DAO (2023)","y":2023.333,"a":6.5,"t":"stablecoin","rec":"partial","br":false,"v":"burnFrom parameter-order bug exposed user approvals, enabling DEI theft"},
+  {"n":"Swaprum","y":2023.333,"a":3,"t":"rug","rec":"no","br":false,"v":"Developers used hidden add() backdoor to drain staked LP tokens; exit scam"},
+  {"n":"Level Finance","y":2023.333,"a":1.1,"t":"perps","rec":"no","br":false,"v":"Referral contract bug allowed repeated claims in one epoch to mint excess LVL"},
+  {"n":"Atomic Wallet","y":2023.417,"a":100,"t":"wallet","rec":"partial","br":false,"v":"Mass drain of 4,100+ user wallets; suspected key/seed compromise, linked to Lazarus"},
+  {"n":"Themis Protocol","y":2023.417,"a":0.37,"t":"lending","rec":"no","br":false,"v":"Balancer LP-token oracle manipulated via flash loan to over-borrow on Arbitrum"},
+  {"n":"Cellframe Network","y":2023.417,"a":0.076,"t":"dex","rec":"no","br":false,"v":"Flash-loan token-quantity miscalculation during liquidity migration drained the pool"},
+  {"n":"Sturdy Finance","y":2023.45,"a":0.8,"t":"lending","rec":"full","br":false,"v":"Read-only reentrancy via a stale oracle read."},
+  {"n":"Alphapo","y":2023.5,"a":60,"t":"infra","rec":"no","br":false,"v":"Payment-processor hot wallets on ETH, BTC and TRON drained via key compromise (Lazarus)"},
+  {"n":"CoinsPaid","y":2023.5,"a":37.3,"t":"infra","rec":"no","br":false,"v":"Employee lured by fake job offer installed malware enabling hot-wallet theft (Lazarus)"},
+  {"n":"EraLend","y":2023.5,"a":3.4,"t":"lending","rec":"no","br":false,"v":"Read-only reentrancy in SyncSwap-derived code manipulated internal oracle to over-borrow"},
+  {"n":"Palmswap","y":2023.5,"a":0.9,"t":"perps","rec":"partial","br":false,"v":"Flash-loan price manipulation of PLP mint/redeem rate in PlpManager"},
+  {"n":"Multichain","y":2023.52,"a":130,"t":"bridge","rec":"no","br":true,"v":"Keys lost with the arrested CEO. Funds vanished.","addr":"0x5cbe98480a790554403694b98bff71a525907f5d","ch":"ethereum","ak":"contract"},
+  {"n":"Conic Finance","y":2023.55,"a":3.3,"t":"yield","rec":"no","br":false,"v":"Read-only reentrancy on a Curve LP. Shut down a year later."},
+  {"n":"Curve (Vyper)","y":2023.58,"a":73,"t":"dex","rec":"partial","br":false,"v":"A broken reentrancy lock in three Vyper compiler versions.","addr":"0xdce5d6b41c32f578f875efffc0d422c57a75d7d8","ch":"ethereum","ak":"attacker"},
+  {"n":"Steadefi","y":2023.6,"a":1.1,"t":"yield","rec":"no","br":false,"v":"Compromised deployer key."},
+  {"n":"Exactly Protocol","y":2023.63,"a":12,"t":"lending","rec":"no","br":false,"v":"Missing market-address validation on Optimism."},
+  {"n":"Stake.com","y":2023.667,"a":41,"t":"gaming","rec":"no","br":false,"v":"Unauthorized hot-wallet withdrawals on ETH, BSC and Polygon via key compromise (Lazarus)"},
+  {"n":"Mixin Network","y":2023.73,"a":200,"t":"infra","rec":"no","br":false,"v":"Cloud database compromise."},
+  {"n":"Platypus II","y":2023.78,"a":2.2,"t":"stablecoin","rec":"partial","br":false,"v":"Same bug class, third time in one year."},
+  {"n":"Kronos Research","y":2023.833,"a":26,"t":"infra","rec":"no","br":false,"v":"Compromised API keys used to drain roughly 13,000 ETH from trading accounts"},
+  {"n":"Onyx Protocol","y":2023.833,"a":2.1,"t":"lending","rec":"no","br":false,"v":"Empty-market rounding bug in a Compound V2 fork exploited via donation on oPEPE"},
+  {"n":"Raft","y":2023.86,"a":3.3,"t":"stablecoin","rec":"partial","br":false,"v":"Rounding on liquidation - the hacker lost money on it."},
+  {"n":"HTX / Heco Bridge","y":2023.87,"a":87,"t":"bridge","rec":"no","br":true,"v":"Operator keys compromised in the Justin Sun ecosystem.","addr":"0xa929022c9107643515f5c777ce9a910f0d1e490c","ch":"ethereum","ak":"contract"},
+  {"n":"KyberSwap","y":2023.9,"a":47,"t":"dex","rec":"no","br":false,"v":"Tick/precision math in concentrated liquidity.","addr":"0x50275e0b7261559ce1644014d4b78d4aa63be836","ch":"ethereum","ak":"attacker"},
+  {"n":"Orbit Bridge","y":2024.01,"a":81.5,"t":"bridge","rec":"no","br":true,"v":"Multisig signers compromised on New Year's Eve.","addr":"0x27e2cc59a64d705a6c3d3d306186c2a55dcd5710","ch":"ethereum","ak":"attacker"},
+  {"n":"Seneca","y":2024.08,"a":6.4,"t":"stablecoin","rec":"partial","br":false,"v":"Arbitrary external call in Chamber let attacker transferFrom approved user funds"},
+  {"n":"Abracadabra","y":2024.1,"a":6.5,"t":"stablecoin","rec":"no","br":false,"v":"Cauldron interest/rounding manipulation let attacker mint MIM without collateral"},
+  {"n":"PlayDapp","y":2024.11,"a":290,"t":"gaming","rec":"no","br":false,"v":"Private key gave 1.6B unauthorised PLA tokens minted."},
+  {"n":"Curio","y":2024.17,"a":16,"t":"governance","rec":"no","br":false,"v":"Voting-power flaw let attacker delegatecall-mint ~1B CGT governance tokens"},
+  {"n":"Prisma Finance","y":2024.17,"a":11.6,"t":"lending","rec":"partial","br":false,"v":"MigrateTroveZap lacked input validation, letting attacker drain trove collateral"},
+  {"n":"WOOFi","y":2024.17,"a":8.75,"t":"dex","rec":"no","br":false,"v":"Flash-loan manipulation of sPMM oracle crashed WOO price, enabling cheap swaps","addr":"0x9961190b258897bca7a12b8f37f415e689d281c4","ch":"arbitrum","ak":"attacker"},
+  {"n":"Unizen","y":2024.17,"a":2.1,"t":"dex","rec":"partial","br":false,"v":"Insecure external call in the aggregation contract after a gas-optimization upgrade"},
+  {"n":"Munchables","y":2024.22,"a":62.5,"t":"gaming","rec":"full","br":false,"v":"Rogue insider developer - returned the keys."},
+  {"n":"Grand Base","y":2024.25,"a":2,"t":"rug","rec":"no","br":false,"v":"Deployer wallet compromised, draining ~615 ETH of liquidity from the RWA platform"},
+  {"n":"Pike Finance","y":2024.25,"a":1.98,"t":"lending","rec":"no","br":false,"v":"Access-control flaw and broken memory mapping after an upgrade drained three chains"},
+  {"n":"Gala Games","y":2024.33,"a":21.8,"t":"gaming","rec":"full","br":false,"v":"Compromised minter key minted 5B GALA; attacker sold 592M for ~$21.8M in ETH"},
+  {"n":"Alex Lab","y":2024.33,"a":4.3,"t":"bridge","rec":"no","br":true,"v":"Private-key compromise of the XLink bridge drained stablecoins; tied to Lazarus","addr":"0x27055aE433E9DCb30f6EbCC1A374Cf5CC03C484E","ch":"bsc","ak":"attacker"},
+  {"n":"Pump.fun","y":2024.33,"a":1.9,"t":"infra","rec":"no","br":false,"v":"Former employee used privileged access and flash loans to exploit the bonding curve"},
+  {"n":"Sonne Finance","y":2024.38,"a":20,"t":"lending","rec":"no","br":false,"v":"Compound-v2-fork empty-market donation attack."},
+  {"n":"UwU Lend","y":2024.42,"a":19.4,"t":"lending","rec":"partial","br":false,"v":"Oracle manipulation via Curve pools distorted sUSDe price to drain lending pools","addr":"0x841ddf093f5188989fa1524e7b893de64b421f47","ch":"ethereum","ak":"attacker"},
+  {"n":"Holograph","y":2024.42,"a":14.4,"t":"infra","rec":"no","br":false,"v":"Former contractor exploited a mint flaw to issue 1B HLG tokens in nine transactions"},
+  {"n":"Velocore","y":2024.42,"a":6.8,"t":"dex","rec":"no","br":false,"v":"Faulty fee-multiplier logic drained pools via simulated large withdrawals"},
+  {"n":"LI.FI","y":2024.5,"a":11.6,"t":"bridge","rec":"no","br":true,"v":"Malicious call in a new GasZip facet drained wallets holding infinite token approvals","addr":"0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae","ch":"ethereum","ak":"contract"},
+  {"n":"Bittensor","y":2024.5,"a":8,"t":"infra","rec":"no","br":false,"v":"Malicious PyPI package stole unencrypted coldkeys, draining ~32,000 TAO"},
+  {"n":"Rho Markets","y":2024.5,"a":7.6,"t":"lending","rec":"full","br":false,"v":"Oracle misconfiguration on Scroll let a whitehat drain USDC/USDT pools; returned"},
+  {"n":"Ronin Bridge (2024)","y":2024.58,"a":12,"t":"bridge","rec":"full","br":true,"v":"Unset withdrawal threshold after an upgrade let an MEV bot pull 3,996 ETH and 2M USDC","addr":"0x64192819ac13ef72bf6b5ae239ac672b43a9af08","ch":"ethereum","ak":"contract"},
+  {"n":"DeltaPrime (Arbitrum)","y":2024.67,"a":6,"t":"lending","rec":"no","br":false,"v":"Stolen admin key used to upgrade Arbitrum pool contracts and drain stablecoins"},
+  {"n":"Shezmu","y":2024.67,"a":4.9,"t":"stablecoin","rec":"partial","br":false,"v":"Vault flaw allowed unauthorized ShezUSD minting without collateral"},
+  {"n":"Onyx Protocol (2024)","y":2024.67,"a":3.8,"t":"lending","rec":"no","br":false,"v":"Compound v2 fork precision bug plus NFTLiquidation flaw exploited via flash loan"},
+  {"n":"Banana Gun","y":2024.67,"a":3,"t":"wallet","rec":"full","br":false,"v":"Telegram message-oracle bug let attackers transfer ETH from bot users' wallets"},
+  {"n":"Penpie","y":2024.71,"a":27,"t":"yield","rec":"no","br":false,"v":"Reentrancy in reward accounting."},
+  {"n":"Tapioca DAO","y":2024.75,"a":4.4,"t":"stablecoin","rec":"partial","br":false,"v":"Compromised key took over vesting and USDO contracts; USDO/USDC pool drained"},
+  {"n":"Radiant Capital","y":2024.78,"a":50,"t":"lending","rec":"no","br":false,"v":"Malware on multisig signers' devices.","addr":"0x57ba8957ed2ff2e7ae38f4935451e81ce1eefbf5","ch":"arbitrum","ak":"contract"},
+  {"n":"Thala","y":2024.83,"a":25.5,"t":"yield","rec":"full","br":false,"v":"Missing withdrawal validation in a v1 farming update let attacker pull LP tokens"},
+  {"n":"DeltaPrime (reward)","y":2024.83,"a":4.75,"t":"lending","rec":"no","br":false,"v":"Missing validation in reward-claim let attacker use a malicious pair on two chains"},
+  {"n":"Infini","y":2025.08,"a":49.5,"t":"stablecoin","rec":"no","br":false,"v":"Overlooked developer admin privilege allowed unauthorized fund drainage"},
+  {"n":"zkLend","y":2025.08,"a":9.57,"t":"lending","rec":"no","br":false,"v":"Decimal-precision rounding flaw in the Starknet lending contract drained funds","addr":"0x04d7191dc8eac499bac710dd368706e3ce76c9945da52535de770d06ce7d3b26","ch":"starknet","ak":"attacker"},
+  {"n":"Ionic Money","y":2025.08,"a":8.6,"t":"lending","rec":"no","br":false,"v":"Social engineering listed a fake LBTC token as collateral to borrow and drain vaults"},
+  {"n":"Abracadabra Money","y":2025.17,"a":13,"t":"lending","rec":"no","br":false,"v":"Cauldron vulnerability let attacker drain 6,260 ETH from the protocol"},
+  {"n":"Zoth","y":2025.17,"a":8.4,"t":"yield","rec":"no","br":false,"v":"Compromised deployer key allowed a malicious proxy upgrade on the RWA restaking layer"},
+  {"n":"1inch (Fusion)","y":2025.17,"a":5,"t":"dex","rec":"full","br":false,"v":"Fusion v1 calldata-corruption bug in resolver contracts exploited; funds returned"},
+  {"n":"UPCX","y":2025.25,"a":70,"t":"infra","rec":"no","br":false,"v":"Malicious smart-contract upgrade pushed from a compromised admin private key"},
+  {"n":"KiloEx","y":2025.25,"a":7.5,"t":"perps","rec":"partial","br":false,"v":"Price oracle manipulation drained the vault; ~90% later returned via bounty"},
+  {"n":"Loopscale","y":2025.25,"a":5.8,"t":"lending","rec":"full","br":false,"v":"RateX PT token pricing manipulated to drain USDC and SOL vaults; returned for bounty"},
+  {"n":"Cetus Protocol","y":2025.33,"a":223,"t":"dex","rec":"partial","br":false,"v":"Spoof-token deposits plus integer overflow in liquidity math manipulated pool pricing on Sui","addr":"0xe28b50cef1d633ea43d3296a3f6b67ff0312a5f1a99f0af753c85b8b5de8ff06","ch":"sui","ak":"attacker"},
+  {"n":"Cork Protocol","y":2025.33,"a":12,"t":"yield","rec":"no","br":false,"v":"Access-control flaw in a Uniswap V4 hook let attacker split and seize market assets"},
+  {"n":"Force Bridge","y":2025.42,"a":3.76,"t":"bridge","rec":"no","br":true,"v":"Access-control issue let attacker drain assets on ETH and BSC"},
+  {"n":"GMX","y":2025.5,"a":42,"t":"perps","rec":"partial","br":false,"v":"Reentrancy in GMX V1 GLP pool allowed repeated withdrawals; most returned for bounty"},
+  {"n":"Bunni","y":2025.67,"a":8.4,"t":"dex","rec":"no","br":false,"v":"Flash-loan attack on a rounding bug in withdrawal/rebalancing on Ethereum and Unichain"},
+  {"n":"Nemo Protocol","y":2025.67,"a":2.4,"t":"yield","rec":"no","br":false,"v":"Contract vulnerability drained USDC on Sui, bridged to Ethereum via Circle"},
+  {"n":"Shibarium bridge","y":2025.67,"a":2.4,"t":"bridge","rec":"partial","br":true,"v":"Flash loan seized 10/12 validator signing keys to move ETH and SHIB off the bridge","addr":"0x999E025a2a0558c07DBf7F021b2C9852B367e80A","ch":"ethereum","ak":"attacker"},
+  {"n":"Balancer V2","y":2025.83,"a":128,"t":"dex","rec":"no","br":false,"v":"Rounding error in ComposableStablePool invariant math enabled value extraction","addr":"0xaa760d53541d8390074c61defeaba314675b8e3f","ch":"ethereum","ak":"attacker"},
+  {"n":"Truebit","y":2026,"a":26.2,"t":"infra","rec":"no","br":false,"v":"Integer overflow in legacy token-purchase math wrapped TRU mint price to near zero"},
+  {"n":"Resolv","y":2026.16,"a":25,"t":"stablecoin","rec":"no","br":false,"v":"Logic/oracle flaw exploited to extract value from the protocol"},
+  {"n":"IoTeX ioTube","y":2026.08,"a":4.4,"t":"bridge","rec":"no","br":true,"v":"Compromised private key drained the TokenSafe contract on the Ethereum side","addr":"0x6487B5006904f3Db3C4a3654409AE92b87eD442f","ch":"ethereum","ak":"attacker"},
+  {"n":"CrossCurve","y":2026.08,"a":3,"t":"bridge","rec":"no","br":true,"v":"Weak access controls allowed spoofed Axelar messages to release tokens","addr":"0xb2185950f5a0a46687ac331916508aada202e063","ch":"ethereum","ak":"contract"},
+  {"n":"KelpDAO","y":2026.25,"a":290,"t":"bridge","rec":"no","br":true,"v":"LayerZero 1-of-1 DVN compromised via RPC attack; phantom burn minted 116.5k rsETH"},
+  {"n":"Drift Protocol","y":2026.25,"a":285,"t":"perps","rec":"no","br":false,"v":"Durable-nonce pre-signing tricked council into admin handover; fake CVT drained vaults"},
+  {"n":"Humanity Protocol","y":2026.42,"a":34,"t":"infra","rec":"no","br":false,"v":"Foundation key theft; ZachXBT flagged the incident as possibly staged"},
+  {"n":"Allbridge Core","y":2026.55,"a":1.65,"t":"bridge","rec":"partial","br":true,"v":"Flash-loan on a single pool the Solana fix missed.","addr":"0x651591b68A9c9650FB23F642162353306281ffDe","ch":"ethereum","ak":"attacker"},
+  {"n":"Wanchain (NIGHT)","y":2026.55,"a":10,"t":"bridge","rec":"no","br":true,"v":"Non-injective signed-message encoding flaw in the TreasuryCheck validator."},
+  {"n":"BSquared Network","y":2026.56,"a":3.86,"t":"bridge","rec":"no","br":true,"v":"8.59M B2 tokens drained."},
+  {"n":"Verus - Ethereum","y":2026.56,"a":7.54,"t":"bridge","rec":"no","br":true,"v":"Missing validation minted more on Ethereum than was backed - a repeat of May."},
+  {"n":"AFX Trade","y":2026.56,"a":24,"t":"perps","rec":"no","br":true,"v":"Validator signing keys compromised; USDC bridged out to ETH."}
+];
+
+const BANDS = [
+  {id:"rare",       max:1,        col:"#EFE3CE", ink:"#2a1c12", label:"Rare / to $1M"},
+  {id:"singed",     max:10,       col:"#DFA575", ink:"#2a1608", label:"Singed / $1-10M"},
+  {id:"marinating", max:75,       col:"#A9713C", ink:"#170d05", label:"Marinating / $10-75M"},
+  {id:"cooked",     max:300,      col:"#6E4227", ink:"#f3e6d4", label:"Cooked / $75-300M"},
+  {id:"charcoal",   max:Infinity, col:"#38251A", ink:"#ffd9b0", label:"Charcoal / $300M+"},
+];
+const bandOf = a => a==null ? null : BANDS.find(b => a < b.max);
+const CATS = [
+  {id:"bridge",label:"Bridges"},{id:"lending",label:"Lending"},{id:"dex",label:"DEX"},
+  {id:"stablecoin",label:"Stablecoin"},{id:"yield",label:"Yield"},{id:"perps",label:"Perps"},
+  {id:"gaming",label:"Gaming/NFT"},{id:"rug",label:"Rug pulls"},{id:"wallet",label:"Wallet/keys"},
+  {id:"governance",label:"Governance"},{id:"infra",label:"Infra"},{id:"nft",label:"NFT"},
+];
+const catLabel = id => (CATS.find(c=>c.id===id)||{label:id}).label;
+const REC = { full:{c:"var(--healed)", t:"Funds returned"}, partial:{c:"#c9a24a", t:"Partly clawed back"}, no:{c:"var(--blood)", t:"Gone for good"} };
+const fmt = m => m==null ? "n/a" : m>=1000 ? "$"+(m/1000).toFixed(m%1000?1:0)+"B" : m>=1 ? "$"+(m%1?m.toFixed(1):m)+"M" : "$"+Math.round(m*1000)+"K";
+const fmtDate = y => ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][Math.min(11,Math.round((y%1)*12))]+" "+Math.floor(y);
+const trunc = a => a && a.length>16 ? a.slice(0,6)+"..."+a.slice(-4) : a;
+let active = null;
+
+(function stats(){
+  const withAmt = D.filter(d=>d.a!=null);
+  const total = withAmt.reduce((s,d)=>s+d.a,0);
+  const big = withAmt.slice().sort((a,b)=>b.a-a.a)[0];
+  const returned = D.filter(d=>d.rec==="full").length;
+  const cards = [
+    {cls:"hero",   k:"Total exhumed",       v:"$"+(total/1000).toFixed(1)+"B", s:D.length+" recorded deaths"},
+    {cls:"",       k:"Bodies on the slab",  v:D.length,                        s:"2020 to 2026"},
+    {cls:"blood",  k:"Largest autopsy",     v:fmt(big.a),                      s:big.n+" / "+fmtDate(big.y)},
+    {cls:"healed", k:"Walked it back",      v:returned,                        s:"returned the funds in full"},
+  ];
+  document.getElementById("stats").innerHTML = cards.map(c=>`<div class="stat ${c.cls}"><div class="k">${c.k}</div><div class="v">${c.v}</div><div class="s">${c.s}</div></div>`).join("");
+})();
+
+(function chips(){
+  const box = document.getElementById("chips");
+  const counts = {}; D.forEach(d=>counts[d.t]=(counts[d.t]||0)+1);
+  const mk = (id,label,n) => `<button class="chip" aria-pressed="false" data-cat="${id}">${label}${n!=null?`<span class="n">${n}</span>`:""}</button>`;
+  box.innerHTML = mk("__all","All",D.length) + CATS.filter(c=>counts[c.id]).map(c=>mk(c.id,c.label,counts[c.id])).join("");
+  box.querySelector('[data-cat="__all"]').setAttribute("aria-pressed","true");
+  box.addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if(!b) return;
+    active = (b.dataset.cat==="__all") ? null : b.dataset.cat;
+    box.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed", String(c.dataset.cat===b.dataset.cat)));
+    applyFilter();
+  });
+})();
+
+const W=960, H=540, M={t:24,r:26,b:44,l:56};
+const x0=2020, x1=2026.9;
+const yTicks=[0.1,1,10,100], yMin=0.05, yMax=800;
+const px = y => M.l + (y-x0)/(x1-x0)*(W-M.l-M.r);
+const logY = v => M.t + (1 - (Math.log10(v)-Math.log10(yMin))/(Math.log10(yMax)-Math.log10(yMin)))*(H-M.t-M.b);
+const rOf = a => a==null ? 6 : Math.max(4, Math.min(38, Math.sqrt(a)*1.35));
+
+(function scatter(){
+  const svg = document.getElementById("scatter");
+  let s = `<g class="grid">`;
+  yTicks.forEach(v=>{ const y=logY(v); s+=`<line x1="${M.l}" x2="${W-M.r}" y1="${y}" y2="${y}"/>`; });
+  s += `<line class="zero" x1="${M.l}" x2="${M.l}" y1="${M.t}" y2="${H-M.b}"/></g><g class="axis">`;
+  yTicks.forEach(v=>{ const y=logY(v); s+=`<text x="${M.l-10}" y="${y+4}" text-anchor="end">${v>=1000?"$"+v/1000+"B":v>=1?"$"+v+"M":"$"+(v*1000)+"K"}</text>`; });
+  s += `<text class="unit" x="${M.l-10}" y="${M.t-9}" text-anchor="end">$ lost</text>`;
+  for(let yr=2020; yr<=2026; yr++){ s+=`<text x="${px(yr+0.5)}" y="${H-M.b+22}" text-anchor="middle">${yr}</text>`; }
+  s += `</g>`;
+  const plot = D.filter(d=>d.a!=null).slice().sort((a,b)=>b.a-a.a);
+  plot.forEach(d=>{
+    const b=bandOf(d.a), cx=px(d.y), cy=logY(d.a), r=rOf(d.a);
+    const ring = d.br ? `stroke="var(--ember)" stroke-width="2"` : `stroke="rgba(234,224,206,.35)" stroke-width="1"`;
+    s += `<g class="bubble" data-i="${D.indexOf(d)}" data-cat="${d.t}" tabindex="0" role="button" aria-label="${d.n}, ${fmt(d.a)}, ${catLabel(d.t)}">`;
+    s += `<circle class="mark" cx="${cx}" cy="${cy}" r="${r}" fill="${b.col}" fill-opacity="0.9" ${ring}/>`;
+    if(d.rec==="full") s += `<circle cx="${cx}" cy="${cy}" r="${Math.max(2,r*0.32)}" fill="var(--healed)"/>`;
+    s += `</g>`;
+  });
+  svg.innerHTML = s;
+
+  const tip = document.getElementById("tip");
+  const show = d => {
+    const b=bandOf(d.a), rc=REC[d.rec];
+    tip.innerHTML = `<div class="t-name">${d.n}</div>
+      <div class="t-meta">${catLabel(d.t)}${d.br?" / bridge":""} / ${fmtDate(d.y)}</div>
+      <div class="t-amt" style="color:${b?b.col:"var(--bone)"}">${fmt(d.a)}</div>
+      <div class="t-vec">${d.v}</div>
+      ${d.addr?`<div class="t-addr">${d.ak} &middot; ${d.ch}<br><b>${trunc(d.addr)}</b></div>`:""}
+      <div class="t-rec" style="color:${rc.c}">${rc.t}</div>`;
+    tip.classList.add("on");
+  };
+  const move = e => { const p=e.touches?e.touches[0]:e; let x=p.clientX+16, y=p.clientY+16;
+    if(x+tip.offsetWidth>innerWidth-8) x=p.clientX-tip.offsetWidth-16;
+    if(y+tip.offsetHeight>innerHeight-8) y=p.clientY-tip.offsetHeight-16;
+    tip.style.left=x+"px"; tip.style.top=y+"px"; };
+  svg.querySelectorAll(".bubble").forEach(g=>{
+    const d = D[+g.dataset.i];
+    const atMark = ()=>{ show(d); const bb=g.querySelector("circle").getBoundingClientRect();
+      let x=bb.right+10; if(x+tip.offsetWidth>innerWidth-8) x=bb.left-tip.offsetWidth-10;
+      tip.style.left=Math.max(8,x)+"px"; tip.style.top=Math.max(8,bb.top)+"px"; };
+    g.addEventListener("mouseenter", ()=>show(d));
+    g.addEventListener("mousemove", move);
+    g.addEventListener("mouseleave", ()=>tip.classList.remove("on"));
+    g.addEventListener("focus", atMark);
+    g.addEventListener("blur", ()=>tip.classList.remove("on"));
+    g.addEventListener("click", e=>{ e.stopPropagation(); atMark(); });
+  });
+  document.addEventListener("click", ()=>tip.classList.remove("on"));
+})();
+
+(function legend(){
+  const bands = BANDS.map(b=>`<span class="item"><span class="sw" style="background:${b.col};${b.id==='charcoal'?'box-shadow:0 0 0 1.5px var(--ember)':''}"></span>${b.label}</span>`).join("");
+  document.getElementById("legend").innerHTML =
+    `<div class="grp"><span class="lab">Doneness</span>${bands}</div>
+     <div class="grp"><span class="lab">Marks</span>
+       <span class="item"><span class="sw" style="background:transparent;box-shadow:0 0 0 2px var(--ember)"></span>Bridge</span>
+       <span class="item"><span class="sw" style="background:var(--healed)"></span>Funds returned</span>
+       <span class="item" style="color:var(--muted)">bigger = bigger loss</span>
+     </div>`;
+})();
+
+(function bars(){
+  const totals = {};
+  D.filter(d=>d.a!=null).forEach(d=>totals[d.t]=(totals[d.t]||0)+d.a);
+  const rows = Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+  const max = rows[0][1];
+  document.getElementById("bars").innerHTML = rows.map(([cat,val])=>{
+    const b = bandOf(val) || BANDS[4];
+    return `<div class="bar-row"><div class="cat">${catLabel(cat)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(2,val/max*100)}%;background:${b.col}"></div></div>
+      <span class="bar-val">${fmt(val)}</span></div>`;
+  }).join("");
+})();
+
+(function files(){
+  const sorted = D.slice().sort((a,b)=> (b.a==null?-1:b.a) - (a.a==null?-1:a.a));
+  document.getElementById("files").innerHTML = sorted.map(d=>{
+    const b = bandOf(d.a), rc = REC[d.rec];
+    const dark = !b || ["charcoal","cooked"].includes(b.id);
+    const ink = b ? b.ink : "var(--bone)", bg = b ? b.col : "var(--soot-2)";
+    const recCol = d.rec==='full'?(dark?'var(--healed)':'#2f6b48'):d.rec==='no'?(dark?'#ff9f7a':'var(--wax)'):(dark?'#e6c25a':'#7a5c12');
+    return `<article class="file" data-cat="${d.t}" style="background:${bg};color:${ink};border-color:${d.br?'var(--ember)':'rgba(0,0,0,.25)'}">
+      <div class="band">${b?b.label.split(" / ")[0]:"Incident"}</div>
+      <h3 class="fname">${d.n}</h3>
+      <div class="fmeta">${catLabel(d.t)}${d.br?" / bridge":""} / ${fmtDate(d.y)}</div>
+      <div class="famt">${fmt(d.a)}</div>
+      <div class="fvec">${d.v}</div>
+      ${d.addr?`<div class="faddr">${d.ak} / ${d.ch}: ${trunc(d.addr)}</div>`:""}
+      <div class="frec" style="color:${recCol}"><span class="dot" style="background:currentColor"></span>${rc.t}</div>
+      ${d.br?'<span class="stamp">bridge</span>':''}
+    </article>`;
+  }).join("");
+})();
+
+function applyFilter(){
+  document.querySelectorAll(".bubble").forEach(g=> g.classList.toggle("dim", active && g.dataset.cat!==active));
+  document.querySelectorAll(".file").forEach(f=> f.classList.toggle("hide", active && f.dataset.cat!==active));
+  const shown = active ? D.filter(d=>d.t===active).length : D.length;
+  document.getElementById("filecount").textContent = (active? catLabel(active)+" - " : "") + shown + " of " + D.length + " records";
+}
+document.getElementById("filecount").textContent = D.length + " records";
+</script>
+</body>
+</html>
