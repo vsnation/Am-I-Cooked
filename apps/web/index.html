@@ -225,6 +225,9 @@
   .rec-opt .st.info { color:var(--ember); }
   .minimize { font-family:var(--mono); font-size:9.5px; color:var(--heal); line-height:1.6; margin-bottom:10px; }
 
+  .sharerow { display:flex; gap:8px; margin-top:8px; }
+  .sharerow .btn { flex:1; min-width:0; }
+  .sharebtn { font-size:13px; padding:12px 8px; white-space:nowrap; }
   .cardwrap { background:#5c3a22; color:#f0e2cb; border-radius:16px; padding:18px; font-family:var(--mono); box-shadow:0 16px 40px rgba(0,0,0,.5); }
   .cardwrap.heal { background:#dfa575; color:#241505; }
   .cardwrap .h { display:flex; justify-content:space-between; font-size:9px; letter-spacing:.16em; text-transform:uppercase; opacity:.8; }
@@ -396,7 +399,7 @@
     <div class="pct" id="pctV">WALKTHROUGH · SAMPLE WALLET · NGMI?</div>
     <div class="knives" id="knivesV">🔪🔪 TWO KNIVES STILL IN · €4,120 LIVE</div>
     <div class="vbtns">
-      <button class="btn ghost" onclick="openModal('shareModal')">🔥 Share the misery</button>
+      <button class="btn ghost" onclick="openShare('misery')">🔥 Share the misery</button>
       <button class="btn blood" onclick="go(3)">🔪 Want the knives out?</button>
       <div class="sealrow"><button class="sealbtn" onclick="openModal('sealModal')"><span class="waxdot"></span>SEALED · TAP TO VERIFY</button></div>
     </div>
@@ -475,7 +478,7 @@
     </div>
     <div class="foot-note" id="savedTicker" style="margin-top:10px;opacity:0;transition:opacity .7s">🩹 € 212,940 defused by surgeons to date</div>
     <div class="vbtns">
-      <button class="btn hot" onclick="openModal('healModal')">🩹 Share the recovery</button>
+      <button class="btn hot" onclick="openShare('recovery')">🩹 Share the recovery</button>
       <div class="navrow">
         <button class="btn ghost" onclick="openRecourse()">🌍 my options</button>
         <button class="btn ghost" onclick="resetAll()">↻ start over</button>
@@ -502,11 +505,16 @@
         <div class="r" id="cardRoast">"You paid €900 to be exploited by a protocol named after a dog."</div>
         <div class="f"><span>🔏 SEALED · 0G CHAIN</span><span>tracely.live/cooked</span></div>
       </div>
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button class="btn hot" style="flex:1.4" onclick="postToX()">𝕏 Post it</button>
-        <button class="btn ghost" style="flex:1" id="copyLinkBtn" onclick="copyShareLink()">copy link</button>
+      <button class="btn hot sharebtn" id="miseryNativeBtn" style="margin-top:12px;display:none" onclick="nativeShare('misery', this)">📤 Share…</button>
+      <div class="sharerow">
+        <button class="btn hot sharebtn" onclick="postToX('misery')">𝕏 Post it</button>
+        <button class="btn ghost sharebtn" onclick="shareTelegram('misery')">✈️ Telegram</button>
       </div>
-      <button class="btn ghost" style="margin-top:8px" onclick="closeModal('shareModal')">close</button>
+      <div class="sharerow">
+        <button class="btn ghost sharebtn" id="saveMiseryBtn" onclick="saveCard('misery', this)">⬇ Save image</button>
+        <button class="btn ghost sharebtn" id="copyLinkBtn" onclick="copyShareLink('misery', this)">copy link</button>
+      </div>
+      <button class="btn ghost sharebtn" style="margin-top:8px" onclick="closeModal('shareModal')">close</button>
     </div>
   </div>
 
@@ -517,9 +525,18 @@
         <div class="s"><span class="was" id="healWas">68%</span><span id="healScore">31<small>%</small></span></div>
         <div class="band" id="healBand">MEDIUM RARE</div>
         <div class="r" id="healRoast">"Walkthrough numbers — run it on your own wallet for the real thing."</div>
-        <div class="f"><span id="healFoot">🎬 DEMO WALKTHROUGH</span><span>amicooked.xyz</span></div>
+        <div class="f"><span id="healFoot">🎬 DEMO WALKTHROUGH</span><span>tracely.live/cooked</span></div>
       </div>
-      <button class="btn ghost" style="margin-top:12px" onclick="closeModal('healModal')">close</button>
+      <button class="btn hot sharebtn" id="healNativeBtn" style="margin-top:12px;display:none" onclick="nativeShare('recovery', this)">📤 Share…</button>
+      <div class="sharerow">
+        <button class="btn hot sharebtn" onclick="postToX('recovery')">𝕏 Post it</button>
+        <button class="btn ghost sharebtn" onclick="shareTelegram('recovery')">✈️ Telegram</button>
+      </div>
+      <div class="sharerow">
+        <button class="btn ghost sharebtn" id="healSaveBtn" onclick="saveCard('recovery', this)">⬇ Save image</button>
+        <button class="btn ghost sharebtn" id="healCopyBtn" onclick="copyShareLink('recovery', this)">copy link</button>
+      </div>
+      <button class="btn ghost sharebtn" style="margin-top:8px" onclick="closeModal('healModal')">close</button>
     </div>
   </div>
 
@@ -1200,22 +1217,102 @@
   }
 
   // ---- share: the /r/<addr> link carries OG meta + banner, so X shows a card ----
-  function shareUrl(){
-    var a = window.__scanAddr;
+  function shareUrl(addr){
+    var a = addr === undefined ? window.__scanAddr : addr;
     return a ? 'https://tracely.live/cooked/r/' + encodeURIComponent(a) : 'https://tracely.live/cooked/';
   }
-  function postToX(){
-    var score = (document.getElementById('cardScore').textContent || '').trim().replace(/\s+/g, '');
-    var band = (document.getElementById('cardBand').textContent || '').trim();
-    var text = VD ? ('my wallet just got autopsied: ' + score + ' ' + band + ' 🔪 how cooked are you?')
-                  : 'AM I COOKED? — the 60-second wallet autopsy 🔪';
-    window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(shareUrl()), '_blank');
+
+  // One place decides what a share is allowed to say. A walkthrough has no wallet and no
+  // real result behind it, so it shares the product — never a personal link or a number
+  // the scan did not produce.
+  function shareCtx(kind){
+    var addr = window.__scanAddr || null;
+    var text;
+    if (kind === 'recovery'){
+      var real = !!(OPRESULT && OPRESULT.revoked > 0);
+      if (!real) addr = null;
+      text = real
+        ? ('pulled ' + OPRESULT.revoked + ' knives out of my wallet — ' + OPRESULT.before + '% → ' + OPRESULT.after + '% 🩹 how cooked are you?')
+        : 'AM I COOKED? — the 60-second wallet autopsy 🔪';
+    } else {
+      if (!VD) addr = null;
+      text = (VD && addr)
+        ? ('my wallet just got autopsied: ' + VD.score + '% ' + VD.band + ' 🔪 how cooked are you?')
+        : 'AM I COOKED? — the 60-second wallet autopsy 🔪';
+    }
+    return { addr: addr, url: shareUrl(addr), text: text };
   }
-  function copyShareLink(){
-    var u = shareUrl(), b = document.getElementById('copyLinkBtn');
-    var done = function(){ b.textContent = '✓ copied'; setTimeout(function(){ b.textContent = 'copy link'; }, 1600); };
+
+  // The 1200x630 banner is rendered server-side from the cached report (same image X and
+  // Telegram unfurl), so saving it is a fetch, not a second renderer in the client.
+  async function cardBlob(addr){
+    var r = await fetch('/cooked-api/card?address=' + encodeURIComponent(addr));
+    if (!r.ok) throw new Error('card not ready');
+    var b = await r.blob();
+    // an un-scanned address answers with JSON; downloading that as .png helps nobody
+    if (!/^image\//.test(b.type)) throw new Error('card not ready');
+    return b;
+  }
+  function flash(btn, msg, restore){
+    btn.textContent = msg;
+    setTimeout(function(){ btn.disabled = false; btn.textContent = restore; }, 1800);
+  }
+  async function saveCard(kind, btn){
+    var c = shareCtx(kind), restore = btn.textContent;
+    if (!c.addr) return flash(btn, 'scan a wallet first', restore);
+    btn.disabled = true; btn.textContent = '⏳ rendering…';
+    try {
+      var blob = await cardBlob(c.addr);
+      var u = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = u; a.download = 'amicooked-' + String(c.addr).replace(/[^a-z0-9.]/gi, '').slice(0, 20) + '.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(u); }, 4000);
+      flash(btn, '✓ saved', restore);
+    } catch (e){ flash(btn, '✗ ' + e.message, restore); }
+  }
+  function postToX(kind){
+    var c = shareCtx(kind);
+    window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(c.text) + '&url=' + encodeURIComponent(c.url), '_blank');
+  }
+  function shareTelegram(kind){
+    var c = shareCtx(kind);
+    window.open('https://t.me/share/url?url=' + encodeURIComponent(c.url) + '&text=' + encodeURIComponent(c.text), '_blank');
+  }
+  // Mobile: hand the OS the actual PNG where Web Share Level 2 allows it (Telegram, X and
+  // every other installed app then appear in one sheet), else share text + link.
+  async function nativeShare(kind, btn){
+    var c = shareCtx(kind), restore = btn.textContent;
+    try {
+      if (c.addr && navigator.canShare){
+        btn.disabled = true; btn.textContent = '⏳ rendering…';
+        try {
+          var f = new File([await cardBlob(c.addr)], 'amicooked.png', { type: 'image/png' });
+          if (navigator.canShare({ files: [f] })){
+            btn.disabled = false; btn.textContent = restore;
+            return await navigator.share({ files: [f], text: c.text + ' ' + c.url });
+          }
+        } catch (e){ /* rendering failed — fall through to the text share */ }
+        btn.disabled = false; btn.textContent = restore;
+      }
+      await navigator.share({ title: 'AM I COOKED?', text: c.text, url: c.url });
+    } catch (e){ btn.disabled = false; btn.textContent = restore; } // user dismissed the sheet
+  }
+  function copyShareLink(kind, btn){
+    var u = shareCtx(kind).url, restore = 'copy link';
+    var done = function(){ flash(btn, '✓ copied', restore); };
     if (navigator.clipboard) navigator.clipboard.writeText(u).then(done, function(){ window.prompt('copy this link', u); });
     else window.prompt('copy this link', u);
+  }
+  // Save/native-share only exist when there is a real card behind them.
+  function openShare(kind){
+    var c = shareCtx(kind);
+    var ids = kind === 'recovery'
+      ? { modal: 'healModal', save: 'healSaveBtn', native: 'healNativeBtn' }
+      : { modal: 'shareModal', save: 'saveMiseryBtn', native: 'miseryNativeBtn' };
+    document.getElementById(ids.save).style.display = c.addr ? '' : 'none';
+    document.getElementById(ids.native).style.display = (c.addr && navigator.share) ? '' : 'none';
+    openModal(ids.modal);
   }
 
   // ---- first-visit intro tour: the annotated demo clip, skippable always ----
