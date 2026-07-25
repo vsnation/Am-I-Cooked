@@ -70,10 +70,11 @@ Continuity tracks are for prior-event projects; we take the standard ones.
 - [x] CookedRegistry deployed on Galileo with the rubric hash —
       0x5d6093C9C6f9118dBD6ae87770dB1E964D06CFcE, on-chain rubricHash readback
       matches keccak256(contracts/rubric.md) — https://chainscan-galileo.0g.ai/address/0x5d6093C9C6f9118dBD6ae87770dB1E964D06CFcE (t7, done)
-- [ ] Proof of 0G Compute usage for inference in the DEMO — standalone TEE
-      inference already verified live (qwen2.5 TeeML, attestation checked,
-      21.6s — t4); judge-through-TEE end-to-end in the product is t99, running
-      with local
+- [x] Proof of 0G Compute usage for inference in the DEMO — judge prompt goes
+      through seal LiveBackend to the 0G Compute TEE (qwen2.5-omni-7b) with
+      per-response signature verification, and the verdict is anchored via
+      CookedRegistry.attest; sealing refuses if the on-chain rubricHash doesn't
+      match the local rubric (t99, done)
 - [ ] Demo video under 3 minutes — t17 pending; must show the 0G features
 - [ ] Team contacts (Telegram and X) in the submission
 
@@ -155,7 +156,6 @@ fits every sponsor's window), live data via the Graph gateway, no mocks.
 |---|---|---|
 | World APP_ID (dev portal, human) | t6 | t15 and all three World prizes |
 | MiniKit signing end-to-end | t15 | World AgentKit "working flow" |
-| Judge through live TEE in the product (not stub) | t99 (local, running) | 0G "proof of Compute usage" in the demo |
 | 2:50 video and clips | t17 | every track |
 | Filled World testing docs (docs/world-testing/) — still template-only | t6 / t15 | both World beta prizes |
 | Venue walk user test (~20 people, Saturday evening) — not run yet | — | user-feedback half of World testing docs |

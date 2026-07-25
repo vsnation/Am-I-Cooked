@@ -87,6 +87,72 @@
 - **zod**, **js-sha3**, `node:test` (75+ unit tests, all mocked-RPC, no network)
 - **PWA / Service Worker** — installable, offline shell
 
+## Per-track paragraphs (for the partner sections of the submission)
+
+### 0G — Best AI Product
+
+> The cooked score is an LLM verdict sealed in a 0G Compute TEE (qwen2.5-omni-7b,
+> per-response signature verification), not a backend formula. The scoring rubric's
+> keccak256 is committed in CookedRegistry on Galileo
+> (0x5d6093C9C6f9118dBD6ae87770dB1E964D06CFcE) and the judge refuses to seal a
+> verdict if the on-chain hash doesn't match its local rubric. Scan history lives
+> encrypted in 0G Storage; the Surgeon agent carries Agentic ID tokenId 2
+> (0x584E00F2a526AB3a3966237c376e97BC6f8338F2). Tap the wax seal in the app and
+> the receipts open.
+
+### 0G — Best Infrastructure & Tooling
+
+> SEAL is our rule made into a product: the app contains zero 0G SDK imports.
+> It's a standalone MCP server (Bun + TypeScript) exposing 0G as 8 tools — sealed
+> TEE inference with signature verification, encrypted Storage memory, chain
+> calls, Agentic ID mint/load — so ANY MCP client gets 0G in one config line.
+> Stub mode emits self-consistent fake attestations that seal_verify genuinely
+> validates and rejects when tampered, so teams can build offline and flip to
+> live 0G without touching agent code. Example agents ship in the repo.
+
+### World — AgentKit New Use Cases
+
+> The Surgeon inverts the usual agent pitch: instead of a human-backed agent
+> getting perks, its AUTHORITY to touch your money is human-backed and expiring.
+> AgentKit's AgentBook verifier on World Chain gates the OPERATE mode — an agent
+> without verified human backing gets a red BLOCKED and can only diagnose, never
+> prepare transactions. Backing lapses daily: "your Surgeon went off duty — 2
+> wounds reopened." The agent never holds keys; every revocation is signed by
+> the human in World App.
+
+### World — Selfie Check Beta / Identity Check Beta
+
+> Selfie Check is the ON-DUTY switch for a financial agent — a risk gate, not a
+> login. Identity Check adds exactly two booleans (jurisdiction eligibility,
+> 18+); the app never sees biometrics or attributes beyond those booleans and
+> persists nothing — reload means re-verify. Testing documentation ships in
+> docs/world-testing/: a developer-friction log kept live during integration and
+> an anonymous ~20-person venue user test with tally.
+
+### The Graph — Best AI Tooling
+
+> cooked-skill packages the whole autopsy as an MCP server + SKILL.md, so any
+> agent can borrow our coroner: address in, cross-protocol risk profile out —
+> Messari standardized schemas through the Graph gateway, zero dependencies,
+> tested offline against fixtures. It's the same engine our own product runs,
+> which is the strongest reusability proof there is.
+
+### The Graph — Best AI Use Case
+
+> Graph data is load-bearing: the autopsy surfaces (lending positions, DEX
+> history, TVL guardian feed) ARE the judge's evidence — the TEE-sealed LLM
+> verdict is computed from them and from nothing else. No Graph, no verdict.
+> The guardian AlarmEngine polls top-pool TVL through the gateway and matches
+> ≥25%/12min outflows against your personal exposure.
+
+### The Graph — Best Use of Composable or Standardized Data Products
+
+> One Messari-standardized query shape covers Aave v3, Compound v3 and Spark —
+> adding a conforming lending market is one registry line (we show the line in
+> the demo). Uniswap v3 rides the same registry with its own dialect, and the
+> guardian TVL feed composes on top: three product surfaces from one standardized
+> schema family.
+
 ## AI tools usage
 
 > Two very different answers, both true.
