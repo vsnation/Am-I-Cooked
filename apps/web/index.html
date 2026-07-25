@@ -753,7 +753,7 @@
         }, 2500);
         var d = await SCANP;
         clearTimeout(hint);
-        if (d && d.report) { VD = mapReport(d.report); window.__scanAddr = addr; scanDoneAt = Date.now(); }
+        if (d && d.report) { VD = mapReport(d.report); window.__scanAddr = addr; window.__scanAddrResolved = (d.report.resolved || d.report.address || '').toLowerCase(); scanDoneAt = Date.now(); }
         else { scanFailed(); return; }   // real scan failed → honest error, never a fake demo
       }
       show(2);
@@ -969,8 +969,15 @@
       return;
     }
     document.getElementById('operateBtn').disabled = true;
+    // Real signing ONLY when the already-connected account IS the scanned wallet —
+    // checked silently via eth_accounts, so OPERATE never throws a wallet popup at
+    // someone walking the demo. Everyone else gets the labeled walkthrough.
     if (window.__wounds && window.__wounds.length && window.ethereum){
-      operateReal().catch(function(){ runStagedOperate(); });
+      window.ethereum.request({ method: 'eth_accounts' }).then(function(accs){
+        var scanned = window.__scanAddrResolved || '';
+        if (accs && accs[0] && scanned && accs[0].toLowerCase() === scanned) operateReal().catch(function(){ runStagedOperate(); });
+        else runStagedOperate();
+      }).catch(function(){ runStagedOperate(); });
       return;
     }
     runStagedOperate();
