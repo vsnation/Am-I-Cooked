@@ -304,13 +304,14 @@ describe("resolveAddress", () => {
 });
 
 describe("CHAINS registry", () => {
-  test("7 chains, unique ids, https RPCs, explorers set", () => {
-    assert.equal(CHAINS.length, 7);
-    assert.equal(new Set(CHAINS.map(c => c.id)).size, 7);
+  test("all chains: unique ids, https RPCs, explorers, per-chain block time", () => {
+    assert.ok(CHAINS.length >= 7, "core seven chains always present");
+    assert.equal(new Set(CHAINS.map(c => c.id)).size, CHAINS.length);
     for (const c of CHAINS) {
       assert.match(c.rpc, /^https:\/\//);
       assert.match(c.explorer, /^https:\/\//);
       assert.ok(c.lookback > 0);
+      assert.ok(c.blockSeconds > 0, `${c.name} needs blockSeconds for honest age estimates`);
     }
   });
 });

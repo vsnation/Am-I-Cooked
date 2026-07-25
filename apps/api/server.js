@@ -7,6 +7,7 @@ import { createHash } from "node:crypto";
 import { autopsy, loadIncidents } from "./autopsy.js";
 import { resolveAddress, multichainApprovals } from "./onchain.js";
 import { AlarmEngine, pollTopPools, replayDrain } from "./alarm.js";
+import { surgeonAuthorize, surgeonStatus, surgeonSelfCheck } from "./surgeon.js";
 import { gql } from "./autopsy.js";
 
 const PORT = Number(process.env.PORT || 7801);
@@ -14,7 +15,8 @@ const KEY = process.env.GRAPH_API_KEY;
 const RPC_URL = process.env.ETH_RPC_URL || "https://rpc.mevblocker.io";
 const MONGO_URL = process.env.MONGO_URL || "";
 const TTL_MS = Number(process.env.CACHE_TTL_MS || 10 * 60 * 1000);
-const SCHEMA = 8; // bump to invalidate all cached reports after a scoring change
+const SCHEMA = 8;
+const SELF_ORIGIN = process.env.SELF_ORIGIN || ("http://127.0.0.1:" + PORT); // bump to invalidate all cached reports after a scoring change
 if (!KEY) { console.error("[cooked-api] GRAPH_API_KEY missing"); process.exit(1); }
 
 const REGISTRY = JSON.parse(readFileSync(new URL("./incidents.json", import.meta.url), "utf8"));
@@ -95,7 +97,19 @@ const server = http.createServer(async (req, res) => {
       return send(200, { alarms: alarms.forExposure(cached.report) });
     }
     if (url.pathname === "/alarms/replay") { const r = replayDrain(alarms); return send(200, { started: true, ...r }); }
-    if (url.pathname !== "/scan") return send(404, { error: "routes: /scan, /alarms, /alarms/for, /alarms/replay, /health" });
+    if (url.pathname === "/surgeon/status") {
+      const self = await surgeonSelfCheck(SELF_ORIGIN + "/surgeon/probe");
+      return send(200, { ...surgeonStatus(), humanBacked: self.granted, check: self });
+    }
+    if (url.pathname === "/surgeon/probe") {
+      const a = await surgeonAuthorize({ headers: req.headers, url: req.url });
+      return send(a.granted ? 200 : 402, a);
+    }
+    if (url.pathname === "/surgeon/authorize") {
+      const a = await surgeonAuthorize({ headers: req.headers, url: req.url });
+      return send(200, a);
+    }
+    if (url.pathname !== "/scan") return send(404, { error: "routes: /scan, /alarms, /surgeon/status|authorize, /health" });
     const input = (url.searchParams.get("address") || "").trim();
     let resolved;
     try { resolved = await resolveAddress(input); }
