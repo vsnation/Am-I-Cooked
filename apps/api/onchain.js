@@ -51,16 +51,21 @@ async function chainTip(rpc) {
 /** Multichain open-wounds surface: run the shared engine on every chain, tag each wound
  *  with its chain and a prepared revoke tx, merge, and combine the score. */
 export async function multichainApprovals(owner, incidents, opts = {}) {
+  const budget = opts.perChainMs ?? 22000;
+  const skipped = [];
   const perChain = await Promise.all(CHAINS.map(async ch => {
     try {
-      let fromBlock = ch.fromBlock;
-      if (ch.lookback) { const tip = await chainTip(ch.rpc); fromBlock = Math.max(0, tip - ch.lookback); }
-      const surface = await approvalsSurface(ch.rpc, owner, incidents, { fromBlock });
-      return (surface.wounds || []).map(w => ({
-        ...w, chain: ch.name, chainId: ch.id, explorer: ch.explorer,
-        revoke: buildRevoke(ch.id, w.token, w.spender),
-      }));
-    } catch { return []; }
+      const run = (async () => {
+        let fromBlock = ch.fromBlock;
+        if (ch.lookback) { const tip = await chainTip(ch.rpc); fromBlock = Math.max(0, tip - ch.lookback); }
+        const surface = await approvalsSurface(ch.rpc, owner, incidents, { fromBlock });
+        return (surface.wounds || []).map(w => ({
+          ...w, chain: ch.name, chainId: ch.id, explorer: ch.explorer,
+          revoke: buildRevoke(ch.id, w.token, w.spender),
+        }));
+      })();
+      return await Promise.race([run, new Promise((_, r) => setTimeout(() => r(new Error("chain timeout")), budget))]);
+    } catch { skipped.push(ch.name); return []; }
   }));
 
   const items = perChain.flat().sort((a, b) =>
@@ -76,6 +81,8 @@ export async function multichainApprovals(owner, incidents, opts = {}) {
     items,
     score,
     chains: [...new Set(items.map(i => i.chain))],
+    chainsScanned: CHAINS.length - skipped.length,
+    skipped,
     counts: { total: items.length, critical: n("critical"), unlimited: items.filter(i => i.unlimited).length },
   };
 }
