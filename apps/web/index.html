@@ -244,10 +244,14 @@
   .intro video { display:block; height:min(88vh, 780px); aspect-ratio:390/844; width:auto; max-width:94vw; object-fit:cover;
     border-radius:20px; border:1px solid var(--line); box-shadow:0 24px 80px rgba(0,0,0,.7), 0 0 40px rgba(255,106,43,.12); }
   .intro .skip { position:absolute; top:12px; right:12px; z-index:2;
-    width:32px; height:32px; display:flex; align-items:center; justify-content:center; padding:0;
+    width:26px; height:26px; padding:0;
     background:linear-gradient(115deg,#ff6a2b 0%,#ffa25e 42%,#ff6a2b 65%); background-size:230% 100%;
-    animation:sheen 3.4s linear infinite; color:#1c0d04; border:0; border-radius:12px;
-    font:800 14px/1 var(--sans); cursor:pointer; box-shadow:0 8px 26px rgba(255,106,43,.35); transition:transform .08s; }
+    animation:sheen 3.4s linear infinite; border:0; border-radius:9px;
+    cursor:pointer; box-shadow:0 8px 26px rgba(255,106,43,.35); transition:transform .08s; }
+  .intro .skip::before, .intro .skip::after { content:""; position:absolute; left:50%; top:50%;
+    width:12px; height:2.6px; border-radius:2px; background:#1c0d04; }
+  .intro .skip::before { transform:translate(-50%,-50%) rotate(45deg); }
+  .intro .skip::after { transform:translate(-50%,-50%) rotate(-45deg); }
   .intro .skip:active { transform:scale(.94); }
   .intro .ihint { position:absolute; bottom:calc(16px + env(safe-area-inset-bottom)); left:0; right:0; text-align:center;
     font:600 10px/1 var(--mono); letter-spacing:.14em; color:var(--muted); }
@@ -286,7 +290,7 @@
 <div class="intro" id="intro" role="dialog" aria-label="35 second tour">
   <div class="vwrap">
     <video id="introVid" src="tour.mp4" muted playsinline preload="metadata" onended="closeIntro()"></video>
-    <button class="skip" onclick="closeIntro()" aria-label="Skip tour">✕</button>
+    <button class="skip" onclick="closeIntro()" aria-label="Skip tour"></button>
   </div>
   <div class="ihint">35-SEC TOUR · SKIP ANY TIME — THE OVEN IS ALREADY HOT</div>
 </div>
