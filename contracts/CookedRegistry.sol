@@ -12,17 +12,24 @@ contract CookedRegistry {
     /// @notice keccak256 of the sealed judge's rubric, fixed forever at deploy time.
     bytes32 public immutable rubricHash;
 
+    /// @notice The only account allowed to anchor verdicts — the app's sealed-judge
+    ///         backend. Without this, anyone could front-run a garbage attestationHash
+    ///         under a victim's scoreHash and (first-write-wins) lock it forever.
+    address public immutable submitter;
+
     struct Record { bytes32 attestationHash; uint64 timestamp; }
     mapping(bytes32 => Record) public records;
     uint256 public totalAttestations;
 
-    constructor(bytes32 _rubricHash) {
+    constructor(bytes32 _rubricHash, address _submitter) {
         rubricHash = _rubricHash;
+        submitter = _submitter;
     }
 
-    /// @notice Anchor a sealed verdict. Idempotent per scoreHash (first write wins —
-    ///         a verdict cannot be quietly replaced).
+    /// @notice Anchor a sealed verdict. Only the authorized submitter; idempotent per
+    ///         scoreHash (first write wins — a verdict cannot be quietly replaced).
     function attest(bytes32 scoreHash, bytes32 attestationHash) external {
+        require(msg.sender == submitter, "not submitter");
         require(scoreHash != bytes32(0) && attestationHash != bytes32(0), "empty");
         require(records[scoreHash].timestamp == 0, "already attested");
         records[scoreHash] = Record(attestationHash, uint64(block.timestamp));

@@ -40,7 +40,7 @@ describe("SEAL core (stub backend — same interface live mode must satisfy)", (
     const loaded = await s.agentLoad(agenticId);
     expect(loaded.meta.name).toBe("surgeon");
     expect(loaded.memoryRoot).toMatch(/^root-/);
-    expect(s.agentLoad("nope")).rejects.toThrow();
+    await expect(s.agentLoad("nope")).rejects.toThrow();
   });
 
   test("chain call returns deterministic tx hash", async () => {
@@ -55,7 +55,7 @@ describe("SEAL core (stub backend — same interface live mode must satisfy)", (
     process.env.SEAL_MODE = "live";
     const { makeBackend } = await import("../src/core.js");
     const live = makeBackend();
-    expect(live.infer("x")).rejects.toThrow(/OG_RPC_URL/);
+    await expect(live.infer("x")).rejects.toThrow(/OG_RPC_URL/);
     process.env.SEAL_MODE = "stub";
   });
 });

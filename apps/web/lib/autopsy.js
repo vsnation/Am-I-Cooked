@@ -37,7 +37,9 @@ export async function gql(auth, subgraphId, query, variables = {}) {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ query, variables }),
   });
-  const out = await r.json();
+  if (!r.ok) throw new Error(`subgraph ${subgraphId}: HTTP ${r.status}`);
+  let out;
+  try { out = await r.json(); } catch { throw new Error(`subgraph ${subgraphId}: non-JSON response`); }
   if (out.errors) throw new Error(`subgraph ${subgraphId}: ${out.errors[0].message}`);
   return out.data;
 }
@@ -70,18 +72,20 @@ const UNI_ACCOUNT = `query($addr: Bytes!) {
 export async function lendingSurface(apiKey, address) {
   const addr = address.toLowerCase();
   const sources = REGISTRY.filter(s => s.schema === "messari-lending");
-  const results = await Promise.all(sources.map(async src => {
-    const d = await gql(apiKey, src.id, MESSARI_ACCOUNT, { id: addr });
-    return {
-      source: src.name,
-      protocolTvlUSD: Number(d.protocols?.[0]?.totalValueLockedUSD ?? 0),
-      positionCount: d.account?.positionCount ?? 0,
-      openPositions: (d.account?.positions ?? []).map(p => ({
-        side: p.side, balance: p.balance, market: p.market?.name,
-        token: p.market?.inputToken?.symbol,
-      })),
-    };
-  }));
+  const results = (await Promise.all(sources.map(async src => {
+    try {
+      const d = await gql(apiKey, src.id, MESSARI_ACCOUNT, { id: addr });
+      return {
+        source: src.name,
+        protocolTvlUSD: Number(d.protocols?.[0]?.totalValueLockedUSD ?? 0),
+        positionCount: d.account?.positionCount ?? 0,
+        openPositions: (d.account?.positions ?? []).map(p => ({
+          side: p.side, balance: p.balance, market: p.market?.name,
+          token: p.market?.inputToken?.symbol,
+        })),
+      };
+    } catch { return null; } // a single failed lending source must not sink the scan
+  }))).filter(Boolean);
   return results;
 }
 
@@ -89,7 +93,9 @@ export async function lendingSurface(apiKey, address) {
 export async function dexSurface(apiKey, address) {
   const addr = address.toLowerCase();
   const src = REGISTRY.find(s => s.schema === "uniswap-v3");
-  const d = await gql(apiKey, src.id, UNI_ACCOUNT, { addr });
+  let d;
+  try { d = await gql(apiKey, src.id, UNI_ACCOUNT, { addr }); }
+  catch { return { source: src.name, lpPositions: [], recentSwaps: [] }; }
   return {
     source: src.name,
     lpPositions: (d.positions ?? []).map(p => ({
@@ -109,14 +115,19 @@ export async function dexSurface(apiKey, address) {
  *  with the approvals feed. */
 export function incidentSurface(universe) {
   const terms = [...new Set(universe.map(t => t.toLowerCase()).filter(Boolean))];
-  const matches = [];
+  const byProtocol = new Map(); // normalized protocol root -> best (largest-loss) match
   for (const inc of registry().incidents) {
     const hit = terms.find(term =>
       inc.matchKeys.some(k => k === term || (k.length >= 5 && term.includes(k)) || (term.length >= 5 && k.includes(term))));
-    if (hit) matches.push({ target: inc.target, date: inc.date, lostUSD: inc.lostUSD, type: inc.type, recovered: inc.recovered, matchedOn: hit });
+    if (!hit) continue;
+    const root = inc.target.toLowerCase().split(/\s+/)[0]; // "abracadabra money" -> "abracadabra"
+    const prev = byProtocol.get(root);
+    if (!prev || inc.lostUSD > prev.lostUSD)
+      byProtocol.set(root, { target: inc.target, date: inc.date, lostUSD: inc.lostUSD, type: inc.type, recovered: inc.recovered, matchedOn: hit });
   }
+  const matches = [...byProtocol.values()];
   return {
-    method: "name/symbol cross-reference vs curated registry (176 incidents; address-level matching lives in the approvals surface)",
+    method: "name/symbol cross-reference vs curated registry (176 incidents), one match per protocol; NOT time-bound to holdings — a brush, not proof of loss",
     registrySize: registry().incidents.length,
     matches,
     incidentLossUSD: matches.reduce((a, m) => a + m.lostUSD, 0),

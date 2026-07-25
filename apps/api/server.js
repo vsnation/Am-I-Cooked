@@ -3,6 +3,7 @@
 // always (the service degrades gracefully, it never depends on Mongo being up).
 import http from "node:http";
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { autopsy, loadIncidents } from "./autopsy.js";
 import { resolveAddress, multichainApprovals } from "./onchain.js";
 
@@ -11,7 +12,7 @@ const KEY = process.env.GRAPH_API_KEY;
 const RPC_URL = process.env.ETH_RPC_URL || "https://rpc.mevblocker.io";
 const MONGO_URL = process.env.MONGO_URL || "";
 const TTL_MS = Number(process.env.CACHE_TTL_MS || 10 * 60 * 1000);
-const SCHEMA = 6; // bump to invalidate all cached reports after a scoring change
+const SCHEMA = 7; // bump to invalidate all cached reports after a scoring change
 if (!KEY) { console.error("[cooked-api] GRAPH_API_KEY missing"); process.exit(1); }
 
 const REGISTRY = JSON.parse(readFileSync(new URL("./incidents.json", import.meta.url), "utf8"));
@@ -27,7 +28,7 @@ if (MONGO_URL) {
     const client = new MongoClient(MONGO_URL, { serverSelectionTimeoutMS: 3000 });
     await client.connect();
     col = client.db("cooked").collection("scans");
-    await col.createIndex({ at: 1 });
+    await col.createIndex({ at: 1 }, { expireAfterSeconds: 3600 }); // TTL: entries self-expire
     console.log("[cooked-api] mongo cache connected");
   } catch (e) {
     console.error(`[cooked-api] mongo unavailable (${e.message}) — memory cache only`);
@@ -35,19 +36,28 @@ if (MONGO_URL) {
 }
 
 let scans = 0, hits = 0;
+const inflight = new Map(); // key -> Promise: coalesce concurrent scans of one address
+// Cache by a hash of the address, not the address itself — no plaintext ledger of who
+// looked up what (public data either way, but nothing links a person to a lookup).
+const keyOf = addr => createHash("sha256").update(addr).digest("hex");
+
 async function getCached(addr) {
-  const m = mem.get(addr);
+  const key = keyOf(addr);
+  const m = mem.get(key);
   if (m && m.schema === SCHEMA && Date.now() - m.at < TTL_MS) return { ...m, layer: "memory" };
   if (col) {
-    const d = await col.findOne({ _id: addr }).catch(() => null);
-    if (d && d.schema === SCHEMA && Date.now() - d.at < TTL_MS) { mem.set(addr, { at: d.at, schema: SCHEMA, report: d.report }); return { ...d, layer: "mongo" }; }
+    const d = await col.findOne({ _id: key }).catch(() => null);
+    if (d && d.schema === SCHEMA && Date.now() - d.at < TTL_MS) { mem.set(key, { at: d.at, schema: SCHEMA, report: d.report }); return { ...d, layer: "mongo" }; }
   }
   return null;
 }
 async function putCached(addr, report) {
+  if (report?.cooked?.partial) return; // never cache a degraded scan as if complete
+  const key = keyOf(addr);
   const doc = { at: Date.now(), schema: SCHEMA, report };
-  mem.set(addr, doc);
-  if (col) await col.updateOne({ _id: addr }, { $set: doc }, { upsert: true }).catch(() => {});
+  mem.set(key, doc);
+  if (mem.size > 500) mem.delete(mem.keys().next().value); // bound memory
+  if (col) await col.updateOne({ _id: key }, { $set: doc }, { upsert: true }).catch(() => {});
 }
 
 const server = http.createServer(async (req, res) => {
@@ -64,10 +74,17 @@ const server = http.createServer(async (req, res) => {
     scans++;
     const cached = url.searchParams.get("fresh") ? null : await getCached(addr);
     if (cached) { hits++; return send(200, { cached: true, layer: cached.layer, ageMs: Date.now() - cached.at, report: cached.report }); }
-    const report = await autopsy(KEY, resolved, { approvals: approvalsProvider });
-    report.input = input; report.resolved = resolved;
-    await putCached(addr, report);
-    send(200, { cached: false, report });
+    let p = inflight.get(addr); // ride an in-flight identical scan instead of burning credits
+    if (!p) {
+      p = (async () => {
+        const report = await autopsy(KEY, resolved, { approvals: approvalsProvider });
+        report.input = input; report.resolved = resolved;
+        await putCached(addr, report);
+        return report;
+      })().finally(() => inflight.delete(addr));
+      inflight.set(addr, p);
+    }
+    send(200, { cached: false, report: await p });
   } catch (e) {
     send(502, { error: e.message });
   }

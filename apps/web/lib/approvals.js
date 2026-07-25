@@ -149,7 +149,7 @@ export async function approvalsSurface(rpcUrl, owner, incidents, opts = {}) {
     to: p.token, data: SEL_ALLOWANCE + pad32(owner) + pad32(p.spender),
   })));
   const open = pairs
-    .map((p, i) => ({ ...p, allowance: allowances[i] ? BigInt(allowances[i]) : 0n }))
+    .map((p, i) => ({ ...p, allowance: (allowances[i] && allowances[i] !== "0x") ? BigInt(allowances[i]) : 0n }))
     .filter(p => p.allowance > 0n);
 
   const byAddress = Object.fromEntries(
