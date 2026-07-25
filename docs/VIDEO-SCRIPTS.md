@@ -93,7 +93,7 @@ All live, all verifiable while you watch. AM I COOKED, on 0G."
 
 ---
 
-## 3 · WORLD — `world-demo.mp4` (2:13)
+## 3 · WORLD — `world-demo.mp4` (2:25)
 
 **0:00 – landing.** "An AI agent that can revoke and move your funds is exactly the
 thing crypto users are afraid of. So we built the leash before we built the knife.
@@ -102,34 +102,45 @@ This is our World story."
 **0:08 – scanning jaredfromsubway.eth.** "First, diagnosis: this is the wallet that
 lost seven and a half million dollars to a dangling approval. We scan it live."
 
-**0:18 – agent card, authority NONE.** "Meet the Surgeon. It has on-chain credentials
-— but look at its authority: NONE. Anonymous. And that's not a label, it's enforced."
+**0:18 – agent card, authority NONE.** "Meet the Surgeon. It has on-chain
+credentials — but look at its authority: NONE. Anonymous. And that's enforced, not
+decorative."
 
 **0:27 – interlock.** "This blocked state IS the product. Anonymous agents may
-diagnose — never cut. A verified human must stand behind every signature this agent
-proposes. That's the AgentKit authority ladder."
+diagnose — never cut. That's the AgentKit authority ladder."
 
-**0:36 – World ID widget opens.** "And when I tap verify — this is REAL. A live World
-ID Selfie Check, right in the app: scan with World App, and a live human arms the
-agent. The agent's AgentBook registration is read alongside as its credential."
+**0:36 – World ID widget opens.** "When I tap verify — this is real: a live World ID
+Selfie Check, right in the app."
 
-**0:49 – widget closed, interlock holds.** "I'm not going to scan on camera — and
-look: no scan, no scalpel. The interlock holds. The system fails SAFE."
+**0:45 – QR card.** "You scan the code with World App — I'll simulate the rest for
+the camera, it says so right on screen."
 
-**0:59 – revoke queue.** "Even fully armed, the agent's power has a ceiling: it only
-PREPARES the revoke transactions — approve spender zero, batched, about forty cents
-of gas."
+**0:52 – connecting… connected.** "Connecting… and connected. A live human now backs
+the agent. Selfie Check passed, authority granted."
 
-**1:07 – 'you sign in World App'.** "The signature never leaves the human. The agent
-proposes; you decide, in your own wallet."
+**1:03 – interlock opens (demo label).** "The interlock opens — authority: REVOKE.
+Notice the label: this arm is the demo path; the live gate needs the real scan."
 
-**1:16 – selfie sustain.** "Authority isn't a cookie, either. The Selfie Check renews
-DAILY — let it lapse and the Surgeon goes dormant."
+**1:10 – revoke queue.** "Now the ceiling on its power: even armed, the agent only
+PREPARES the revokes — approve spender zero, batched, forty cents of gas."
 
-**1:24 – recourse modal.** "And if you were already robbed: a jurisdiction-aware
-recourse panel, gated by exactly two booleans — where you are, and that you're an
-adult. Nothing else asked. Nothing stored."
+**1:18 – 'you sign in World App'.** "The signature never leaves the human. The agent
+proposes; you decide."
 
-**1:34 – end slate.** "The ladder: anonymous diagnoses, human-backed proposes, the
-human signs. Selfie liveness sustains it, Identity Check respects your privacy. An
-agent with knives — and a human holding the leash. AM I COOKED, with World."
+**1:26 – OPERATE, wounds healing.** "So let's operate. The staged surgery closes the
+wounds one by one — no wallet on this machine, and the screen says so."
+
+**1:36 – DISCHARGE.** "And the final result: discharge papers. Sixty-eight percent
+cooked becomes thirty-one — medium rare. The recovery graph, the healed dial, and
+the card people actually share: not the shame — the comeback."
+
+**1:48 – selfie sustain.** "One more thing: authority isn't a cookie. The Selfie
+Check renews DAILY — lapse, and the Surgeon goes dormant."
+
+**1:56 – recourse modal.** "And if you were already robbed: jurisdiction-aware
+recourse, gated by exactly two booleans — where you are, and that you're an adult.
+Nothing else asked. Nothing stored."
+
+**2:06 – end slate.** "The ladder: anonymous diagnoses, human-backed proposes, the
+human signs. An agent with knives — and a human holding the leash. AM I COOKED,
+with World."
