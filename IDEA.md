@@ -71,7 +71,7 @@ The scariest question about any financial AI agent is *"it holds my private key?
 
 The verdict is computed inside a **TEE on 0G Compute** — private, verifiable inference, with the scoring rubric hash-committed and the attestation anchored on-chain. Graph queries run client-side; nothing is logged.
 
-So the claim is exactly this, no more: **"Scored inside a TEE. Your address never touches our servers."** Tap the wax seal on any card and it opens the receipts: TEE proof, registry transaction, committed rubric.
+So the claim is exactly this, no more: **"Scored inside a TEE. No connect, no signature, no account — and no ledger of who looked up what."** (The scan runs server-side so the Graph key stays ours; cache entries are keyed by a hash of the address and expire on a TTL.) Tap the wax seal on any card and it opens the receipts: TEE proof, registry transaction, committed rubric.
 
 ## The brand: a coroner's report filed from a kitchen
 

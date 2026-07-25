@@ -16,8 +16,9 @@
 > and your single worst day. The verdict is a cooked score from 0 to 100, stamped by
 > a sealed judge running inside a 0G Compute TEE — with a real attestation you can
 > tap open, and the scoring rubric hash-committed on-chain in the CookedRegistry, so
-> nobody (including us) can quietly change the rules after the fact. Your address
-> never touches our database; scan history lives encrypted in 0G Storage.
+> nobody (including us) can quietly change the rules after the fact. No connect, no
+> signature, no account — cached scans are keyed by a hash of the address, so we never
+> build a ledger of who looked up what, and history lives encrypted in 0G Storage.
 >
 > Then comes the part Wrapped can't do: fix it. The Surgeon is an agent with a 0G
 > Agentic ID that diagnoses every open wound and prepares the exact revocation
