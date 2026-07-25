@@ -280,7 +280,7 @@
 <script>(function(){var d=document.getElementById('splashDots'),n=0;var t=setInterval(function(){d.textContent='.'.repeat(n=(n+1)%4);},350);function go(){clearInterval(t);var s=document.getElementById('splash');if(!s)return;s.style.opacity='0';setTimeout(function(){s.remove();},520);}var t0=Date.now();window.addEventListener('load',function(){setTimeout(go,Math.max(0,650-(Date.now()-t0)));});setTimeout(go,3500);})();</script>
 <div class="intro" id="intro" role="dialog" aria-label="35 second tour">
   <div class="vwrap">
-    <video id="introVid" src="intro.mp4" muted playsinline preload="metadata" onended="closeIntro()"></video>
+    <video id="introVid" src="tour.mp4" muted playsinline preload="metadata" onended="closeIntro()"></video>
     <button class="skip" onclick="closeIntro()">SKIP ✕</button>
   </div>
   <div class="ihint">35-SEC TOUR · SKIP ANY TIME — THE OVEN IS ALREADY HOT</div>
@@ -1025,6 +1025,20 @@
     var i = document.getElementById('intro'); i.classList.remove('on');
     try { document.getElementById('introVid').pause(); } catch(e){}
   }
+  // One-time TLDR: a visitor still parked on the landing after 5s gets a 1s mascot
+  // flare, then the guided tour — once ever, never in demo mode, never over typing.
+  setTimeout(function(){
+    try {
+      if (new URLSearchParams(location.search).get('demo') === '1') return;
+      if (localStorage.getItem('cookedTourShown')) return;
+      if (CUR !== 1) return;
+      if (document.activeElement === document.getElementById('addrIn')) return;
+      if (document.getElementById('intro').classList.contains('on')) return;
+      localStorage.setItem('cookedTourShown', '1');
+      var m = document.getElementById('mascot'); m.classList.add('cooking');
+      setTimeout(function(){ m.classList.remove('cooking'); openIntro(); }, 1000);
+    } catch(e){}
+  }, 5000);
 
   // Pre-heat triggers: the prefilled wallet warms right after load; typed input warms
   // after a 900ms pause. By RUN time the scan is in flight or already cached.
