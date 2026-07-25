@@ -1,21 +1,54 @@
 # Pre-pitch checklist — ETHGlobal Lisbon 2026
 
-Compiled from ethglobal.com/events/lisbon2026/prizes (fetched 25 Jul 2026).
-**Submissions close Sunday 26 Jul, 09:00.** Judging Sunday; ENS judges at their
-booth Sunday morning. Live demo: https://freenodalvpn.xyz/cooked/
+Compiled from ethglobal.com/events/lisbon2026/prizes + the opening-ceremony
+slides (photos, 24 Jul). **Submissions close Sunday 26 Jul, 09:00.**
+Live demo: https://freenodalvpn.xyz/cooked/
 
-## Tracks we're aiming at
+## The organizer's rules (from the opening slides — these gate everything)
+
+- **Max 5 members**, 36.5h to hack, submissions due **Sun 09:00**.
+- **Partner Track: you select AT MOST 3 partners** on the dashboard — and you
+  qualify for ALL prizes of the partners you selected. Our three:
+  **0G + World + The Graph**. Selecting the partner logos on the dashboard is a
+  required step — forgetting it = not judged.
+- **Partner judging is in person at their booths** (before or after the Finalist
+  slot if we get one). Plan Sunday so someone can walk the three booths.
+- **Finalist Track** (up to 10 teams: 7 From Scratch + 3 Continuity; partner
+  prizes don't influence selection). Requirements: auditable repo · **open
+  source, deployed, and live** · **demo video is required in the submission** ·
+  live Finalist judging: **4 min demo + 3 min Q&A**, live deployment required,
+  "don't prepare this last minute". Finalist pack: 1,000 USDC/member, ETHGlobal
+  Plus 12 mo, $500 flight credit, ETHConf 2027 Pro Pass, $15k+ dev credits.
+- **Track selection: exactly ONE continuity-vs-scratch track per team**, picked
+  on the dashboard. We're **From Scratch** (code began at the event, new repo ✓).
+- **AI usage:** allowed (Claude/Codex/Cursor), but **judges will ask us to
+  explain how we used AI** and expect us to fully understand every part of the
+  project. They recommend committing plan files to the repo — our `CLAUDE.md`,
+  `ccb.js` and `docs/SUBMISSION.md` AI-usage answer are exactly that; keep them
+  prominent. Don't pitch AI as the idea's author (their explicit anti-pattern).
+- **Key to a good submission** (their words): record a video · less slides,
+  more demo · git used properly — many commits, smaller diffs ✓ · detailed
+  descriptions & screenshots on the project page.
+
+## Partner tracks we're in (the 3 selected)
 
 | Sponsor | Track | Pot (1st) | Fit |
 |---|---|---|---|
 | 0G | Best AI Product on 0G | $3,000 | **core** — sealed TEE judge + Storage + Agentic ID + registry |
-| 0G | Best Infrastructure & Tooling | $1,500×3 | SEAL as standalone dev tooling — decide if we pitch both |
+| 0G | Best Infrastructure & Tooling | $1,500×3 | SEAL as standalone dev tooling — we qualify for both automatically |
 | World | AgentKit New Use Cases | $4,000 | **core** — human-backed Surgeon via AgentBook |
 | World | Selfie Check Beta | $1,000 | the ON-DUTY gate; needs real integration + testing docs |
 | The Graph | Best AI Tooling for The Graph | $2,500 | cooked-skill (MCP server + SKILL) is literally the brief |
 | The Graph | Best AI Use Case | $2,000 | Graph is load-bearing, judge is the AI reasoning layer |
 | The Graph | Composable/Standardized | $2,000 | Messari standardized schemas + Uniswap v3 composition |
-| ENS | Most Creative Use of ENS | $1,500 | stretch — .eth scan input; booth pitch conflicts with 9AM deadline |
+
+Selecting a partner qualifies us for all their prizes at once — no per-prize
+application, so the sub-track rows above are what their booth judges score
+against, not separate forms.
+
+**ENS is used, not selected** — .eth input (3-RPC fallback resolver, ENS demo
+wallets) stays a product feature and a pitch line, but with the 3-partner cap
+it doesn't make the cut, so no ENS booth, no ENS form.
 
 Not us: 1inch (Aqua contracts), Hedera, Sui, Uniswap Foundation (requires their
 API + key — we read Uniswap via The Graph, doesn't qualify). Continuity tracks
@@ -73,25 +106,23 @@ windows), live data via Graph gateway ✓ (no mocks anywhere ✓).
   via Messari standardized schemas + Uniswap v3 on the same registry — say
   "adding a lending market is one registry line" and show the line.
 
-## ENS (stretch, $1.5k)
+## Organizer (ETHGlobal) checklist
 
-.eth input with 3-RPC fallback works and demo wallets are ENS names — but the bar
-is "clearly improves the product, not cosmetic", and judging is **in person at the
-ENS booth Sunday morning**, right against the deadline. Decision: only pitch if
-someone is free at the booth window; the argument is onboarding ("paste a name,
-not an address" is why strangers actually try it).
-
-## Organizer (ETHGlobal) basics
-
-- [x] Public GitHub repo, MIT license, real git history (continuous commits, no
-      single final-day dump)
+- [x] Public GitHub repo, MIT license, real git history (continuous commits,
+      small diffs — their explicit "key to a good submission")
 - [x] No mocked data — every number is live chain data
-- [ ] **Explicitly tick every prize track in the submission form** — most sponsor
-      prizes require applying, silence = ineligible
-- [ ] Demo video uploaded (2:50 — inside every sponsor's limit: 0G ≤3, Graph 2–4,
-      others ≤5)
+- [x] From Scratch track: repo born at the event
+- [ ] **Dashboard: select the 3 partner logos (0G, World, The Graph)** — required
+      for partner judging to happen at all
+- [ ] Demo video uploaded (2:50 — inside every limit: 0G ≤3, Graph 2–4, finalist
+      track requires one, period)
+- [ ] Project page: detailed description + screenshots (their explicit ask)
+- [ ] Prepare the "how we used AI" answer for judges — docs/SUBMISSION.md has it;
+      everyone pitching must be able to explain any part of the code unaided
 - [ ] Live demo working at judging time — freeze deploys before Sunday morning,
       keep the demo-wallet cache warm (t35)
+- [ ] Booth plan for Sunday: who demos at 0G / World / Graph booths, in person
+- [ ] If finalist (announced Sunday): 4-min live demo + 3-min Q&A — dry-run it
 - [ ] Checklist pass 3h before deadline (t17)
 
 ## Open gaps, by owner
