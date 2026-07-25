@@ -312,8 +312,8 @@
       </div>
     </div>
     <div class="grief">
-      <div class="num" id="grief">€ 4,812,331</div>
-      <div class="lbl">lost by wallets scanned · live</div>
+      <div class="num" id="grief">$ 12.4B</div>
+      <div class="lbl" id="griefLbl">documented losses we cross-check you against</div>
     </div>
     <div class="guardian" id="guardian" onclick="triggerReplay()"><span class="pulse"></span>GUARDIAN ACTIVE · <b id="gWatch">watching</b> DeFi liquidity live</div>
     <div class="mascot" id="mascot">
@@ -389,7 +389,7 @@
       <div class="scorenum" id="scoreV"></div>
     </div>
     <div class="roast" id="roastV"></div>
-    <div class="pct" id="pctV">MORE COOKED THAN 84% OF WALLETS SCANNED · NGMI?</div>
+    <div class="pct" id="pctV">WALKTHROUGH · SAMPLE WALLET · NGMI?</div>
     <div class="knives" id="knivesV">🔪🔪 TWO KNIVES STILL IN · €4,120 LIVE</div>
     <div class="vbtns">
       <button class="btn ghost" onclick="openModal('shareModal')">🔥 Share the misery</button>
@@ -446,12 +446,12 @@
       </svg>
     </div>
     <div class="delta">
-      <div class="big"><span class="old">68%</span><span class="new" id="scoreD">68%</span></div>
-      <div class="bandchip">MEDIUM RARE</div>
+      <div class="big"><span class="old" id="scoreDOld">68%</span><span class="new" id="scoreD">68%</span></div>
+      <div class="bandchip" id="bandD">MEDIUM RARE</div>
     </div>
-    <div class="healline">🔪→🩹 €4,120 OF DANGER DEFUSED IN 40s</div>
-    <div class="foot-note" style="margin-top:4px">it's so over → we're so back · 40 seconds flat</div>
-    <div class="sparkcard">
+    <div class="healline" id="healLine">🔪→🩹 €4,120 OF DANGER DEFUSED IN 40s</div>
+    <div class="foot-note" id="dischargeNote" style="margin-top:4px">it's so over → we're so back · 40 seconds flat</div>
+    <div class="sparkcard" id="sparkCard">
       <div class="k">Recovery graph · encrypted on 0G</div>
       <svg viewBox="0 0 300 78">
         <line x1="10" y1="64" x2="290" y2="64" stroke="#3a2e23"/>
@@ -467,7 +467,7 @@
         <text x="181" y="76" font-family="ui-monospace,monospace" font-size="8" fill="#6b5c4a">JUL</text>
         <text x="250" y="76" font-family="ui-monospace,monospace" font-size="8" fill="#6b5c4a">NOW</text>
       </svg>
-      <div class="sub">gm. less cooked than last month = we're so back</div>
+      <div class="sub">illustrative shape · your own history needs repeat scans over time</div>
     </div>
     <div class="foot-note" id="savedTicker" style="margin-top:10px;opacity:0;transition:opacity .7s">🩹 € 212,940 defused by surgeons to date</div>
     <div class="vbtns">
@@ -500,7 +500,7 @@
         <div class="h"><span>Autopsy report</span><span id="cardAddr">0x4c…e9f2</span></div>
         <div class="s" id="cardScore">68<small>%</small></div>
         <div class="band" id="cardBand">COOKED</div>
-        <div class="r" id="cardRoast">"You paid €900 to be exploited by a protocol named after a dog. More cooked than 84% of wallets scanned."</div>
+        <div class="r" id="cardRoast">"You paid €900 to be exploited by a protocol named after a dog."</div>
         <div class="f"><span>🔏 SEALED · 0G CHAIN</span><span>tracely.live/cooked</span></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px">
@@ -514,11 +514,11 @@
   <div class="modal" id="healModal" onclick="this.classList.remove('on')">
     <div class="sheet" style="background:none;border:0;padding:0" onclick="event.stopPropagation()">
       <div class="cardwrap heal">
-        <div class="h"><span>Discharge papers</span><span>0x4c…e9f2</span></div>
-        <div class="s"><span class="was">68%</span>31<small>%</small></div>
-        <div class="band">MEDIUM RARE</div>
-        <div class="r">"Both knives out. €4,120 defused in 40 seconds. It's so over → we're so back. The Surgeon sends their regards."</div>
-        <div class="f"><span>🔪→🩹 0 KNIVES LEFT</span><span>amicooked.xyz</span></div>
+        <div class="h"><span>Discharge papers</span><span id="healAddr">0x4c…e9f2</span></div>
+        <div class="s"><span class="was" id="healWas">68%</span><span id="healScore">31<small>%</small></span></div>
+        <div class="band" id="healBand">MEDIUM RARE</div>
+        <div class="r" id="healRoast">"Walkthrough numbers — run it on your own wallet for the real thing."</div>
+        <div class="f"><span id="healFoot">🎬 DEMO WALKTHROUGH</span><span>amicooked.xyz</span></div>
       </div>
       <button class="btn ghost" style="margin-top:12px" onclick="closeModal('healModal')">close</button>
     </div>
@@ -560,15 +560,20 @@
     if (n === 4) runDischarge();
   }
   function go(n){ show(n); }
-  function resetAll(){ show(1); }
+  function resetAll(){ OPRESULT = null; STAGED = false; show(1); }
 
-  // ---- landing: grief ticker + in-place preheat ----
-  var grief = 4812331;
-  setInterval(function(){
-    grief += Math.floor(Math.random() * 900) + 40;
-    var el = document.getElementById('grief');
-    if (el) el.textContent = '€ ' + grief.toLocaleString('en-US');
-  }, 700);
+  // ---- landing: the number the scan is actually built on ----
+  // This used to be a counter climbing by Math.random() every 700ms under the label
+  // "lost by wallets scanned · live". Nothing measured it. The registry total is real,
+  // it is what every wallet gets cross-referenced against, and /health reports it.
+  (function loadRegistryTotal(){
+    fetch('/cooked-api/health').then(function(r){ return r.json(); }).then(function(d){
+      var reg = d && d.registry; if (!reg || !reg.lostUSD) return;
+      var el = document.getElementById('grief'), lbl = document.getElementById('griefLbl');
+      if (el) el.textContent = '$ ' + (reg.lostUSD / 1e9).toFixed(1) + 'B';
+      if (lbl) lbl.textContent = 'lost in ' + reg.incidents + ' documented hacks · we check you against every one';
+    }).catch(function(){});
+  })();
 
   function resetLanding(){
     var fn = document.querySelector('#addrBox .foot-note'); if (fn) fn.style.color = '';
@@ -590,6 +595,8 @@
   }
   var VD = null;      // real verdict data; null = staged demo story
   var SCANP = null;   // in-flight scan promise
+  var STAGED = false; // the last operation was the scripted walkthrough, not real txs
+  var OPRESULT = null;// what the last REAL operation actually achieved
   // 75s client cap: first scan of a heavy wallet legitimately runs ~30s (multichain
   // approvals trace), but a stalled request must land in scanFailed, never hang the oven.
   function scanFetch(addr){
@@ -685,9 +692,25 @@
     else roast = top ? '"' + top.target + ' took $' + M(top.lostUSD) + 'M with it — and you were THERE. Legendary."' : '"The smoke alarm has your address memorized."';
     var short = rep.address.slice(0, 6) + '…' + rep.address.slice(-4);
     var wounds = (rep.surfaces.approvals && rep.surfaces.approvals.items) || [];
-    return { score: Math.max(0, Math.min(100, Number(c.score) || 0)), band: c.band, roast: roast, rows: rows, addr: short, wounds: wounds, partial: c.partial,
-      pct: c.partial ? 'SCANNING OPEN WOUNDS · 21 CHAINS · SCORE UPDATES LIVE…' : (wounds.length ? 'MORE COOKED THAN 84% · ' + wounds.length + ' KNIVES STILL IN' : 'MORE COOKED THAN 84% OF WALLETS SCANNED'),
+    return { score: Math.max(0, Math.min(100, Number(c.score) || 0)), band: c.band, roast: roast, rows: rows, addr: short,
+      address: rep.address, components: c.components, wounds: wounds, partial: c.partial,
+      pct: c.feedDown ? 'SCANNING OPEN WOUNDS · 21 CHAINS · SCORE UPDATES LIVE…' : coverageLine(rep.surfaces.approvals, c, wounds.length),
       knives: wounds.length };
+  }
+
+  // The verdict's own footnote. It used to read "MORE COOKED THAN 84% OF WALLETS
+  // SCANNED" — a number nothing computes. Say what the scan actually covered instead,
+  // and never let a scan that lost chains imply the wallet came back clean.
+  function coverageLine(ap, c, knives){
+    var cov = (ap && ap.coverage) || {};
+    var missed = (c && c.unscannedChains) || [];
+    if (missed.length)
+      return 'PARTIAL · ' + cov.scanned + '/' + cov.total + ' CHAINS SCANNED · ' +
+        missed.slice(0, 3).join(', ').toUpperCase() + (missed.length > 3 ? ' +' + (missed.length - 3) : '') + ' UNCHECKED';
+    var chains = cov.total || (ap && ap.chainsScanned) || 0;
+    return knives
+      ? knives + ' KNIVES STILL IN · ' + chains + ' CHAINS SCANNED'
+      : 'NO OPEN WOUNDS FOUND · ' + chains + '/' + chains + ' CHAINS SCANNED';
   }
 
   // ---- verdict ----
@@ -777,29 +800,48 @@
     w.querySelector('.ico').textContent = '🔪';
     w.querySelector('.st').textContent = 'waiting';
   }
-  function verifyHuman(){
+  // The interlock is the safety claim this whole screen makes, so it asks the backend
+  // and believes the answer. It used to open on a 1400ms timer with no request at all,
+  // while the real status sat unread in window.__surgeonHuman.
+  async function verifyHuman(){
     var b = document.getElementById('verifyBtn');
+    var lock = document.getElementById('lock');
     b.disabled = true;
-    b.innerHTML = '<span class="spin"></span> selfie check…';
-    later(function(){
-      b.innerHTML = '✅ Human-backed · Selfie · renews <span id="cd">23:59:59</span>';
-      var left = 86399;
-      var cdiv = setInterval(function(){
-        left--;
-        var el = document.getElementById('cd');
-        if (!el || left < 0){ clearInterval(cdiv); return; }
-        var h = Math.floor(left/3600), m = Math.floor(left%3600/60), sec = left%60;
-        el.textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
-      }, 1000);
-      timers.push(cdiv);
-      document.getElementById('authLvl').textContent = 'REVOKE — selfie-backed ✓';
-      var lock = document.getElementById('lock');
-      lock.className = 'interlock ok';
-      lock.innerHTML = '<span class="tag">🔓 Interlock open</span>A verified human backs this agent. It may now propose <b>defensive revocations</b> — you still sign each one in World App.';
-      document.getElementById('operateBtn').disabled = false;
-    }, 1400);
+    b.innerHTML = '<span class="spin"></span> checking AgentBook…';
+    var granted = false, reason = 'the verifier did not answer';
+    try {
+      var r = await fetch('/cooked-api/surgeon/status');
+      var d = await r.json();
+      granted = !!d.humanBacked;
+      reason = (d.check && d.check.reason) || (granted ? '' : 'this agent is not human-backed in AgentBook');
+      if (d.agent) document.getElementById('srgAgent').textContent = d.agent.slice(0,6)+'…'+d.agent.slice(-4);
+    } catch(e){ granted = false; }
+    window.__surgeonHuman = granted;
+    if (!granted){
+      document.getElementById('authLvl').textContent = 'NONE — not human-backed';
+      lock.className = 'interlock';
+      lock.innerHTML = '<span class="tag">🔒 Interlock holding</span>Verification did not pass, so the Surgeon keeps <b>zero signing authority</b>. ' +
+        '<span class="dim">' + esc(reason) + '</span>';
+      document.getElementById('operateBtn').disabled = true;
+      b.disabled = false; b.innerHTML = '☀️ Retry human backing · World';
+      return;
+    }
+    b.innerHTML = '✅ Human-backed · AgentBook ✓';
+    document.getElementById('authLvl').textContent = 'REVOKE — human-backed ✓ (AgentBook)';
+    lock.className = 'interlock ok';
+    lock.innerHTML = '<span class="tag">🔓 Interlock open</span>A verified human backs this agent. It may now propose <b>defensive revocations</b> — you still sign each one in World App.';
+    document.getElementById('operateBtn').disabled = false;
   }
   function operate(){
+    // The button being enabled is a UI state; the authority check is a fact. Re-assert it
+    // here so nothing that flips `disabled` can hand the Surgeon a knife it never earned.
+    if (!window.__surgeonHuman){
+      var lock = document.getElementById('lock');
+      lock.className = 'interlock';
+      lock.innerHTML = '<span class="tag">🔒 Interlock holding</span>Human backing has not been verified — the Surgeon cannot propose a revocation.';
+      document.getElementById('operateBtn').disabled = true;
+      return;
+    }
     document.getElementById('operateBtn').disabled = true;
     if (window.__wounds && window.__wounds.length && window.ethereum){
       operateReal().catch(function(){ runStagedOperate(); });
@@ -807,13 +849,16 @@
     }
     runStagedOperate();
   }
+  // No wallet / no real wounds: this is the scripted walkthrough, and it says so. It must
+  // never be reachable as a silent stand-in for revocations that did not happen.
   function runStagedOperate(){
+    STAGED = true;
     cut('w1', 300, '0x9f3a…');
     cut('w2', 2100, '0x1d80…');
     later(function(){
       var lock = document.getElementById('lock');
       lock.className = 'interlock ok';
-      lock.innerHTML = '<span class="tag">🛎 Operation complete</span>Both knives out — <b>2/2 revocations clean</b>. Re-scanning your wallet…';
+      lock.innerHTML = '<span class="tag">🎬 Walkthrough</span>Scripted demo — <b>no transactions were sent</b>. With a wallet connected and real wounds, each cut is a tx you sign yourself.';
     }, 3900);
     later(function(){ show(4); }, 5800);
   }
@@ -832,27 +877,72 @@
   }
 
   // ---- discharge ----
+  // The rubric's wounds component, recomputed client-side over the wounds that are left.
+  // Same formula as apps/api/onchain.js — the revocations are on-chain, so the new score
+  // follows arithmetically; it is labelled projected because the re-scan confirms it.
+  function woundsScore(items){
+    var n = function(r){ var c = 0; for (var i = 0; i < items.length; i++) if (items[i].risk === r) c++; return c; };
+    return Math.min(100, Math.max(n('critical') > 0 ? 70 : 0,
+      n('critical') * 55 + n('high') * 18 + n('medium') * 8 + n('low') * 3));
+  }
+  function bandOf(s){
+    var bands = [[20,'RARE'],[40,'MEDIUM RARE'],[60,'MEDIUM WELL'],[80,'COOKED'],[100,'CHARCOAL']];
+    for (var i = 0; i < bands.length; i++) if (s <= bands[i][0]) return bands[i][1];
+    return 'CHARCOAL';
+  }
+  function projectedAfter(revokedKeys){
+    var comp = (VD && VD.components) || null;
+    if (!comp) return null;
+    var left = (VD.wounds || []).filter(function(w){ return revokedKeys.indexOf(w.chainId + ':' + w.token + ':' + w.spender) < 0; });
+    var score = Math.round(woundsScore(left) * 0.40 + (comp.exploitExposure || 0) * 0.25
+      + (comp.ghostPortfolio || 0) * 0.20 + (comp.behavioral || 0) * 0.15);
+    return { score: Math.max(0, Math.min(100, score)), band: bandOf(score), left: left.length };
+  }
+
   function runDischarge(){
     var nd = document.getElementById('needleD');
-    nd.style.transition = 'none'; nd.style.transform = 'rotate(122.4deg)';
-    document.getElementById('scoreD').textContent = '68%';
     var bell = document.getElementById('bell');
     bell.classList.remove('ring');
     document.getElementById('s4').classList.remove('healbg');
+    // A real operation reports what actually happened; the scripted walkthrough is the
+    // only place the staged 68 -> 31 story is allowed to appear, and it is labelled.
+    var real = OPRESULT && OPRESULT.revoked > 0;
+    var from = real ? OPRESULT.before : 68;
+    var to = real ? OPRESULT.after : 31;
+    var band = real ? OPRESULT.afterBand : 'MEDIUM RARE';
+    document.getElementById('scoreDOld').textContent = from + '%';
+    document.getElementById('scoreD').textContent = from + '%';
+    document.getElementById('bandD').textContent = band;
+    document.getElementById('healLine').textContent = real
+      ? '🔪→🩹 ' + OPRESULT.revoked + '/' + OPRESULT.total + ' APPROVALS REVOKED ON-CHAIN'
+      : '🎬 WALKTHROUGH — SAMPLE NUMBERS, NO TRANSACTIONS SENT';
+    document.getElementById('dischargeNote').textContent = real
+      ? (OPRESULT.left ? OPRESULT.left + ' wounds still open · projected score, re-scan to confirm' : 'every wound in the plan is closed · projected score, re-scan to confirm')
+      : 'connect a wallet and scan a real address to operate for real';
+    // The sparkline has no per-wallet history behind it, and the "defused to date"
+    // counter was a random walk. Neither is shown next to a real result.
+    document.getElementById('sparkCard').style.display = real ? 'none' : '';
+    document.getElementById('savedTicker').style.display = real ? 'none' : '';
     document.getElementById('savedTicker').style.opacity = 0;
+    nd.style.transition = 'none'; nd.style.transform = 'rotate(' + (from * 1.8) + 'deg)';
     later(function(){
       nd.style.transition = 'transform 1.6s cubic-bezier(.34,1.36,.34,1)';
-      nd.style.transform = 'rotate(55.8deg)';
-      animateCount('scoreD', 68, 31, 1600, '%');
+      nd.style.transform = 'rotate(' + (to * 1.8) + 'deg)';
+      animateCount('scoreD', from, to, 1600, '%');
     }, 350);
     later(function(){ bell.classList.add('ring'); fxBurst(26); document.getElementById('s4').classList.add('healbg'); }, 1980);
-    later(function(){ document.getElementById('savedTicker').style.opacity = 1; }, 2400);
+    if (!real) later(function(){ document.getElementById('savedTicker').style.opacity = 1; }, 2400);
+    // share card: mirror whatever is on screen, never a leftover demo number
+    var hs = document.getElementById('healScore'), hb = document.getElementById('healBand'), hw = document.getElementById('healWas'), hr = document.getElementById('healRoast'), hf = document.getElementById('healFoot');
+    if (hs){
+      hs.innerHTML = to + '<small>%</small>'; hw.textContent = from + '%'; hb.textContent = band;
+      hr.textContent = real
+        ? '"' + OPRESULT.revoked + ' of ' + OPRESULT.total + ' knives out, signed from my own wallet. ' + from + '% → ' + to + '%."'
+        : '"Walkthrough numbers — run it on your own wallet for the real thing."';
+      hf.textContent = real ? '🔪→🩹 ' + OPRESULT.left + ' KNIVES LEFT' : '🎬 DEMO WALKTHROUGH';
+    }
+    if (document.getElementById('healAddr')) document.getElementById('healAddr').textContent = (VD && VD.addr) || '0x4c…e9f2';
   }
-  var saved = 212940;
-  setInterval(function(){
-    var el = document.getElementById('savedTicker');
-    if (el && CUR === 4){ saved += Math.floor(Math.random() * 220); el.textContent = '🩹 € ' + saved.toLocaleString('en-US') + ' defused by surgeons to date'; }
-  }, 900);
 
   // ---- recourse sheet ----
   function openRecourse(){
@@ -933,14 +1023,18 @@
   async function sendRevoke(w){
     if (!window.ethereum) throw new Error('no-wallet');
     await window.ethereum.request({ method: 'eth_requestAccounts' });
-    try { await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x' + w.revoke.chainId.toString(16) }] }); } catch(e){}
     var from = (await window.ethereum.request({ method: 'eth_accounts' }))[0];
+    // approve(spender,0) only clears the APPROVING wallet's allowance. Signing it from a
+    // different account than the one that was scanned burns gas and revokes nothing.
+    if (VD && VD.address && from && from.toLowerCase() !== VD.address.toLowerCase())
+      throw new Error('wrong-wallet');
+    try { await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x' + w.revoke.chainId.toString(16) }] }); } catch(e){}
     return await window.ethereum.request({ method: 'eth_sendTransaction',
       params: [{ from: from, to: w.revoke.to, data: w.revoke.data, value: '0x0' }] });
   }
   async function operateReal(){
     var wounds = window.__wounds || [];
-    var ok = 0;
+    var ok = 0, revokedKeys = [];
     for (var i = 0; i < wounds.length; i++){
       var w = wounds[i], el = document.getElementById('w' + i);
       el.className = 'wound doing'; el.querySelector('.st').innerHTML = '<span class="spin"></span> sign in wallet…';
@@ -948,14 +1042,24 @@
         var tx = await sendRevoke(w);
         el.className = 'wound healed'; el.querySelector('.ico').textContent = '🩹';
         el.querySelector('.st').textContent = 'revoked ✓'; ok++;
+        revokedKeys.push(w.chainId + ':' + w.token + ':' + w.spender);
       } catch(e){
-        el.className = 'wound'; el.querySelector('.st').textContent = (e && e.message === 'no-wallet') ? 'connect wallet' : 'rejected';
-        if (e && e.message === 'no-wallet') throw e; // fall back to simulated flow
+        var why = e && e.message === 'no-wallet' ? 'connect wallet'
+          : e && e.message === 'wrong-wallet' ? 'wrong wallet connected'
+          : 'rejected';
+        el.className = 'wound'; el.querySelector('.st').textContent = why;
+        if (e && (e.message === 'no-wallet' || e.message === 'wrong-wallet')) throw e;
       }
     }
+    var after = projectedAfter(revokedKeys);
+    OPRESULT = { revoked: ok, total: wounds.length, before: VD ? VD.score : 0,
+      after: after ? after.score : (VD ? VD.score : 0),
+      afterBand: after ? after.band : (VD ? VD.band : ''),
+      left: after ? after.left : 0 };
     var lock = document.getElementById('lock');
-    lock.className = 'interlock ok';
-    lock.innerHTML = '<span class="tag">🛎 Operation complete</span>' + ok + '/' + wounds.length + ' revocations signed on-chain. Re-scanning…';
+    lock.className = ok ? 'interlock ok' : 'interlock';
+    lock.innerHTML = '<span class="tag">' + (ok ? '🛎 Operation complete' : '⚠ Nothing signed') + '</span>' +
+      ok + '/' + wounds.length + ' revocations signed on-chain.';
     later(function(){ show(4); }, 2200);
   }
 
@@ -963,7 +1067,8 @@
     var d = await woundsFetch(addr);
     if (!d || !d.approvals || CUR !== 2 || !VD) return; // user moved on / failed → leave the pending row
     var items = d.approvals.items || [];
-    VD.wounds = items; VD.knives = items.length; VD.partial = false;
+    var missed = (d.cooked && d.cooked.unscannedChains) || [];
+    VD.wounds = items; VD.knives = items.length; VD.partial = !!(d.cooked && d.cooked.partial);
     // patch the Open wounds row in place
     var rows = document.getElementById('frows').children;
     for (var i = 0; i < rows.length; i++){
@@ -973,14 +1078,20 @@
         v.className = 'v bad';
         v.textContent = items.length + ' live dangerous approval' + (items.length>1?'s':'') + ' across ' + (d.approvals.chains||[]).length + ' chains';
         rows[i].classList.add('open');
-        ev.innerHTML = items.slice(0,6).map(function(x){ return '🔪 <b>'+esc(x.symbol||x.token.slice(0,8))+'</b> → '+esc(x.spenderLabel||(x.spender.slice(0,10)+'…'))+' · '+esc(x.chain)+' · '+esc(x.risk)+(x.unlimited?' · unlimited':''); }).join('<br>');
+        ev.innerHTML = items.slice(0,6).map(function(x){ return '🔪 <b>'+esc(x.symbol||x.token.slice(0,8))+'</b> → '+esc(x.spenderLabel||(x.spender.slice(0,10)+'…'))+' · '+esc(x.chain)+' · '+esc(x.risk)+(x.unlimited?' · unlimited':''); }).join('<br>')
+          + (missed.length ? '<br><span class="scanw">⚠ ' + esc(missed.join(', ')) + ' could not be scanned — wounds there were not checked</span>' : '');
+      } else if (missed.length){
+        // "clean" is a claim about chains we looked at. Say so rather than implying all of them.
+        v.className = 'v'; v.textContent = 'nothing found on ' + (d.approvals.coverage||{}).scanned + ' of ' + (d.approvals.coverage||{}).total + ' chains';
+        rows[i].classList.add('open');
+        ev.innerHTML = '<span class="scanw">⚠ not scanned: ' + esc(missed.join(', ')) + '</span><br>the approvals on those chains are unknown, not absent';
       } else { v.className = 'v'; v.textContent = 'no open wounds — approvals are clean'; ev.textContent = 'nothing to revoke — nice'; }
     }
     // finalize the score: re-sweep the dial from provisional → final
     var prov = VD.score, fin = Math.max(0, Math.min(100, Number(d.cooked.score) || 0));
-    VD.score = fin; VD.band = d.cooked.band;
+    VD.score = fin; VD.band = d.cooked.band; VD.components = d.cooked.components;
     document.getElementById('stampV').textContent = fin + '% · ' + d.cooked.band;
-    document.getElementById('pctV').textContent = items.length ? ('MORE COOKED THAN 84% · ' + items.length + ' KNIVES STILL IN') : 'MORE COOKED THAN 84% OF WALLETS SCANNED';
+    document.getElementById('pctV').textContent = coverageLine(d.approvals, d.cooked, items.length);
     document.getElementById('cardScore').innerHTML = fin + '<small>%</small>';
     document.getElementById('cardBand').textContent = d.cooked.band;
     if (fin !== prov){

@@ -44,6 +44,7 @@ process.on("uncaughtException", e => console.error("[cooked-api] uncaughtExcepti
 const REGISTRY = JSON.parse(readFileSync(new URL("./incidents.json", import.meta.url), "utf8"));
 loadIncidents(REGISTRY);
 const DRAINERS = REGISTRY.addresses.map(a => a.address);
+const REGISTRY_LOST_USD = REGISTRY.incidents.reduce((a, i) => a + (i.lostUSD || 0), 0);
 const approvalsProvider = (addr) => multichainApprovals(addr, REGISTRY, {});
 
 // --- guardian: watch DeFi liquidity for large outflows ---
@@ -153,7 +154,12 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   const send = (code, obj) => { res.writeHead(code, { "content-type": "application/json" }); res.end(JSON.stringify(obj)); };
   try {
-    if (url.pathname === "/health") return send(200, { ok: true, scans, hits, mongo: !!col, memEntries: mem.size, demoEntries: demoStore.size, alarms: alarms.active().length });
+    if (url.pathname === "/health") return send(200, {
+      ok: true, scans, hits, mongo: !!col, memEntries: mem.size, demoEntries: demoStore.size,
+      alarms: alarms.active().length, inflight: inflight.size,
+      // real, checkable totals — the landing used to animate an invented "lost live" figure
+      registry: { incidents: REGISTRY.incidents.length, lostUSD: REGISTRY_LOST_USD },
+    });
     if (url.pathname === "/alarms") return send(200, { alarms: alarms.active() });
     if (url.pathname === "/alarms/for") {
       const input = (url.searchParams.get("address") || "").trim();
