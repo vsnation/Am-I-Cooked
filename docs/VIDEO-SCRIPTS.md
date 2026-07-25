@@ -212,3 +212,52 @@ Nothing else asked. Nothing stored."
 **2:06 – end slate.** "The ladder: anonymous diagnoses, human-backed proposes, the
 human signs. An agent with knives — and a human holding the leash. AM I COOKED,
 with World."
+
+---
+
+## 4b · THE GRAPH · AI TOOLING (cooked-skill MCP) — voiceover script
+
+*For the AI Tooling / MCP judges (and the Substreams team). Record over a screen
+capture of an AI client (Claude/Cursor) with cooked-skill mounted. `[ … ]` = pause,
+`(beat)` = short stop. HONEST SCOPE: this pitches our MCP's one-prompt end-to-end
+answer — NOT a Substreams deployment, which we did not build.*
+
+**Open.** "Your track asks: make The Graph easy to use from AI environments." [ … ]
+"So we asked ourselves the question every crypto AI eventually has to answer —" (beat)
+"— is this wallet dangerous?"
+
+**The problem.** "Today, answering that means weeks of plumbing. Four subgraph
+schemas. Gateway keys. Incident-data curation. Approval tracing across twenty-one
+chains. A scoring model." [ … ] "Nobody should build that twice."
+
+**The tool.** "So we built cooked-skill — an MCP server. One config block, and any
+agent — Claude, Cursor, ChatGPT — gets five tools." (beat) "The agent asks in plain
+language; the tool does the whole autopsy and hands back a structured risk profile.
+End to end, in one prompt. The agent reasons over the answer — it never touches the
+plumbing." [ … ]
+
+**Show it.** "Watch — I paste one address, in natural language." [ … ] "And that's
+live Graph gateway data — Aave, Compound, Spark on one standardized schema, Uniswap
+beside them. No mocks."
+
+**The hard parts — and what we fixed.** "Two things fought us." (beat) "One: the
+schema promise had to be real. Because these are Messari standardized subgraphs, our
+whole lending integration is four lines — adding a protocol is one line, not a
+sprint." [ … ] "Two: the RPC batch cliff. Mid-build, providers started rejecting
+large JSON-RPC batches — and our heavy-wallet scans silently dropped data. Vitalik
+read zero open approvals when the real number was two thousand one hundred and
+sixty-six." (beat) "We rewrote the bulk reads onto Multicall3 — three hundred checks
+folded into one call — with quota-aware backoff. Zero became two-one-six-six." [ … ]
+
+**Why it's reusable.** "The core is dependency-free and isomorphic — that's why the
+same code is a library, an MCP, and the engine behind our live product. We're user
+number one, in production." (beat) "And we ship a second MCP in the same repo —
+zero-G as tools — because agent-mountable infrastructure is just how we build."
+
+**Close.** "cooked-skill is the risk-profile primitive — geocoding for maps apps.
+Built once, used four ways, handed to every builder." [ … ] "That's the whole point
+of your track. Repo's open, SKILL-dot-M-D included."
+
+*≈ 1:50 spoken with pauses. Stretch to 2:00+ by holding on the live tool-call output.
+If you also attempt the Substreams featured challenge later, that's a SEPARATE claim —
+do not fold it into this script.*
