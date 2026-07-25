@@ -28,6 +28,27 @@ exploits, a weighted cooked-score — all from **live Graph gateway data**.
 (mocked gateway) *and* live-validated (Aave v3 $19.7B / Compound v3 / Spark TVL at
 request time). `SKILL.md` + README document every tool.
 
+
+**Why WE needed it (the origin story — tell this one):** cooked-skill wasn't built
+for the prize; it was extracted because our own product kept needing the same
+capability in different mouths. The web API needs "address → risk surfaces." The
+sealed TEE judge consumes the exact same surfaces. The guardian alarm needs them to
+match drains against a wallet's exposure. The demo builder pre-bakes them. Four
+consumers, one intelligence — so it became a dependency-free library, and then an
+MCP server, because our OWN dev agents needed to scan wallets mid-debugging ("is
+2,166 approvals real?" — we asked the tool). We are user #1, in production, today.
+
+**The problem it solves for every future dev:** sooner or later, every AI agent that
+touches crypto needs to answer one question — *"is this wallet dangerous?"* The
+trading bot before it takes a counterparty. The wallet UI before it renders a dApp
+connection. The compliance tool (this is literally our Tracely roadmap). The Discord
+safety bot. Today, answering it means weeks of undifferentiated plumbing: four
+subgraph schemas, gateway key handling, incident data curation, approval tracing
+across 21 chains, a scoring model. cooked-skill collapses all of that into one
+config block and five tools — the agent reasons over the ANSWER instead of building
+the plumbing. It's the risk-profile primitive, the way geocoding is a primitive for
+maps apps: nobody should ever build it twice.
+
 **Why it scores:** *Usefulness to builders (30%)* — every wallet app, trading agent, and
 safety bot needs exactly this check and nobody wants to build 4 subgraph integrations
 for it. *Reusability (25%)* — zero-dependency isomorphic core, MCP standard, works in
