@@ -12,7 +12,9 @@
 <meta property="og:image" content="brand/banner.png">
 <meta name="twitter:card" content="summary_large_image">
 <style>
-  html, body { background:#0d0a07 !important; overscroll-behavior:none; }
+  /* the UA's 8px body margin inset the full-bleed phone and pushed its last 8px of
+     100dvh below the fold, so mobile always had a thin border and a stray scroll */
+  html, body { margin:0; padding:0; background:#0d0a07 !important; overscroll-behavior:none; }
   /* app-like chrome: page still scrolls, but no visible rails; sideways overflow never scrolls */
   html { scrollbar-width:none; overflow-x:hidden; }
   html::-webkit-scrollbar, body::-webkit-scrollbar { width:0; height:0; display:none; }
@@ -506,7 +508,7 @@
       </div>
       <button class="btn hot sharebtn" id="miseryNativeBtn" style="margin-top:12px;display:none" onclick="nativeShare('misery', this)">📤 Share…</button>
       <div class="sharerow">
-        <button class="btn hot sharebtn" onclick="postToX('misery')">𝕏 Post it</button>
+        <button class="btn hot sharebtn" id="miseryXBtn" onclick="postToX('misery')">𝕏 Post it</button>
         <button class="btn ghost sharebtn" onclick="shareTelegram('misery')">✈️ Telegram</button>
       </div>
       <div class="sharerow">
@@ -528,7 +530,7 @@
       </div>
       <button class="btn hot sharebtn" id="healNativeBtn" style="margin-top:12px;display:none" onclick="nativeShare('recovery', this)">📤 Share…</button>
       <div class="sharerow">
-        <button class="btn hot sharebtn" onclick="postToX('recovery')">𝕏 Post it</button>
+        <button class="btn hot sharebtn" id="healXBtn" onclick="postToX('recovery')">𝕏 Post it</button>
         <button class="btn ghost sharebtn" onclick="shareTelegram('recovery')">✈️ Telegram</button>
       </div>
       <div class="sharerow">
@@ -558,6 +560,7 @@
 
 <script>
   var CUR = 1, timers = [];
+  function plural(n, one, many){ return n + ' ' + (Math.abs(n) === 1 ? one : many); }
   function esc(x){ return String(x == null ? '' : x).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
   function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
@@ -752,7 +755,7 @@
       document.getElementById('cardScore').innerHTML = VD.score + '<small>%</small>';
       document.getElementById('cardBand').textContent = VD.band;
       document.getElementById('cardRoast').textContent = VD.roast + (VD.partial ? ' (partial — approvals pending)' : '');
-      if (VD.knives) document.getElementById('knivesV').textContent = '🔪 ' + VD.knives + ' knives still in · tap “want the knives out?”';
+      if (VD.knives) document.getElementById('knivesV').textContent = '🔪 ' + plural(VD.knives, 'knife', 'knives') + ' still in · tap “want the knives out?”';
       document.getElementById('cardAddr').textContent = VD.addr;
     }
     var ROAST = VD ? VD.roast : DEMO_ROAST;
@@ -940,7 +943,7 @@
       ? '🔪→🩹 ' + OPRESULT.revoked + '/' + OPRESULT.total + ' APPROVALS REVOKED ON-CHAIN'
       : '🎬 WALKTHROUGH — SAMPLE NUMBERS, NO TRANSACTIONS SENT';
     document.getElementById('dischargeNote').textContent = real
-      ? (OPRESULT.left ? OPRESULT.left + ' wounds still open · projected score, re-scan to confirm' : 'every wound in the plan is closed · projected score, re-scan to confirm')
+      ? (OPRESULT.left ? plural(OPRESULT.left, 'wound', 'wounds') + ' still open · projected score, re-scan to confirm' : 'every wound in the plan is closed · projected score, re-scan to confirm')
       : 'connect a wallet and scan a real address to operate for real';
     // The sparkline has no per-wallet history behind it, and the "defused to date"
     // counter was a random walk. Neither is shown next to a real result.
@@ -962,7 +965,7 @@
       hr.textContent = real
         ? '"' + OPRESULT.revoked + ' of ' + OPRESULT.total + ' knives out, signed from my own wallet. ' + from + '% → ' + to + '%."'
         : '"Walkthrough numbers — run it on your own wallet for the real thing."';
-      hf.textContent = real ? '🔪→🩹 ' + OPRESULT.left + ' KNIVES LEFT' : '🎬 DEMO WALKTHROUGH';
+      hf.textContent = real ? '🔪→🩹 ' + plural(OPRESULT.left, 'KNIFE', 'KNIVES') + ' LEFT' : '🎬 DEMO WALKTHROUGH';
     }
     if (document.getElementById('healAddr')) document.getElementById('healAddr').textContent = (VD && VD.addr) || '0x4c…e9f2';
   }
@@ -1125,7 +1128,7 @@
       var gb = document.getElementById('gaugeV'); if (gb){ gb.classList.add('shake'); later(function(){ gb.classList.remove('shake'); }, 500); }
     }
     var kn = document.getElementById('knivesV');
-    if (items.length){ kn.style.display = ''; kn.classList.add('on'); kn.textContent = '🔪 ' + items.length + ' knives still in · tap “want the knives out?”'; }
+    if (items.length){ kn.style.display = ''; kn.classList.add('on'); kn.textContent = '🔪 ' + plural(items.length, 'knife', 'knives') + ' still in · tap “want the knives out?”'; }
   }
 
   function openModal(id){ document.getElementById(id).classList.add('on'); if (id === 'sealModal') loadSealStatus(); }
@@ -1315,10 +1318,16 @@
   function openShare(kind){
     var c = shareCtx(kind);
     var ids = kind === 'recovery'
-      ? { modal: 'healModal', save: 'healSaveBtn', native: 'healNativeBtn' }
-      : { modal: 'shareModal', save: 'saveMiseryBtn', native: 'miseryNativeBtn' };
+      ? { modal: 'healModal', save: 'healSaveBtn', native: 'healNativeBtn', x: 'healXBtn' }
+      : { modal: 'shareModal', save: 'saveMiseryBtn', native: 'miseryNativeBtn', x: 'miseryXBtn' };
     document.getElementById(ids.save).style.display = c.addr ? '' : 'none';
-    document.getElementById(ids.native).style.display = (c.addr && navigator.share) ? '' : 'none';
+    var nat = document.getElementById(ids.native);
+    var hasNative = !!(c.addr && navigator.share);
+    nat.style.display = hasNative ? '' : 'none';
+    // exactly one primary: where the OS sheet exists it IS the action, and 𝕏 steps back
+    // to a secondary — two stacked orange buttons read as two competing calls.
+    var x = document.getElementById(ids.x);
+    x.className = 'btn sharebtn ' + (hasNative ? 'ghost' : 'hot');
     openModal(ids.modal);
   }
 
