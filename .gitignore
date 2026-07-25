@@ -7,3 +7,5 @@ dist/
 CLAUDE.md
 ccb.js
 .mcp.json
+# built on the API host, never committed (large, host-specific)
+apps/api/demo-cache.json

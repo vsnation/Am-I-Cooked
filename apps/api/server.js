@@ -14,7 +14,7 @@ const KEY = process.env.GRAPH_API_KEY;
 const RPC_URL = process.env.ETH_RPC_URL || "https://rpc.mevblocker.io";
 const MONGO_URL = process.env.MONGO_URL || "";
 const TTL_MS = Number(process.env.CACHE_TTL_MS || 10 * 60 * 1000);
-const SCHEMA = 7; // bump to invalidate all cached reports after a scoring change
+const SCHEMA = 8; // bump to invalidate all cached reports after a scoring change
 if (!KEY) { console.error("[cooked-api] GRAPH_API_KEY missing"); process.exit(1); }
 
 const REGISTRY = JSON.parse(readFileSync(new URL("./incidents.json", import.meta.url), "utf8"));
@@ -52,6 +52,16 @@ const inflight = new Map(); // key -> Promise: coalesce concurrent scans of one 
 // looked up what (public data either way, but nothing links a person to a lookup).
 const keyOf = addr => createHash("sha256").update(addr).digest("hex");
 
+// --- demo store: pre-built full reports for the demo wallets, pinned (no TTL) ---
+// Built by build-demo-cache.js; served instantly so a live demo never waits on a
+// 7-chain scan. Ignored when its schema is stale — rebuild after scoring changes.
+const demoStore = new Map();
+try {
+  const d = JSON.parse(readFileSync(new URL("./demo-cache.json", import.meta.url), "utf8"));
+  if (d.schema === SCHEMA) for (const [k, report] of Object.entries(d.entries)) demoStore.set(k, report);
+  else console.error(`[cooked-api] demo-cache.json schema ${d.schema} != ${SCHEMA} — ignored, rebuild it`);
+} catch { /* no demo cache built yet — fine */ }
+
 async function getCached(addr) {
   const key = keyOf(addr);
   const m = mem.get(key);
@@ -75,7 +85,7 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   const send = (code, obj) => { res.writeHead(code, { "content-type": "application/json" }); res.end(JSON.stringify(obj)); };
   try {
-    if (url.pathname === "/health") return send(200, { ok: true, scans, hits, mongo: !!col, memEntries: mem.size, alarms: alarms.active().length });
+    if (url.pathname === "/health") return send(200, { ok: true, scans, hits, mongo: !!col, memEntries: mem.size, demoEntries: demoStore.size, alarms: alarms.active().length });
     if (url.pathname === "/alarms") return send(200, { alarms: alarms.active() });
     if (url.pathname === "/alarms/for") {
       const input = (url.searchParams.get("address") || "").trim();
@@ -92,6 +102,8 @@ const server = http.createServer(async (req, res) => {
     catch (e) { return send(400, { error: e.message }); }
     const addr = resolved.toLowerCase();
     scans++;
+    const pinned = url.searchParams.get("fresh") ? null : demoStore.get(keyOf(addr));
+    if (pinned) { hits++; return send(200, { cached: true, layer: "demo", report: pinned }); }
     const cached = url.searchParams.get("fresh") ? null : await getCached(addr);
     if (cached) { hits++; return send(200, { cached: true, layer: cached.layer, ageMs: Date.now() - cached.at, report: cached.report }); }
     let p = inflight.get(addr); // ride an in-flight identical scan instead of burning credits
