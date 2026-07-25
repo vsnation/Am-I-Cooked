@@ -1,14 +1,24 @@
 {
   "name": "AM I COOKED?",
   "short_name": "COOKED?",
-  "description": "Wallet autopsy: how cooked are you — and want the knives out?",
+  "description": "Wallet autopsy: how cooked are you \u2014 and want the knives out?",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#171210",
   "theme_color": "#171210",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }

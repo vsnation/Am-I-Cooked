@@ -4,6 +4,13 @@
 <title>AM I COOKED?</title>
 <meta name="theme-color" content="#0d0a07">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:title" content="AM I COOKED?">
+<meta property="og:description" content="Everyone got cooked this year. The only question is how much.">
+<meta property="og:image" content="brand/banner.png">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   html, body { background:#0d0a07 !important; overscroll-behavior:none; }
   .world {
@@ -243,6 +250,21 @@
   @media(prefers-reduced-motion:reduce){ .world *{ animation:none !important; transition:none !important; } }
 </style>
 
+<div id="splash" style="position:fixed;inset:0;z-index:9999;background:radial-gradient(70% 46% at 50% 34%,rgba(255,106,43,.12),transparent 70%),#0d0a07;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s ease;font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+  <svg id="splashMark" width="82" height="82" viewBox="0 0 100 100" style="filter:drop-shadow(0 10px 26px rgba(255,106,43,.3))">
+    <defs><radialGradient id="sk" cx="38%" cy="32%" r="75%"><stop offset="0%" stop-color="#312316"/><stop offset="55%" stop-color="#1c140d"/><stop offset="100%" stop-color="#0f0a06"/></radialGradient>
+    <radialGradient id="sh" cx="40%" cy="35%" r="70%"><stop offset="0%" stop-color="#ffd23f"/><stop offset="45%" stop-color="#ff6a2b"/><stop offset="100%" stop-color="#d6472f"/></radialGradient>
+    <linearGradient id="sp" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffd23f"/><stop offset="100%" stop-color="#ff6a2b"/></linearGradient></defs>
+    <circle cx="10" cy="50" r="4.2" fill="#efe3ce"/><circle cx="21.7" cy="21.7" r="4.2" fill="#dfa575"/><circle cx="50" cy="10" r="4.2" fill="#a9713c"/><circle cx="78.3" cy="21.7" r="4.8" fill="#ff6a2b"/><circle cx="90" cy="50" r="4.2" fill="#3a2a1e"/>
+    <circle cx="50" cy="50" r="31" fill="url(#sk)" stroke="#eae0ce" stroke-width="2.4"/>
+    <line id="splashPtr" x1="50" y1="50" x2="70.5" y2="29.5" stroke="url(#sp)" stroke-width="6" stroke-linecap="round" style="transform-origin:50px 50px;animation:swpp 2.4s ease-in-out infinite"/>
+    <circle cx="50" cy="50" r="7.5" fill="url(#sh)" stroke="#0f0a06" stroke-width="1.2"/>
+  </svg>
+  <div style="font-weight:900;font-size:26px;letter-spacing:-.01em;color:#eae0ce">AM I <span style="color:#ff6a2b">COOKED?</span></div>
+  <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.24em;color:#a6937d">PREHEATING<span id="splashDots"></span></div>
+  <style>@keyframes swpp{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(10deg)}}@media(prefers-reduced-motion:reduce){#splashPtr{animation:none}}</style>
+</div>
+<script>(function(){var d=document.getElementById('splashDots'),n=0;var t=setInterval(function(){d.textContent='.'.repeat(n=(n+1)%4);},350);function go(){clearInterval(t);var s=document.getElementById('splash');if(!s)return;s.style.opacity='0';setTimeout(function(){s.remove();},520);}var t0=Date.now();window.addEventListener('load',function(){setTimeout(go,Math.max(0,650-(Date.now()-t0)));});setTimeout(go,3500);})();</script>
 <div class="world">
 <div class="rig">
 <div class="phone" id="phone">
