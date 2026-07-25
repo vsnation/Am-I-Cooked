@@ -247,6 +247,7 @@
   .alarm-banner .a-body b { color:#ff9576; }
   .alarm-banner .a-sub { font-family:var(--mono); font-size:10px; color:var(--muted); }
   .alarm-banner .a-cta { margin-top:8px; background:var(--blood); color:#fff; border:0; border-radius:8px; padding:9px; width:100%; font-weight:800; font-size:13px; cursor:pointer; }
+  .scanw{ color:var(--flame); }
   @media(prefers-reduced-motion:reduce){ .world *{ animation:none !important; transition:none !important; } }
 </style>
 
@@ -564,9 +565,16 @@
   function scanFetch(addr){
     var ctl = new AbortController();
     var kill = setTimeout(function(){ ctl.abort(); }, 75000);
-    return fetch('/cooked-api/scan?address=' + addr.toLowerCase(), { signal: ctl.signal })
+    return fetch('/cooked-api/scan?quick=1&address=' + addr.toLowerCase(), { signal: ctl.signal })
       .then(function(r){ return r.json(); })
       .catch(function(){ return null; })
+      .finally(function(){ clearTimeout(kill); });
+  }
+  function woundsFetch(addr){
+    var ctl = new AbortController();
+    var kill = setTimeout(function(){ ctl.abort(); }, 75000);
+    return fetch('/cooked-api/scan/wounds?address=' + addr.toLowerCase(), { signal: ctl.signal })
+      .then(function(r){ return r.json(); }).catch(function(){ return null; })
       .finally(function(){ clearTimeout(kill); });
   }
   // Pre-heating: start the scan while the user is still on the landing (page load for
@@ -601,7 +609,7 @@
     later(function(){ box.classList.add('on'); }, 250);
     var lines = document.getElementById('scanlog').children;
     for (var k = 0; k < lines.length; k++) (function(k){
-      later(function(){ lines[k].classList.add('on'); }, 500 + k * 480);
+      later(function(){ lines[k].classList.add('on'); }, 380 + k * 300);
     })(k);
     later(async function(){
       if (SCANP){
@@ -609,15 +617,16 @@
         // say so instead of freezing silently.
         var hint = setTimeout(function(){
           var fl = document.getElementById('scanlog').lastElementChild;
-          if (fl){ fl.textContent = '▸ deep scan running — a heavy wallet’s first scan takes ~30s, hang tight'; fl.classList.add('on'); }
+          if (fl){ fl.textContent = '▸ sealing the verdict…'; fl.classList.add('on'); }
         }, 2500);
         var d = await SCANP;
         clearTimeout(hint);
-        if (d && d.report) { VD = mapReport(d.report); }
+        if (d && d.report) { VD = mapReport(d.report); window.__scanAddr = addr; }
         else { scanFailed(); return; }   // real scan failed → honest error, never a fake demo
       }
       show(2);
-    }, 500 + 5 * 480 + 650);
+      if (VD && VD.partial && window.__scanAddr) streamWounds(window.__scanAddr);
+    }, 380 + 5 * 300 + 420);
   }
 
   function mapReport(rep){
@@ -628,10 +637,10 @@
       { k: 'Drained protocols touched', bad: m.length > 0, open: m.length > 0,
         v: m.length ? m.length + ' of your protocols got DRAINED' : 'none found — suspiciously clean',
         ev: m.length ? m.map(function(x){ return '⚠ <b>' + esc(x.target) + '</b> — $' + M(x.lostUSD) + 'M drained · ' + esc(x.date) + ' · via ' + esc(String(x.matchedOn).toUpperCase()) + ' · funds ' + esc(x.recovered); }).join('<br>') : 'not a single hacked protocol in this history' },
-      (function(){ var ap = rep.surfaces.approvals || {}; var w = ap.items || [];
-        return { k: 'Open wounds', bad: w.length > 0, open: w.length > 0,
-          v: w.length ? w.length + ' live dangerous approval' + (w.length>1?'s':'') + ' across ' + (ap.chains||[]).length + ' chain' + ((ap.chains||[]).length>1?'s':'') : 'no open wounds — approvals are clean',
-          ev: w.length ? w.slice(0,6).map(function(x){ return '🔪 <b>'+esc(x.symbol||x.token.slice(0,8))+'</b> → '+esc(x.spenderLabel||(x.spender.slice(0,10)+'…'))+' · '+esc(x.chain)+' · '+esc(x.risk)+(x.unlimited?' · unlimited':''); }).join('<br>') : 'nothing to revoke — nice' };
+      (function(){ var ap = rep.surfaces.approvals || {}; var w = ap.items || []; var pend = !!c.partial && !w.length;
+        return { k: 'Open wounds', bad: w.length > 0, open: w.length > 0, dim: pend,
+          v: pend ? '<span class="scanw">⏳ scanning 21 chains for live approvals…</span>' : (w.length ? w.length + ' live dangerous approval' + (w.length>1?'s':'') + ' across ' + (ap.chains||[]).length + ' chain' + ((ap.chains||[]).length>1?'s':'') : 'no open wounds — approvals are clean'),
+          ev: pend ? 'checking every token approval against known drainers across the EVM' : (w.length ? w.slice(0,6).map(function(x){ return '🔪 <b>'+esc(x.symbol||x.token.slice(0,8))+'</b> → '+esc(x.spenderLabel||(x.spender.slice(0,10)+'…'))+' · '+esc(x.chain)+' · '+esc(x.risk)+(x.unlimited?' · unlimited':''); }).join('<br>') : 'nothing to revoke — nice') };
       })(),
       { k: 'Ghost portfolio', bad: g.items.length > 0,
         v: g.items.length ? g.items.length + ' dead-value signals' : 'no value stranded in dead protocols',
@@ -647,7 +656,7 @@
     var short = rep.address.slice(0, 6) + '…' + rep.address.slice(-4);
     var wounds = (rep.surfaces.approvals && rep.surfaces.approvals.items) || [];
     return { score: Math.max(0, Math.min(100, Number(c.score) || 0)), band: c.band, roast: roast, rows: rows, addr: short, wounds: wounds, partial: c.partial,
-      pct: c.partial ? 'PARTIAL SCORE · APPROVALS PENDING (40%)' : (wounds.length ? 'MORE COOKED THAN 84% · ' + wounds.length + ' KNIVES STILL IN' : 'MORE COOKED THAN 84% OF WALLETS SCANNED'),
+      pct: c.partial ? 'SCANNING OPEN WOUNDS · 21 CHAINS · SCORE UPDATES LIVE…' : (wounds.length ? 'MORE COOKED THAN 84% · ' + wounds.length + ' KNIVES STILL IN' : 'MORE COOKED THAN 84% OF WALLETS SCANNED'),
       knives: wounds.length };
   }
 
@@ -918,6 +927,41 @@
     lock.className = 'interlock ok';
     lock.innerHTML = '<span class="tag">🛎 Operation complete</span>' + ok + '/' + wounds.length + ' revocations signed on-chain. Re-scanning…';
     later(function(){ show(4); }, 2200);
+  }
+
+  async function streamWounds(addr){
+    var d = await woundsFetch(addr);
+    if (!d || !d.approvals || CUR !== 2 || !VD) return; // user moved on / failed → leave the pending row
+    var items = d.approvals.items || [];
+    VD.wounds = items; VD.knives = items.length; VD.partial = false;
+    // patch the Open wounds row in place
+    var rows = document.getElementById('frows').children;
+    for (var i = 0; i < rows.length; i++){
+      var kk = rows[i].querySelector('.k'); if (!kk || kk.textContent.indexOf('Open wounds') < 0) continue;
+      var v = rows[i].querySelector('.v'), ev = rows[i].querySelector('.ev');
+      if (items.length){
+        v.className = 'v bad';
+        v.textContent = items.length + ' live dangerous approval' + (items.length>1?'s':'') + ' across ' + (d.approvals.chains||[]).length + ' chains';
+        rows[i].classList.add('open');
+        ev.innerHTML = items.slice(0,6).map(function(x){ return '🔪 <b>'+esc(x.symbol||x.token.slice(0,8))+'</b> → '+esc(x.spenderLabel||(x.spender.slice(0,10)+'…'))+' · '+esc(x.chain)+' · '+esc(x.risk)+(x.unlimited?' · unlimited':''); }).join('<br>');
+      } else { v.className = 'v'; v.textContent = 'no open wounds — approvals are clean'; ev.textContent = 'nothing to revoke — nice'; }
+    }
+    // finalize the score: re-sweep the dial from provisional → final
+    var prov = VD.score, fin = Math.max(0, Math.min(100, Number(d.cooked.score) || 0));
+    VD.score = fin; VD.band = d.cooked.band;
+    document.getElementById('stampV').textContent = fin + '% · ' + d.cooked.band;
+    document.getElementById('pctV').textContent = items.length ? ('MORE COOKED THAN 84% · ' + items.length + ' KNIVES STILL IN') : 'MORE COOKED THAN 84% OF WALLETS SCANNED';
+    document.getElementById('cardScore').innerHTML = fin + '<small>%</small>';
+    document.getElementById('cardBand').textContent = d.cooked.band;
+    if (fin !== prov){
+      var nd = document.getElementById('needleV');
+      nd.style.transition = 'transform 1.1s cubic-bezier(.34,1.36,.34,1)';
+      nd.style.transform = 'rotate(' + (fin * 1.8) + 'deg)';
+      animateCount('scoreV', prov, fin, 1100, '');
+      var gb = document.getElementById('gaugeV'); if (gb){ gb.classList.add('shake'); later(function(){ gb.classList.remove('shake'); }, 500); }
+    }
+    var kn = document.getElementById('knivesV');
+    if (items.length){ kn.style.display = ''; kn.classList.add('on'); kn.textContent = '🔪 ' + items.length + ' knives still in · tap “want the knives out?”'; }
   }
 
   function openModal(id){ document.getElementById(id).classList.add('on'); }

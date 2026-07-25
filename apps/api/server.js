@@ -88,6 +88,22 @@ async function putCached(addr, report) {
   if (col) await col.updateOne({ _id: key }, { $set: doc }, { upsert: true }).catch(() => {});
 }
 
+// Full scan (with the slow multichain wounds). Coalesced so /scan and /scan/wounds ride
+// the same in-flight run, and cached so repeats are instant.
+function runFull(resolved, input, addr) {
+  let p = inflight.get(addr);
+  if (!p) {
+    p = (async () => {
+      const report = await autopsy(KEY, resolved, { approvals: approvalsProvider });
+      report.input = input; report.resolved = resolved;
+      await putCached(addr, report);
+      return report;
+    })().finally(() => inflight.delete(addr));
+    inflight.set(addr, p);
+  }
+  return p;
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   const send = (code, obj) => { res.writeHead(code, { "content-type": "application/json" }); res.end(JSON.stringify(obj)); };
@@ -114,7 +130,17 @@ const server = http.createServer(async (req, res) => {
       const a = await surgeonAuthorize({ headers: req.headers, url: req.url });
       return send(200, a);
     }
-    if (url.pathname !== "/scan") return send(404, { error: "routes: /scan, /alarms, /surgeon/status|authorize, /health" });
+    if (url.pathname === "/scan/wounds") {
+      const input = (url.searchParams.get("address") || "").trim();
+      let resolved; try { resolved = await resolveAddress(input); } catch (e) { return send(400, { error: e.message }); }
+      const addr = resolved.toLowerCase();
+      const pinned = demoStore.get(keyOf(addr));
+      if (pinned) return send(200, { approvals: pinned.surfaces.approvals, cooked: pinned.cooked });
+      const cached = await getCached(addr);
+      const full = cached ? cached.report : await runFull(resolved, input, addr);
+      return send(200, { approvals: full.surfaces.approvals, cooked: full.cooked });
+    }
+    if (url.pathname !== "/scan") return send(404, { error: "routes: /scan, /scan/wounds, /alarms, /surgeon/*, /health" });
     const input = (url.searchParams.get("address") || "").trim();
     let resolved;
     try { resolved = await resolveAddress(input); }
@@ -125,17 +151,14 @@ const server = http.createServer(async (req, res) => {
     if (pinned) { hits++; return send(200, { cached: true, layer: "demo", report: pinned }); }
     const cached = url.searchParams.get("fresh") ? null : await getCached(addr);
     if (cached) { hits++; return send(200, { cached: true, layer: cached.layer, ageMs: Date.now() - cached.at, report: cached.report }); }
-    let p = inflight.get(addr); // ride an in-flight identical scan instead of burning credits
-    if (!p) {
-      p = (async () => {
-        const report = await autopsy(KEY, resolved, { approvals: approvalsProvider });
-        report.input = input; report.resolved = resolved;
-        await putCached(addr, report);
-        return report;
-      })().finally(() => inflight.delete(addr));
-      inflight.set(addr, p);
+    if (url.searchParams.get("quick")) {
+      // fast surfaces only (~1s); wounds (the slow 21-chain scan) come from /scan/wounds
+      const report = await autopsy(KEY, resolved, {});
+      report.input = input; report.resolved = resolved;
+      runFull(resolved, input, addr).catch(() => {}); // warm the full result in the background
+      return send(200, { cached: false, quick: true, report });
     }
-    send(200, { cached: false, report: await p });
+    send(200, { cached: false, report: await runFull(resolved, input, addr) });
   } catch (e) {
     send(502, { error: e.message });
   }
