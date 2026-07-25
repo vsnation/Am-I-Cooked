@@ -57,7 +57,7 @@ await shot('t3-verdict');
 await p.click('.sealbtn'); await p.waitForTimeout(400);
 ok('attestation modal opens', await p.isVisible('#sealModal .sheet'));
 await shot('t4-attestation');
-await p.click('#sealModal button');
+await p.click('#sealModal button:has-text("close")');
 await p.click('text=Share the misery'); await p.waitForTimeout(400);
 ok('misery card opens', await p.isVisible('#shareModal .cardwrap'));
 await shot('t5-misery');
