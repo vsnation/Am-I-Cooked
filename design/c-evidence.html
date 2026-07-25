@@ -1,0 +1,422 @@
+<title>AM I COOKED? — Direction C: The Evidence Log</title>
+<style>
+  :root {
+    --page-bg: #e9e9e6;
+    --page-fg: #16181a;
+    --page-dim: #5f6468;
+    --rule: #c5c6c3;
+
+    /* the direction's own world — fixed inside the viewport */
+    --void: #0a0c0d;
+    --void-2: #101315;
+    --bone: #dcded9;
+    --bone-dim: #7d8489;
+    --hair: #22282b;
+    --hair-2: #171c1f;
+    --critical: #e2503c;
+    --warn: #d99a2b;
+    --cleared: #57a07a;
+    --link: #7fb2c9;
+
+    --code: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    --ui: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --page-bg: #0e1011; --page-fg: #dcded9; --page-dim: #868c90; --rule: #262a2c; }
+  }
+  :root[data-theme="dark"] { --page-bg: #0e1011; --page-fg: #dcded9; --page-dim: #868c90; --rule: #262a2c; }
+  :root[data-theme="light"] { --page-bg: #e9e9e6; --page-fg: #16181a; --page-dim: #5f6468; --rule: #c5c6c3; }
+
+  body { background: var(--page-bg); color: var(--page-fg); font-family: var(--ui); margin: 0; padding: 32px 20px 56px; -webkit-font-smoothing: antialiased; }
+  .masthead { max-width: 62ch; margin: 0 auto 30px; display: flex; flex-direction: column; gap: 10px; }
+  .kicker { font-family: var(--code); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--page-dim); }
+  .masthead h1 { font-family: var(--code); font-size: clamp(23px, 4.4vw, 33px); line-height: 1.14; margin: 0; font-weight: 500; letter-spacing: -.01em; text-wrap: balance; }
+  .masthead h1 b { color: var(--critical); font-weight: 500; }
+  .masthead p { margin: 0; font-size: 15.5px; line-height: 1.55; color: var(--page-dim); max-width: 58ch; }
+
+  .strip { display: flex; gap: 26px; overflow-x: auto; padding: 6px 4px 22px; scroll-snap-type: x mandatory; }
+  .cell { scroll-snap-align: center; flex: none; display: flex; flex-direction: column; gap: 9px; margin: 0; }
+  .cell > figcaption { font-family: var(--code); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--page-dim); }
+  .cell > figcaption b { color: var(--page-fg); font-weight: 400; }
+
+  /* ---------- the terminal ---------- */
+  .term {
+    width: 372px; height: 780px; flex: none; overflow: hidden;
+    background: var(--void); color: var(--bone);
+    border: 1px solid var(--hair);
+    font-family: var(--code); font-size: 11.5px; line-height: 1.55;
+    display: flex; flex-direction: column;
+  }
+  .term * { box-sizing: border-box; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .topbar { display: flex; justify-content: space-between; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--hair); background: var(--void-2); }
+  .topbar .id { letter-spacing: .1em; text-transform: uppercase; font-size: 10px; }
+  .topbar .id b { font-weight: 400; color: var(--critical); }
+  .topbar .rt { font-size: 9px; letter-spacing: .08em; color: var(--bone-dim); text-align: right; text-transform: uppercase; }
+
+  .body { padding: 12px; display: flex; flex-direction: column; gap: 12px; flex: 1; overflow: hidden; }
+
+  h3 { font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--bone-dim); font-weight: 400; margin: 0;
+       display: flex; align-items: center; gap: 8px; }
+  h3::after { content: ''; flex: 1; height: 1px; background: var(--hair); }
+
+  /* key/value table — the primary information device */
+  .kv { display: grid; grid-template-columns: 78px 1fr; column-gap: 10px; row-gap: 0; }
+  .kv dt { color: var(--bone-dim); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; padding: 4px 0; border-bottom: 1px solid var(--hair-2); }
+  .kv dd { margin: 0; padding: 4px 0; border-bottom: 1px solid var(--hair-2); overflow-wrap: anywhere; }
+  .kv dd.crit { color: var(--critical); }
+  .kv dd.warn { color: var(--warn); }
+  .kv dd.ok { color: var(--cleared); }
+  .kv dd small { display: block; color: var(--bone-dim); font-size: 9.5px; }
+
+  /* the score: a number and a ruler, no gauge, no needle */
+  .score { display: flex; align-items: flex-end; gap: 12px; }
+  .score .n { font-size: 74px; line-height: .82; letter-spacing: -.04em; font-weight: 500; }
+  .score .n span { font-size: 26px; color: var(--bone-dim); }
+  .score .meta { display: flex; flex-direction: column; gap: 3px; padding-bottom: 5px; }
+  .score .band { font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--critical); }
+  .score .cmp { font-size: 9.5px; color: var(--bone-dim); letter-spacing: .04em; }
+
+  .ruler { display: flex; flex-direction: column; gap: 3px; }
+  .ruler .track { display: flex; gap: 2px; }
+  .ruler .track i { flex: 1; height: 8px; background: var(--hair); }
+  .ruler .track i.f { background: var(--critical); }
+  .ruler .track i.g { background: var(--cleared); }
+  .ruler .lbl { display: flex; justify-content: space-between; font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: var(--bone-dim); }
+  .ruler .cursor { font-size: 9px; color: var(--critical); height: 11px; position: relative; }
+  .ruler .cursor i { position: absolute; transform: translateX(-50%); font-style: normal; }
+
+  .quote { border-left: 2px solid var(--warn); padding: 2px 0 2px 10px; color: var(--bone); font-size: 12px; line-height: 1.5; }
+  .quote small { display: block; color: var(--bone-dim); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; margin-top: 4px; }
+
+  /* the log — timestamps carry the story */
+  .log { display: flex; flex-direction: column; gap: 1px; font-size: 10.5px; }
+  .log div { display: grid; grid-template-columns: 52px 1fr; gap: 9px; padding: 2px 0; }
+  .log time { color: var(--bone-dim); }
+  .log .crit { color: var(--critical); }
+  .log .warn { color: var(--warn); }
+  .log .ok { color: var(--cleared); }
+  .log .dim { color: var(--bone-dim); }
+
+  /* findings: severity stripe + tabular money */
+  .find { display: flex; flex-direction: column; gap: 1px; }
+  .find .row { display: grid; grid-template-columns: 3px 1fr 68px; gap: 9px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--hair-2); }
+  .find .row i { height: 100%; min-height: 26px; background: var(--critical); }
+  .find .row i.w { background: var(--warn); }
+  .find .row i.k { background: var(--cleared); }
+  .find .row .t { font-size: 11px; line-height: 1.35; }
+  .find .row .t small { display: block; color: var(--bone-dim); font-size: 9px; margin-top: 2px; }
+  .find .row .m { text-align: right; font-size: 12px; }
+  .find .row .m small { display: block; font-size: 8.5px; color: var(--bone-dim); letter-spacing: .08em; text-transform: uppercase; }
+  .find .row .m.crit { color: var(--critical); }
+  .find .row .m.ok { color: var(--cleared); }
+
+  .prompt { display: flex; align-items: center; gap: 8px; border: 1px solid var(--hair); padding: 10px 11px; background: var(--void-2); }
+  .prompt .ps { color: var(--critical); }
+  .prompt .v { flex: 1; }
+  .prompt .cur { width: 7px; height: 14px; background: var(--bone); animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .acts { display: flex; flex-direction: column; gap: 7px; margin-top: auto; }
+  .act {
+    font-family: var(--code); font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+    background: transparent; color: var(--bone); border: 1px solid var(--hair); padding: 11px; width: 100%;
+    cursor: pointer; text-align: left; display: flex; justify-content: space-between; gap: 8px;
+  }
+  .act:hover { border-color: var(--bone-dim); }
+  .act .key { color: var(--bone-dim); }
+  .act.primary { border-color: var(--critical); color: var(--critical); }
+  .act.go { border-color: var(--cleared); color: var(--cleared); }
+  .act[disabled] { opacity: .35; cursor: not-allowed; }
+  .act:focus-visible { outline: 2px solid var(--link); outline-offset: 1px; }
+
+  .statusbar { border-top: 1px solid var(--hair); padding: 7px 12px; display: flex; justify-content: space-between; gap: 8px;
+    font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--bone-dim); background: var(--void-2); }
+  .statusbar b { font-weight: 400; color: var(--cleared); }
+  .statusbar b.crit { color: var(--critical); }
+
+  .delta { display: flex; align-items: baseline; gap: 10px; }
+  .delta s { font-size: 24px; color: var(--bone-dim); }
+  .delta .arrow { color: var(--bone-dim); }
+  .delta b { font-size: 58px; font-weight: 500; letter-spacing: -.04em; color: var(--cleared); }
+
+  .rationale { max-width: 62ch; margin: 34px auto 0; border-top: 1px solid var(--rule); padding-top: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .rationale h2 { font-family: var(--code); font-size: 19px; margin: 0; font-weight: 500; }
+  .rationale dl { margin: 0; display: grid; grid-template-columns: 92px 1fr; gap: 9px 14px; font-size: 14.5px; line-height: 1.5; }
+  .rationale dt { font-family: var(--code); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--page-dim); padding-top: 4px; }
+  .rationale dd { margin: 0; }
+  .rationale .swatches { display: flex; border: 1px solid var(--rule); }
+  .rationale .swatches i { height: 30px; flex: 1; }
+  @media (max-width: 640px) { body { padding: 22px 12px 40px; } .term { width: 88vw; height: 740px; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<header class="masthead">
+  <div class="kicker">Direction C of 3 · apps/web · same flow, same copy</div>
+  <h1>The Evidence Log: treat the wallet like a <b>crime scene</b>, not a meme</h1>
+  <p>No mascot, no gauge, no emoji. Monospace throughout, hairline rules, timestamps down the
+     left edge, and colour used only where it means something: red is a live threat, amber is a
+     finding, green is closed. The jokes still land — they just arrive as evidence.</p>
+</header>
+
+<div class="strip">
+
+  <!-- 1 · QUERY -->
+  <figure class="cell">
+    <figcaption><b>1</b> · Query</figcaption>
+    <div class="term">
+      <div class="topbar">
+        <div class="id">AM I <b>COOKED</b> — autopsy</div>
+        <div class="rt">TEE-scored<br>addr not stored</div>
+      </div>
+      <div class="body">
+        <h3>Corpus</h3>
+        <dl class="kv">
+          <dt>Losses</dt><dd class="num">€4,812,331 <small>across all wallets scanned</small></dd>
+          <dt>Wallets</dt><dd class="num">31,204 <small>autopsies filed to date</small></dd>
+          <dt>Sources</dt><dd>40 lending markets · 12 DEX schemas <small>two standardized subgraphs, one query shape</small></dd>
+          <dt>Incidents</dt><dd class="num">177 <small>curated exploit records, ~$7.5B lost</small></dd>
+        </dl>
+
+        <h3>Subject</h3>
+        <div class="prompt">
+          <span class="ps">&gt;</span><span class="v">vitalik.eth</span><span class="cur"></span>
+        </div>
+
+        <div class="log" style="margin-top:2px">
+          <div><time>00:00.0</time><span class="dim">awaiting subject — paste any address</span></div>
+          <div><time>—</time><span class="dim">no wallet connect · no signature requested</span></div>
+          <div><time>—</time><span class="dim">queries run client-side · nothing logged</span></div>
+        </div>
+
+        <h3>Doneness scale</h3>
+        <div class="ruler">
+          <div class="track"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="lbl"><span>0 rare</span><span>charcoal 100</span></div>
+        </div>
+        <div style="color:var(--bone-dim);font-size:10.5px;line-height:1.5">
+          Everyone got cooked this year. The only question is how much.
+        </div>
+
+        <div class="acts">
+          <button class="act primary">Run the autopsy<span class="key">↵</span></button>
+        </div>
+      </div>
+      <div class="statusbar"><span>ready</span><span>graph gateway <b>live</b></span></div>
+    </div>
+  </figure>
+
+  <!-- 2 · FINDINGS -->
+  <figure class="cell">
+    <figcaption><b>2</b> · Findings</figcaption>
+    <div class="term">
+      <div class="topbar">
+        <div class="id">Case <b>Nº 001</b> — 0x4c…e9f2</div>
+        <div class="rt">scan 2.4s<br>26 jul 2026</div>
+      </div>
+      <div class="body">
+        <div class="score">
+          <div class="n num">68<span>%</span></div>
+          <div class="meta">
+            <div class="band">Cooked</div>
+            <div class="cmp">band 4 of 5</div>
+            <div class="cmp">more cooked than 84% of wallets scanned</div>
+          </div>
+        </div>
+
+        <div class="ruler">
+          <div class="cursor"><i style="left:68%">▼ 68</i></div>
+          <div class="track"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i></div>
+          <div class="lbl"><span>rare</span><span>med rare</span><span>med well</span><span>cooked</span><span>charcoal</span></div>
+        </div>
+
+        <div class="quote">
+          “You paid €900 to be exploited by a protocol named after a dog.”
+          <small>Verdict · judged in TEE</small>
+        </div>
+
+        <h3>Findings — 4</h3>
+        <div class="find">
+          <div class="row">
+            <i></i>
+            <div class="t">Unlimited approval → flagged drainer<small>USDC → 0xdrain…f00d · flagged 41 min ago</small></div>
+            <div class="m crit num">€3,180<small>live</small></div>
+          </div>
+          <div class="row">
+            <i></i>
+            <div class="t">Approval → dead contract<small>LP token → 0xdead…c0de · renounced</small></div>
+            <div class="m crit num">€940<small>live</small></div>
+          </div>
+          <div class="row">
+            <i class="w"></i>
+            <div class="t">Exposure at incident<small>DogVault (Mar 2025) · JuiceFi (Nov 2024)</small></div>
+            <div class="m num">€1,204<small>gone</small></div>
+          </div>
+          <div class="row">
+            <i class="w"></i>
+            <div class="t">Worst single signature<small>14 Mar 2025 · tx 0x81aa… · GMEOW at the top</small></div>
+            <div class="m num">−€2,914<small>gone</small></div>
+          </div>
+        </div>
+
+        <h3>Attestation</h3>
+        <dl class="kv">
+          <dt>Judge</dt><dd class="ok">0G Compute TEE · attested</dd>
+          <dt>Registry</dt><dd>0g:0x77b1…09e3</dd>
+          <dt>Rubric</dt><dd>0x8f2a…c41d <small>hash-committed before launch</small></dd>
+        </dl>
+
+        <div class="acts">
+          <button class="act primary">Get the knives out<span class="key">2 live</span></button>
+          <button class="act">Share the misery<span class="key">S</span></button>
+        </div>
+      </div>
+      <div class="statusbar"><span>live exposure <b class="crit">€4,120</b></span><span>servers saw addr <b>0×</b></span></div>
+    </div>
+  </figure>
+
+  <!-- 3 · REMEDIATION -->
+  <figure class="cell">
+    <figcaption><b>3</b> · Remediation</figcaption>
+    <div class="term">
+      <div class="topbar">
+        <div class="id">Surgeon — <b>agent #SRG-001</b></div>
+        <div class="rt">holds no keys<br>you sign in world app</div>
+      </div>
+      <div class="body">
+        <h3>Agent</h3>
+        <dl class="kv">
+          <dt>Identity</dt><dd>0G Agentic ID · #SRG-001</dd>
+          <dt>Authority</dt><dd class="crit">NONE — anonymous</dd>
+          <dt>Expires</dt><dd>daily liveness check <small>lapse it and the Surgeon goes off duty</small></dd>
+          <dt>Can do</dt><dd>diagnose · prepare tx</dd>
+          <dt>Cannot</dt><dd class="crit">sign · hold keys · move funds</dd>
+        </dl>
+
+        <h3>Prepared — 2 operations</h3>
+        <div class="find">
+          <div class="row">
+            <i></i>
+            <div class="t">revoke(USDC, 0xdrain…f00d)<small>unlimited → 0 · spender flagged as drainer</small></div>
+            <div class="m num">op 1<small>queued</small></div>
+          </div>
+          <div class="row">
+            <i></i>
+            <div class="t">revoke(LP, 0xdead…c0de)<small>unlimited → 0 · contract renounced</small></div>
+            <div class="m num">op 2<small>queued</small></div>
+          </div>
+        </div>
+
+        <dl class="kv">
+          <dt>Batch</dt><dd>2 operations · 1 signature</dd>
+          <dt>Gas est.</dt><dd class="num">€0.42</dd>
+          <dt>Signer</dt><dd>you, in World App</dd>
+        </dl>
+
+        <h3>Interlock</h3>
+        <div class="quote" style="border-left-color:var(--critical)">
+          Anonymous agents may diagnose — never cut. A verified human must back every signature
+          this agent proposes.
+          <small>Gated by World Selfie Check</small>
+        </div>
+
+        <div class="acts">
+          <button class="act go">Verify human backing<span class="key">World</span></button>
+          <button class="act primary" disabled>Operate<span class="key">locked</span></button>
+        </div>
+      </div>
+      <div class="statusbar"><span>interlock <b class="crit">engaged</b></span><span>2 ops staged</span></div>
+    </div>
+  </figure>
+
+  <!-- 4 · CLOSED -->
+  <figure class="cell">
+    <figcaption><b>4</b> · Closed</figcaption>
+    <div class="term">
+      <div class="topbar">
+        <div class="id">Case <b>Nº 001</b> — closed</div>
+        <div class="rt">re-scan 40s<br>0x4c…e9f2</div>
+      </div>
+      <div class="body">
+        <div class="delta"><s class="num">68%</s><span class="arrow">→</span><b class="num">31%</b></div>
+        <div class="score" style="margin-top:-4px">
+          <div class="meta">
+            <div class="band" style="color:var(--cleared)">Medium rare</div>
+            <div class="cmp">band 2 of 5 · singed, but you let go in time</div>
+          </div>
+        </div>
+
+        <div class="ruler">
+          <div class="cursor"><i style="left:31%;color:var(--cleared)">▼ 31</i></div>
+          <div class="track"><i class="g"></i><i class="g"></i><i class="g"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="lbl"><span>rare</span><span>med rare</span><span>med well</span><span>cooked</span><span>charcoal</span></div>
+        </div>
+
+        <h3>Operations log</h3>
+        <div class="log">
+          <div><time>+00.0s</time><span class="dim">selfie check requested</span></div>
+          <div><time>+06.2s</time><span class="ok">human backing verified · authority granted</span></div>
+          <div><time>+11.8s</time><span class="dim">batch prepared · 2 ops · awaiting signature</span></div>
+          <div><time>+22.4s</time><span class="ok">signed in World App · tx 0x9c4e…11ab</span></div>
+          <div><time>+31.0s</time><span class="ok">op 1 confirmed · USDC approval → 0</span></div>
+          <div><time>+31.0s</time><span class="ok">op 2 confirmed · LP approval → 0</span></div>
+          <div><time>+40.0s</time><span class="dim">re-scan complete · score 68 → 31</span></div>
+        </div>
+
+        <h3>Result</h3>
+        <div class="find">
+          <div class="row">
+            <i class="k"></i>
+            <div class="t">Live exposure defused<small>both knives out · 40 seconds</small></div>
+            <div class="m ok num">€4,120<small>closed</small></div>
+          </div>
+          <div class="row">
+            <i class="w"></i>
+            <div class="t">Grief left on file<small>already gone · not recoverable</small></div>
+            <div class="m num">€4,118<small>owned</small></div>
+          </div>
+        </div>
+
+        <dl class="kv">
+          <dt>History</dt><dd class="num">74 → 68 → 68 → 31 <small>encrypted on 0G Storage</small></dd>
+          <dt>To date</dt><dd class="num">€212,940 defused by surgeons</dd>
+        </dl>
+
+        <div class="acts">
+          <button class="act go">Share the recovery<span class="key">S</span></button>
+          <button class="act">My options<span class="key">World</span></button>
+        </div>
+      </div>
+      <div class="statusbar"><span>live exposure <b>€0</b></span><span>case <b>closed</b></span></div>
+    </div>
+  </figure>
+
+</div>
+
+<section class="rationale">
+  <h2>Why this one could win</h2>
+  <dl>
+    <dt>Palette</dt>
+    <dd>Void <span class="num">#0A0C0D</span>, bone <span class="num">#DCDED9</span>, dim
+        <span class="num">#7D8489</span>, critical <span class="num">#E2503C</span>, warn
+        <span class="num">#D99A2B</span>, cleared <span class="num">#57A07A</span>. Semantic only —
+        there is no decorative accent anywhere.
+        <div class="swatches" style="margin-top:8px"><i style="background:#0a0c0d"></i><i style="background:#dcded9"></i><i style="background:#7d8489"></i><i style="background:#e2503c"></i><i style="background:#d99a2b"></i><i style="background:#57a07a"></i></div></dd>
+    <dt>Type</dt>
+    <dd>One monospace family at six sizes, doing all the work — the hierarchy comes from size,
+        tracking and rules rather than from contrasting faces. Every figure is tabular so columns
+        of money line up down the screen.</dd>
+    <dt>Layout</dt>
+    <dd>Fixed top bar, scrolling body, status bar pinned at the bottom: a tool, not a page.
+        Findings carry a severity stripe and a right-aligned amount; the operations log proves the
+        40-second claim with timestamps instead of an animation.</dd>
+    <dt>Risk</dt>
+    <dd>The deliberate one: it throws away the mascot, the dial and every emoji — the assets that
+        make v7 charming — and bets that credibility spreads further than cuteness.</dd>
+    <dt>Trade-off</dt>
+    <dd>Strongest for the judges' trust questions and for the reusable-skill story; weakest as a
+        share card, and it asks the most from the copy, since nothing but words is doing the
+        entertaining.</dd>
+  </dl>
+</section>

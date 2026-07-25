@@ -1,0 +1,450 @@
+<title>AM I COOKED? — Direction E: The Order</title>
+<style>
+  :root {
+    --page-bg: #e6ded0;
+    --page-fg: #2a1a18;
+    --page-dim: #6f544f;
+    --rule: #c3ac9f;
+
+    /* the direction's own world — a steakhouse check */
+    --leather: #5c1f24;
+    --leather-2: #3a1216;
+    --card: #f3ead6;
+    --card-2: #e9dcc2;
+    --ink: #1a1412;
+    --ink-dim: #7d6a58;
+    --foil: #c9a24a;
+    --rare: #e0846f;
+    --charred: #43241c;
+    --paid: #2f6b48;
+
+    --engrave: "Didot", "Bodoni MT", "Bodoni 72", "Playfair Display", Georgia, serif;
+    --setting: "Iowan Old Style", Palatino, Georgia, serif;
+    --check: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --page-bg: #17100f; --page-fg: #ece0d2; --page-dim: #a08b80; --rule: #3a2925; }
+  }
+  :root[data-theme="dark"] { --page-bg: #17100f; --page-fg: #ece0d2; --page-dim: #a08b80; --rule: #3a2925; }
+  :root[data-theme="light"] { --page-bg: #e6ded0; --page-fg: #2a1a18; --page-dim: #6f544f; --rule: #c3ac9f; }
+
+  body { background: var(--page-bg); color: var(--page-fg); font-family: var(--setting); margin: 0; padding: 32px 20px 56px; -webkit-font-smoothing: antialiased; }
+  .masthead { max-width: 62ch; margin: 0 auto 30px; display: flex; flex-direction: column; gap: 10px; }
+  .kicker { font-family: var(--check); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--page-dim); }
+  .masthead h1 { font-family: var(--engrave); font-size: clamp(28px, 5.2vw, 41px); line-height: 1.04; margin: 0; font-weight: 400; text-wrap: balance; }
+  .masthead h1 b { color: var(--leather); font-weight: 400; font-style: italic; }
+  :root[data-theme="dark"] .masthead h1 b, .masthead h1 b { }
+  .masthead p { margin: 0; font-size: 16px; line-height: 1.55; color: var(--page-dim); max-width: 58ch; }
+  .kept { display: flex; gap: 8px; flex-wrap: wrap; font-family: var(--check); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; }
+  .kept span { border: 1px solid var(--foil); color: #9a7a2e; padding: 3px 8px; }
+  @media (prefers-color-scheme: dark) { .kept span { color: var(--foil); } }
+
+  .strip { display: flex; gap: 26px; overflow-x: auto; padding: 6px 4px 22px; scroll-snap-type: x mandatory; }
+  .cell { scroll-snap-align: center; flex: none; display: flex; flex-direction: column; gap: 9px; margin: 0; }
+  .cell > figcaption { font-family: var(--check); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--page-dim); }
+  .cell > figcaption b { color: var(--page-fg); font-weight: 400; }
+
+  /* ---------- the menu / the check ---------- */
+  .menu {
+    width: 372px; height: 780px; flex: none; position: relative; overflow: hidden;
+    background: linear-gradient(180deg, var(--leather) 0%, var(--leather-2) 100%);
+    padding: 13px; border-radius: 6px;
+    box-shadow: 0 20px 40px rgba(40,12,14,.45), 0 1px 0 rgba(255,255,255,.12) inset;
+    display: flex;
+  }
+  .menu::before { /* foil rule inset into the leather cover */
+    content: ''; position: absolute; inset: 7px; border: 1px solid rgba(201,162,74,.42); border-radius: 3px; pointer-events: none; z-index: 2;
+  }
+  .card {
+    flex: 1; background: linear-gradient(180deg, var(--card) 0%, var(--card-2) 100%); color: var(--ink);
+    padding: 17px 17px 15px; display: flex; flex-direction: column; gap: 10px; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(30,10,12,.3) inset;
+  }
+  .card.charred { background: linear-gradient(180deg, #efe2c8 0%, #dcc7a4 78%, #b78f6a 100%); }
+  .card.cooled { background: linear-gradient(180deg, #f4efdf 0%, #e6e6d2 100%); }
+
+  /* the house crest — mascot kept from direction B */
+  .crest { display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: 9px; border-bottom: 1px solid var(--ink); }
+  .crest svg { display: block; }
+  .crest .house { font-family: var(--engrave); font-size: 25px; letter-spacing: .01em; line-height: 1; }
+  .crest .house i { font-style: italic; }
+  .crest .est { font-family: var(--check); font-size: 7px; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-dim); }
+
+  .tablerow { display: flex; justify-content: space-between; font-family: var(--check); font-size: 8px; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-dim); }
+
+  h3 { font-family: var(--check); font-size: 8.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-dim); font-weight: 400; margin: 0;
+       display: flex; align-items: center; gap: 8px; }
+  h3::after { content: ''; flex: 1; height: 1px; background: rgba(26,20,18,.22); }
+
+  /* how would you like it — the knob, kept from direction B, printed on the menu */
+  .howdone { display: flex; align-items: center; gap: 13px; }
+  .knob { position: relative; flex: none; width: 132px; height: 132px; }
+  .knob svg { display: block; }
+  .knob .cap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  .knob .cap .n { font-family: var(--engrave); font-size: 35px; color: var(--card); font-variant-numeric: tabular-nums; line-height: 1; }
+  .knob .cap .n small { font-size: 15px; opacity: .75; }
+  .served { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .served .lbl { font-family: var(--check); font-size: 7.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-dim); }
+  .served .how { font-family: var(--engrave); font-size: 29px; line-height: .96; color: var(--charred); }
+  .served .how.rest { color: var(--paid); }
+  .served .note { font-family: var(--setting); font-style: italic; font-size: 12.5px; line-height: 1.35; color: var(--ink-dim); }
+
+  /* the bill */
+  .bill { display: flex; flex-direction: column; }
+  .bill .li { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 7px 0; align-items: baseline; border-bottom: 1px dotted rgba(26,20,18,.3); }
+  .bill .li .dish { font-family: var(--setting); font-size: 13.5px; line-height: 1.3; }
+  .bill .li .dish small { display: block; font-family: var(--check); font-size: 8.5px; color: var(--ink-dim); margin-top: 3px; letter-spacing: .03em; text-transform: uppercase; }
+  .bill .li .price { font-family: var(--check); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .bill .li .price.live { color: var(--leather); }
+  .bill .total { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding-top: 8px; margin-top: 3px; border-top: 2px solid var(--ink); align-items: baseline; }
+  .bill .total .k { font-family: var(--check); font-size: 9px; letter-spacing: .18em; text-transform: uppercase; }
+  .bill .total .v { font-family: var(--engrave); font-size: 27px; font-variant-numeric: tabular-nums; }
+  .bill .total .v.live { color: var(--leather); }
+  .bill .total .v.paid { color: var(--paid); }
+
+  .verdictline { font-family: var(--setting); font-style: italic; font-size: 15px; line-height: 1.4; text-align: center; margin: 2px 4px; text-wrap: balance; }
+  .beneath { font-family: var(--check); font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-dim); text-align: center; }
+
+  /* the stamp on the check */
+  .stampwrap { display: flex; justify-content: center; padding: 3px 0; }
+  .stamp { border: 2.5px double var(--leather); color: var(--leather); font-family: var(--engrave); font-size: 17px;
+    letter-spacing: .08em; text-transform: uppercase; padding: 4px 12px 3px; transform: rotate(-4deg); line-height: 1.05; text-align: center; }
+  .stamp small { display: block; font-family: var(--check); font-size: 7px; letter-spacing: .16em; }
+  .stamp.paid { border-color: var(--paid); color: var(--paid); }
+
+  /* the doneness strip, printed as steak cross-sections */
+  .cuts { display: flex; flex-direction: column; gap: 4px; }
+  .cuts .row { display: flex; gap: 4px; }
+  .cuts .cut { flex: 1; height: 26px; border: 1px solid var(--ink); position: relative; overflow: hidden; }
+  .cuts .cut i { position: absolute; inset: 3px; border-radius: 1px; display: block; }
+  .cuts .cut:nth-child(1) i { background: #e0846f; }
+  .cuts .cut:nth-child(2) i { background: linear-gradient(180deg, #b9614e 0 5px, #e0846f 5px 18px, #b9614e 18px 100%); }
+  .cuts .cut:nth-child(3) i { background: linear-gradient(180deg, #8e4632 0 8px, #cf7a5e 8px 15px, #8e4632 15px 100%); }
+  .cuts .cut:nth-child(4) i { background: linear-gradient(180deg, #6b3423 0 10px, #a05a3c 10px 13px, #6b3423 13px 100%); }
+  .cuts .cut:nth-child(5) i { background: #43241c; }
+  .cuts .cut.on { outline: 2px solid var(--leather); outline-offset: 1px; }
+  .cuts .cut.on.rest { outline-color: var(--paid); }
+  .cuts .names { display: flex; gap: 4px; font-family: var(--check); font-size: 6.8px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-dim); }
+  .cuts .names span { flex: 1; text-align: center; }
+
+  /* the order pad for the Surgeon */
+  .pad { display: flex; flex-direction: column; gap: 6px; }
+  .pad .item { border-bottom: 1px dotted rgba(26,20,18,.3); padding: 7px 0; display: grid; grid-template-columns: 20px 1fr auto; gap: 9px; align-items: baseline; }
+  .pad .item .qty { font-family: var(--check); font-size: 11px; color: var(--ink-dim); }
+  .pad .item .what { font-size: 13px; line-height: 1.3; }
+  .pad .item .what small { display: block; font-family: var(--check); font-size: 8.5px; color: var(--ink-dim); margin-top: 2px; }
+  .pad .item .st { font-family: var(--check); font-size: 8px; letter-spacing: .12em; text-transform: uppercase; color: var(--leather); }
+  .pad .item.done .st { color: var(--paid); }
+
+  .houserule { border: 1px solid var(--leather); background: rgba(92,31,36,.06); padding: 9px 10px; font-size: 12.5px; line-height: 1.45; }
+  .houserule .tag { display: block; font-family: var(--check); font-size: 7.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--leather); margin-bottom: 4px; }
+
+  .acts { display: flex; flex-direction: column; gap: 7px; margin-top: auto; }
+  .act {
+    font-family: var(--engrave); font-size: 18px; letter-spacing: .03em; width: 100%; padding: 11px; cursor: pointer;
+    background: var(--leather); color: var(--card); border: 1px solid var(--leather-2); border-radius: 2px;
+  }
+  .act.quiet { background: transparent; color: var(--ink); border: 1px solid var(--ink); font-size: 15px; }
+  .act.paid { background: var(--paid); border-color: #245537; }
+  .act[disabled] { opacity: .4; cursor: not-allowed; }
+  .foil { font-family: var(--check); font-size: 7.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-dim); text-align: center; }
+
+  .swing { display: flex; align-items: baseline; justify-content: center; gap: 11px; }
+  .swing s { font-family: var(--engrave); font-size: 25px; color: var(--ink-dim); }
+  .swing b { font-family: var(--engrave); font-size: 55px; color: var(--paid); font-variant-numeric: tabular-nums; font-weight: 400; }
+
+  .rationale { max-width: 62ch; margin: 34px auto 0; border-top: 1px solid var(--rule); padding-top: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .rationale h2 { font-family: var(--engrave); font-size: 25px; margin: 0; font-weight: 400; }
+  .rationale dl { margin: 0; display: grid; grid-template-columns: 96px 1fr; gap: 9px 14px; font-size: 15px; line-height: 1.5; }
+  .rationale dt { font-family: var(--check); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--page-dim); padding-top: 5px; }
+  .rationale dd { margin: 0; }
+  .rationale .swatches { display: flex; border: 1px solid var(--rule); }
+  .rationale .swatches i { height: 30px; flex: 1; }
+  .num { font-variant-numeric: tabular-nums; }
+  @media (max-width: 640px) { body { padding: 22px 12px 40px; } .menu { width: 88vw; height: 750px; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<header class="masthead">
+  <div class="kicker">Round 2 · Direction E of 3 · the cooked register</div>
+  <h1>The Order: you didn't get hacked, you got <b>served</b></h1>
+  <p>A steakhouse check, and the dish is you. Every bad decision is a line item with a price, the
+     doneness is how the house sent you out, and the total at the bottom is what the year cost.
+     Oxblood leather, foil rule, engraved serif — the tone is a fancy restaurant being very polite
+     about a terrible meal.</p>
+  <div class="kept"><span>Kept: the five-detent knob</span><span>Kept: the figure in the pan</span></div>
+</header>
+
+<div class="strip">
+
+  <!-- 1 · THE TABLE -->
+  <figure class="cell">
+    <figcaption><b>1</b> · Seated</figcaption>
+    <div class="menu">
+      <div class="card">
+        <div class="crest">
+          <svg width="112" height="92" viewBox="0 0 120 100" role="img" aria-label="House crest: a serene figure sitting in a frying pan over a flame">
+            <circle cx="60" cy="34" r="13" fill="none" stroke="#1a1412" stroke-width="2"/>
+            <circle cx="55.5" cy="32" r="1.6" fill="#1a1412"/><circle cx="64.5" cy="32" r="1.6" fill="#1a1412"/>
+            <path d="M 56 39 h 8" stroke="#1a1412" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <rect x="46" y="48" width="28" height="25" rx="12" fill="none" stroke="#1a1412" stroke-width="2"/>
+            <rect x="60" y="61" width="24" height="13" rx="6.5" fill="#f3ead6" stroke="#1a1412" stroke-width="2"/>
+            <rect x="16" y="73" width="88" height="11" rx="5" fill="#1a1412"/>
+            <rect x="100" y="75" width="18" height="6" rx="3" fill="#1a1412"/>
+            <path d="M 40 96 q -5 -8 0 -14 q 5 6 0 14" fill="none" stroke="#5c1f24" stroke-width="2"/>
+            <path d="M 60 99 q -6 -9 0 -17 q 6 8 0 17" fill="none" stroke="#5c1f24" stroke-width="2"/>
+            <path d="M 80 96 q -5 -8 0 -14 q 5 6 0 14" fill="none" stroke="#5c1f24" stroke-width="2"/>
+          </svg>
+          <div class="house">Am I <i>Cooked?</i></div>
+          <div class="est">Kitchen open since 2020 · everyone gets a table</div>
+        </div>
+
+        <div class="tablerow"><span>Table for one</span><span>No reservation needed</span></div>
+
+        <h3>Tonight's covers</h3>
+        <div class="bill">
+          <div class="li"><div class="dish">Wallets served to date<small>Nobody has left hungry</small></div><div class="price num">31,204</div></div>
+          <div class="li"><div class="dish">Paid by the room, this year<small>Not counting tips to hackers</small></div><div class="price num">€4,812,331</div></div>
+        </div>
+
+        <h3>How would you like it</h3>
+        <div class="cuts">
+          <div class="row">
+            <div class="cut"><i></i></div><div class="cut"><i></i></div><div class="cut"><i></i></div><div class="cut"><i></i></div><div class="cut"><i></i></div>
+          </div>
+          <div class="names"><span>Rare</span><span>Med rare</span><span>Med well</span><span>Cooked</span><span>Charcoal</span></div>
+        </div>
+        <div class="beneath">The kitchen decides · you only get to watch</div>
+
+        <p class="verdictline">Everyone got cooked this year. The only question is how much.</p>
+
+        <div class="acts">
+          <div class="bill" style="margin-bottom:2px">
+            <div class="li" style="border-bottom:1px solid var(--ink)"><div class="dish" style="font-family:var(--check);font-size:13px">vitalik.eth</div><div class="price" style="font-size:8px;letter-spacing:.12em">Guest name</div></div>
+          </div>
+          <button class="act">Send it to the kitchen</button>
+          <div class="foil">No connect · no signatures · just paste</div>
+        </div>
+      </div>
+    </div>
+  </figure>
+
+  <!-- 2 · THE CHECK -->
+  <figure class="cell">
+    <figcaption><b>2</b> · The check</figcaption>
+    <div class="menu">
+      <div class="card charred">
+        <div class="crest" style="padding-bottom:7px">
+          <div class="house" style="font-size:21px">The <i>Check</i></div>
+          <div class="est">Table 0x4c…e9f2 · cooked in 2.4s</div>
+        </div>
+
+        <div class="howdone">
+          <div class="knob">
+            <svg width="132" height="132" viewBox="0 0 132 132" role="img" aria-label="The doneness selector turned to the fourth setting: cooked, 68 percent">
+              <circle cx="66" cy="66" r="63" fill="#e6d8b8" stroke="#1a1412" stroke-width="1.5"/>
+              <g font-family="ui-monospace,monospace" font-size="7" fill="#7d6a58" letter-spacing="1">
+                <text x="17" y="106" text-anchor="middle">I</text>
+                <text x="14" y="51" text-anchor="middle">II</text>
+                <text x="66" y="20" text-anchor="middle">III</text>
+                <text x="118" y="51" text-anchor="middle">IV</text>
+                <text x="115" y="106" text-anchor="middle">V</text>
+              </g>
+              <g stroke="#c9a24a" stroke-width="2" stroke-linecap="round">
+                <path d="M 27 97 l -5 5"/><path d="M 24 56 l -7 -3"/><path d="M 66 36 l 0 -8"/><path d="M 108 56 l 7 -3"/><path d="M 105 97 l 5 5"/>
+              </g>
+              <circle cx="66" cy="66" r="42" fill="url(#lea)" stroke="#2a0f12" stroke-width="1.5"/>
+              <defs>
+                <radialGradient id="lea" cx="36%" cy="28%">
+                  <stop offset="0" stop-color="#7d2c33"/><stop offset="1" stop-color="#3a1216"/>
+                </radialGradient>
+              </defs>
+              <g transform="rotate(52 66 66)">
+                <rect x="63.5" y="29" width="5" height="21" rx="2.5" fill="#c9a24a"/>
+              </g>
+            </svg>
+            <div class="cap"><div class="n num">68<small>%</small></div></div>
+          </div>
+          <div class="served">
+            <div class="lbl">Sent out</div>
+            <div class="how">Cooked</div>
+            <div class="note">“The smoke alarm has your address memorized.”</div>
+          </div>
+        </div>
+
+        <div class="cuts">
+          <div class="row">
+            <div class="cut"><i></i></div><div class="cut"><i></i></div><div class="cut"><i></i></div><div class="cut on"><i></i></div><div class="cut"><i></i></div>
+          </div>
+          <div class="names"><span>Rare</span><span>Med rare</span><span>Med well</span><span>Cooked</span><span>Charcoal</span></div>
+        </div>
+
+        <h3>What you ordered</h3>
+        <div class="bill">
+          <div class="li">
+            <div class="dish">The dog protocol<small>Exploited · March 2025</small></div>
+            <div class="price num">€900</div>
+          </div>
+          <div class="li">
+            <div class="dish">One signature, at the top<small>14 March · GMEOW, no notes</small></div>
+            <div class="price num">€2,914</div>
+          </div>
+          <div class="li">
+            <div class="dish">Two knives, left in<small>Still at the table · unlimited approval, dead vault</small></div>
+            <div class="price live num">€4,120</div>
+          </div>
+          <div class="total">
+            <div class="k">Total, this year</div>
+            <div class="v live num">€8,238</div>
+          </div>
+        </div>
+
+        <p class="verdictline">“You paid €900 to be exploited by a protocol named after a dog.”</p>
+        <div class="beneath">More cooked than 84% of the room</div>
+
+        <div class="stampwrap"><div class="stamp">Cooked<small>Band IV of V</small></div></div>
+
+        <div class="acts">
+          <button class="act">Take the knives off the table</button>
+          <button class="act quiet">Share the check</button>
+          <div class="foil">Sealed · tap for the receipts</div>
+        </div>
+      </div>
+    </div>
+  </figure>
+
+  <!-- 3 · THE KITCHEN -->
+  <figure class="cell">
+    <figcaption><b>3</b> · Back of house</figcaption>
+    <div class="menu">
+      <div class="card">
+        <div class="crest" style="padding-bottom:7px">
+          <div class="house" style="font-size:21px">The <i>Surgeon</i></div>
+          <div class="est">Holds a knife · never your keys · you sign in World App</div>
+        </div>
+
+        <h3>Who is at your table</h3>
+        <div class="bill">
+          <div class="li"><div class="dish">0G Agentic ID<small>Badge #SRG-001</small></div><div class="price">verified</div></div>
+          <div class="li"><div class="dish">Authority tonight<small>Expires with your daily check</small></div><div class="price live">none — anonymous</div></div>
+        </div>
+
+        <h3>Order pad</h3>
+        <div class="pad">
+          <div class="item">
+            <div class="qty">1×</div>
+            <div class="what">Take back the unlimited USDC approval<small>Spender flagged 41 minutes ago</small></div>
+            <div class="st">Fired</div>
+          </div>
+          <div class="item">
+            <div class="qty">1×</div>
+            <div class="what">Take back the dead vault approval<small>Contract renounced · TVL −99.7%</small></div>
+            <div class="st">Fired</div>
+          </div>
+          <div class="item" style="border-bottom:0">
+            <div class="qty">—</div>
+            <div class="what">One signature covers both<small>Gas ≈ €0.42 · you sign, nobody else</small></div>
+            <div class="st">Yours</div>
+          </div>
+        </div>
+
+        <div class="houserule">
+          <span class="tag">House rule</span>
+          An anonymous agent may taste and advise — <b>never cut</b>. A verified human must be at
+          the table before a knife moves.
+        </div>
+
+        <div class="acts">
+          <button class="act paid">Show the house a human</button>
+          <button class="act" disabled>Knives off the table</button>
+          <div class="foil">Let the daily check lapse and the Surgeon goes off duty</div>
+        </div>
+      </div>
+    </div>
+  </figure>
+
+  <!-- 4 · SETTLED -->
+  <figure class="cell">
+    <figcaption><b>4</b> · Settled</figcaption>
+    <div class="menu">
+      <div class="card cooled">
+        <div class="crest" style="padding-bottom:7px">
+          <div class="house" style="font-size:21px">Settled</div>
+          <div class="est">Table 0x4c…e9f2 · re-cooked in 40 seconds</div>
+        </div>
+
+        <div class="swing"><s class="num">68%</s><b class="num">31%</b></div>
+        <div class="served" style="text-align:center;align-items:center">
+          <div class="how rest" style="font-size:26px">Medium rare</div>
+          <div class="note">“Singed. You touched the pan but let go in time.”</div>
+        </div>
+
+        <div class="cuts">
+          <div class="row">
+            <div class="cut"><i></i></div><div class="cut on rest"><i></i></div><div class="cut"><i></i></div><div class="cut"><i></i></div><div class="cut"><i></i></div>
+          </div>
+          <div class="names"><span>Rare</span><span>Med rare</span><span>Med well</span><span>Cooked</span><span>Charcoal</span></div>
+        </div>
+
+        <h3>Settled tonight</h3>
+        <div class="pad">
+          <div class="item done">
+            <div class="qty">1×</div>
+            <div class="what">Unlimited USDC approval<small>Taken back · tx 0x9c4e…11ab</small></div>
+            <div class="st">Closed</div>
+          </div>
+          <div class="item done">
+            <div class="qty">1×</div>
+            <div class="what">Dead vault approval<small>Taken back · same signature</small></div>
+            <div class="st">Closed</div>
+          </div>
+        </div>
+
+        <div class="bill">
+          <div class="total">
+            <div class="k">Taken off the table</div>
+            <div class="v paid num">€4,120</div>
+          </div>
+        </div>
+        <div class="beneath">Still owed to the year: €4,118 · that part is not coming back</div>
+
+        <div class="stampwrap"><div class="stamp paid">Off the heat<small>Both knives out · 40s</small></div></div>
+
+        <div class="acts">
+          <button class="act paid">Share the recovery</button>
+          <button class="act quiet">My options</button>
+          <div class="foil">It's so over → we're so back · €212,940 settled by surgeons to date</div>
+        </div>
+      </div>
+    </div>
+  </figure>
+
+</div>
+
+<section class="rationale">
+  <h2>Why this one could win</h2>
+  <dl>
+    <dt>Palette</dt>
+    <dd>Oxblood leather <span class="num">#5C1F24</span>, menu card <span class="num">#F3EAD6</span>,
+        ink <span class="num">#1A1412</span>, foil <span class="num">#C9A24A</span>, rare
+        <span class="num">#E0846F</span>, settled green <span class="num">#2F6B48</span>. The card
+        scorches from cream to browned as the meal goes wrong, then cools on the last screen.
+        <div class="swatches" style="margin-top:8px"><i style="background:#5c1f24"></i><i style="background:#f3ead6"></i><i style="background:#1a1412"></i><i style="background:#c9a24a"></i><i style="background:#e0846f"></i><i style="background:#2f6b48"></i></div></dd>
+    <dt>Type</dt>
+    <dd>A high-contrast engraved serif does the menu voice — house name, doneness, totals — with an
+        old-style serif for anything spoken aloud and monospace confined to the check's small print.
+        Prices are tabular so the bill reads like a bill.</dd>
+    <dt>Kept from B</dt>
+    <dd>The knob returns as the doneness selector, re-skinned in oxblood with a foil pointer,
+        captioned <em>“how would you like it”</em> — the joke being that you never got to choose. The
+        figure in the pan becomes the house crest at the top of the menu.</dd>
+    <dt>Structure</dt>
+    <dd>The bill is the information design: every loss is a line item, the live exposure is the one
+        red price, and the total is the year. It converts a security report into the one document
+        everyone already knows how to read.</dd>
+    <dt>Trade-off</dt>
+    <dd>Funniest of the three and the best share card — a check screenshots beautifully. Weakest on
+        the agent story: back-of-house framing makes the Surgeon a waiter rather than something with
+        real authority.</dd>
+  </dl>
+</section>

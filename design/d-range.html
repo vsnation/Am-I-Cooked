@@ -1,0 +1,483 @@
+<title>AM I COOKED? — Direction D: The Range</title>
+<style>
+  :root {
+    --page-bg: #e3d8c2;
+    --page-fg: #241c15;
+    --page-dim: #6b5a45;
+    --rule: #c2b193;
+
+    /* the direction's own world — a warm enamel range */
+    --enamel: #f0e7d6;
+    --enamel-2: #e4d8c2;
+    --iron: #211c19;
+    --iron-2: #14100e;
+    --grease: #3a302a;
+    --copper: #b5713a;
+    --copper-hi: #e0a468;
+    --ember: #e4562a;
+    --flame: #f6b23c;
+    --resting: #6e8f5e;
+    --label: #8a7355;
+
+    --badge: "Haettenschweiler", "Arial Narrow Bold", Impact, sans-serif;
+    --body: "Iowan Old Style", Palatino, Georgia, serif;
+    --dial: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --tick: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --page-bg: #191411; --page-fg: #ece1cd; --page-dim: #a3907a; --rule: #392f26; }
+  }
+  :root[data-theme="dark"] { --page-bg: #191411; --page-fg: #ece1cd; --page-dim: #a3907a; --rule: #392f26; }
+  :root[data-theme="light"] { --page-bg: #e3d8c2; --page-fg: #241c15; --page-dim: #6b5a45; --rule: #c2b193; }
+
+  body { background: var(--page-bg); color: var(--page-fg); font-family: var(--body); margin: 0; padding: 32px 20px 56px; -webkit-font-smoothing: antialiased; }
+  .masthead { max-width: 62ch; margin: 0 auto 30px; display: flex; flex-direction: column; gap: 10px; }
+  .kicker { font-family: var(--tick); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--page-dim); }
+  .masthead h1 { font-family: var(--badge); font-size: clamp(30px, 5.6vw, 44px); line-height: .98; margin: 0; letter-spacing: .01em; text-transform: uppercase; font-weight: 400; text-wrap: balance; }
+  .masthead h1 b { color: var(--ember); font-weight: 400; }
+  .masthead p { margin: 0; font-size: 16px; line-height: 1.55; color: var(--page-dim); max-width: 58ch; }
+  .kept { display: flex; gap: 8px; flex-wrap: wrap; font-family: var(--tick); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; }
+  .kept span { border: 1px solid var(--copper); color: var(--copper); padding: 3px 8px; }
+
+  .strip { display: flex; gap: 26px; overflow-x: auto; padding: 6px 4px 22px; scroll-snap-type: x mandatory; }
+  .cell { scroll-snap-align: center; flex: none; display: flex; flex-direction: column; gap: 9px; margin: 0; }
+  .cell > figcaption { font-family: var(--tick); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--page-dim); }
+  .cell > figcaption b { color: var(--page-fg); font-weight: 400; }
+
+  /* ---------- the range ---------- */
+  .range {
+    width: 372px; height: 780px; flex: none; position: relative; overflow: hidden;
+    border-radius: 14px 14px 10px 10px; padding: 15px 16px 17px;
+    background: linear-gradient(180deg, var(--enamel) 0%, var(--enamel) 58%, var(--enamel-2) 100%);
+    color: var(--iron);
+    box-shadow: 0 2px 0 #fff inset, 0 -3px 0 rgba(120,96,64,.25) inset, 0 20px 40px rgba(60,40,20,.35);
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  .range::before { /* enamel chip + wear along the bottom edge */
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 46px; pointer-events: none;
+    background: linear-gradient(180deg, transparent, rgba(120,96,64,.16));
+  }
+  .range > * { position: relative; z-index: 1; }
+  .range.hot { background: linear-gradient(180deg, #f3e5cd 0%, #ecd9bc 60%, #e0c8a4 100%); }
+  .range.cool { background: linear-gradient(180deg, #f1eadb 0%, #e6e6d3 60%, #d9dfc8 100%); }
+
+  /* badge plate, like a stamped range nameplate */
+  .plate { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    border: 2px solid var(--iron); padding: 7px 10px; background: var(--enamel); }
+  .plate .mark { font-family: var(--badge); font-size: 22px; letter-spacing: .04em; text-transform: uppercase; line-height: 1; }
+  .plate .mark i { font-style: normal; color: var(--ember); }
+  .plate .spec { font-family: var(--tick); font-size: 7px; line-height: 1.6; letter-spacing: .1em; text-transform: uppercase; color: var(--label); text-align: right; }
+
+  .lamps { display: flex; gap: 13px; align-items: center; }
+  .lamp { display: flex; align-items: center; gap: 6px; font-family: var(--tick); font-size: 7.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--label); }
+  .lamp b { width: 8px; height: 8px; border-radius: 50%; background: #cbbda4; box-shadow: 0 0 0 1px rgba(0,0,0,.25) inset; display: inline-block; }
+  .lamp.on b { background: var(--flame); box-shadow: 0 0 8px rgba(246,178,60,.8); }
+  .lamp.hot b { background: var(--ember); box-shadow: 0 0 9px rgba(228,86,42,.75); }
+  .lamp.rest b { background: var(--resting); box-shadow: 0 0 8px rgba(110,143,94,.7); }
+
+  /* THE HOB — mascot lives here (kept from direction B) */
+  .hob { background: var(--iron); border-radius: 8px; padding: 8px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,.35) inset; flex: 1; min-height: 168px; }
+  .hob svg { display: block; }
+  .hob.wide { min-height: 132px; }
+
+  /* THE KNOB — kept from direction B, now bakelite with a copper pointer */
+  .console { display: flex; align-items: center; gap: 13px; }
+  .knob { position: relative; flex: none; width: 142px; height: 142px; }
+  .knob svg { display: block; }
+  .knob .cap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  .knob .cap .n { font-family: var(--dial); font-weight: 800; font-size: 36px; letter-spacing: -.03em; color: var(--enamel); font-variant-numeric: tabular-nums; }
+  .knob .cap .n small { font-size: 15px; opacity: .7; }
+  .readout { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .readout .setting { font-family: var(--tick); font-size: 7.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--label); }
+  .readout .band { font-family: var(--badge); font-size: 31px; line-height: .9; text-transform: uppercase; color: var(--ember); letter-spacing: .02em; }
+  .readout .band.rest { color: var(--resting); }
+  .readout .said { font-family: var(--body); font-size: 12.5px; font-style: italic; line-height: 1.35; color: var(--grease); }
+
+  /* the doneness rail: five bands, printed on enamel */
+  .rail { display: flex; flex-direction: column; gap: 3px; }
+  .rail .bar { display: flex; height: 12px; border: 1.5px solid var(--iron); }
+  .rail .bar span { flex: 1; }
+  .rail .bar span:nth-child(1) { background: #f4dcc6; }
+  .rail .bar span:nth-child(2) { background: #e9b98e; }
+  .rail .bar span:nth-child(3) { background: #cf8348; }
+  .rail .bar span:nth-child(4) { background: #9c4f22; }
+  .rail .bar span:nth-child(5) { background: #3d2418; }
+  .rail .names { display: flex; font-family: var(--tick); font-size: 7px; letter-spacing: .09em; text-transform: uppercase; color: var(--label); }
+  .rail .names span { flex: 1; }
+  .rail .names span:last-child { text-align: right; }
+  .rail .pin { position: relative; height: 12px; }
+  .rail .pin i { position: absolute; transform: translateX(-50%); font-style: normal; font-family: var(--tick); font-size: 10px; color: var(--ember); }
+
+  /* the ticket: what went in the pan */
+  .ticket { background: #fffaf0; border: 1.5px solid var(--iron); padding: 9px 10px; display: flex; flex-direction: column; }
+  .ticket .hd { font-family: var(--badge); font-size: 14px; letter-spacing: .07em; text-transform: uppercase; padding-bottom: 5px; border-bottom: 1.5px solid var(--iron); }
+  .ticket .li { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 6px 0; border-bottom: 1px dotted #c9b696; align-items: baseline; }
+  .ticket .li:last-child { border-bottom: 0; }
+  .ticket .li .what { font-size: 12.5px; line-height: 1.3; }
+  .ticket .li .what small { display: block; font-family: var(--tick); font-size: 8.5px; color: var(--label); margin-top: 2px; letter-spacing: .03em; }
+  .ticket .li .cost { font-family: var(--dial); font-weight: 800; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .ticket .li .cost.hot { color: var(--ember); }
+  .ticket .li .cost.rest { color: var(--resting); }
+  .ticket .li .cost small { display: block; font-family: var(--tick); font-weight: 400; font-size: 7.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--label); text-align: right; }
+
+  .roast { font-family: var(--body); font-style: italic; font-size: 15px; line-height: 1.4; text-align: center; margin: 2px 6px; text-wrap: balance; }
+  .under { font-family: var(--tick); font-size: 8.5px; letter-spacing: .11em; text-transform: uppercase; color: var(--label); text-align: center; }
+  .knives { font-family: var(--badge); font-size: 17px; letter-spacing: .05em; text-transform: uppercase; color: var(--ember); text-align: center; }
+  .knives.out { color: var(--resting); }
+
+  /* the slot you drop your address into */
+  .slot { background: #fffaf0; border: 1.5px solid var(--iron); padding: 11px 11px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .slot .val { font-family: var(--tick); font-size: 13.5px; }
+  .slot .hint { font-family: var(--tick); font-size: 7.5px; letter-spacing: .11em; text-transform: uppercase; color: var(--label); }
+
+  /* chunky enamel-era buttons */
+  .controls { display: flex; flex-direction: column; gap: 8px; }
+  .push {
+    font-family: var(--badge); font-size: 19px; letter-spacing: .06em; text-transform: uppercase; width: 100%;
+    padding: 12px; cursor: pointer; border-radius: 4px; color: var(--enamel);
+    background: linear-gradient(180deg, #ef7042 0%, var(--ember) 55%, #b83c18 100%);
+    border: 1.5px solid #8e2f13; box-shadow: 0 3px 0 #8e2f13, 0 5px 12px rgba(228,86,42,.3);
+  }
+  .push:active { transform: translateY(3px); box-shadow: 0 0 0 #8e2f13; }
+  .push.quiet { background: linear-gradient(180deg, #fffaf0, #e6d8bf 60%, #d6c4a5 100%); color: var(--iron); border-color: var(--iron); box-shadow: 0 3px 0 rgba(33,28,25,.55); font-size: 15px; }
+  .push.rest { background: linear-gradient(180deg, #8fb37c 0%, var(--resting) 55%, #4f6b41 100%); border-color: #40573a; box-shadow: 0 3px 0 #40573a, 0 5px 12px rgba(110,143,94,.3); }
+  .push[disabled] { opacity: .4; cursor: not-allowed; }
+  .fineprint { font-family: var(--tick); font-size: 7.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--label); text-align: center; }
+
+  /* pass rail — the Surgeon's ticket line */
+  .pass { display: flex; flex-direction: column; gap: 6px; }
+  .order { background: #fffaf0; border: 1.5px solid var(--iron); border-left: 5px solid var(--ember); padding: 8px 10px; display: flex; align-items: center; gap: 9px; }
+  .order.done { border-left-color: var(--resting); }
+  .order .t { flex: 1; font-size: 12.5px; line-height: 1.3; }
+  .order .t small { display: block; font-family: var(--tick); font-size: 8px; color: var(--label); margin-top: 2px; }
+  .order .st { font-family: var(--tick); font-size: 8px; letter-spacing: .12em; text-transform: uppercase; color: var(--ember); }
+  .order.done .st { color: var(--resting); }
+
+  .interlock { border: 1.5px dashed var(--ember); background: rgba(228,86,42,.07); padding: 9px 10px; font-size: 12px; line-height: 1.45; }
+  .interlock .tag { display: block; font-family: var(--tick); font-size: 7.5px; letter-spacing: .15em; text-transform: uppercase; color: var(--ember); margin-bottom: 4px; }
+
+  .swing { display: flex; align-items: baseline; justify-content: center; gap: 11px; }
+  .swing s { font-family: var(--dial); font-weight: 800; font-size: 26px; color: var(--label); }
+  .swing b { font-family: var(--dial); font-weight: 800; font-size: 56px; letter-spacing: -.03em; color: var(--resting); font-variant-numeric: tabular-nums; }
+
+  .rationale { max-width: 62ch; margin: 34px auto 0; border-top: 1px solid var(--rule); padding-top: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .rationale h2 { font-family: var(--badge); font-size: 24px; margin: 0; text-transform: uppercase; letter-spacing: .02em; font-weight: 400; }
+  .rationale dl { margin: 0; display: grid; grid-template-columns: 96px 1fr; gap: 9px 14px; font-size: 15px; line-height: 1.5; }
+  .rationale dt { font-family: var(--tick); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--page-dim); padding-top: 5px; }
+  .rationale dd { margin: 0; }
+  .rationale .swatches { display: flex; border: 1px solid var(--rule); }
+  .rationale .swatches i { height: 30px; flex: 1; }
+  .num { font-variant-numeric: tabular-nums; }
+  @media (max-width: 640px) { body { padding: 22px 12px 40px; } .range { width: 88vw; height: 750px; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<header class="masthead">
+  <div class="kicker">Round 2 · Direction D of 3 · the cooked register</div>
+  <h1>The Range: you are not a case file, you are <b>something on the heat</b></h1>
+  <p>Direction B's hardware, moved out of the forensics lab and into a kitchen. Warm enamel
+     instead of graphite, a bakelite knob with a copper pointer, cast-iron hob. Nothing here says
+     incident, evidence or case number — the screen only ever talks about how done you are.</p>
+  <div class="kept"><span>Kept: the five-detent knob</span><span>Kept: the figure in the pan</span></div>
+</header>
+
+<div class="strip">
+
+  <!-- 1 · COLD -->
+  <figure class="cell">
+    <figcaption><b>1</b> · Cold start</figcaption>
+    <div class="range cool">
+      <div class="plate">
+        <div class="mark">Am I <i>Cooked?</i></div>
+        <div class="spec">Domestic range<br>Model AC-68<br>Scored in a TEE</div>
+      </div>
+
+      <div class="lamps">
+        <div class="lamp on"><b></b>Gas on</div>
+        <div class="lamp"><b></b>Cooking</div>
+        <div class="lamp"><b></b>Burnt</div>
+      </div>
+
+      <div class="hob">
+        <svg width="212" height="176" viewBox="0 0 212 176" role="img" aria-label="A serene figure sitting in a frying pan on an unlit burner">
+          <ellipse cx="104" cy="146" rx="80" ry="20" fill="none" stroke="#4a3d34" stroke-width="2"/>
+          <ellipse cx="104" cy="146" rx="57" ry="13" fill="none" stroke="#4a3d34" stroke-width="1.5"/>
+          <ellipse cx="104" cy="132" rx="60" ry="15" fill="#3a302a" stroke="#8a7355" stroke-width="2"/>
+          <rect x="162" y="124" width="44" height="7" rx="3.5" fill="#3a302a" stroke="#8a7355" stroke-width="1.5"/>
+          <circle cx="103" cy="62" r="16" fill="none" stroke="#f0e7d6" stroke-width="2.5"/>
+          <circle cx="98" cy="60" r="2" fill="#f0e7d6"/><circle cx="108" cy="60" r="2" fill="#f0e7d6"/>
+          <path d="M 99 68 h 8" stroke="#f0e7d6" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <rect x="87" y="80" width="32" height="32" rx="14" fill="none" stroke="#f0e7d6" stroke-width="2.5"/>
+          <rect x="102" y="98" width="27" height="15" rx="7.5" fill="#211c19" stroke="#f0e7d6" stroke-width="2.5"/>
+          <path d="M 96 34 q -7 -8 0 -15" fill="none" stroke="#8a7355" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 110 38 q 7 -8 0 -15" fill="none" stroke="#8a7355" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <p class="roast" style="font-size:16.5px">Everyone got cooked this year.<br>The only question is how much.</p>
+
+      <div class="rail">
+        <div class="bar"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="names"><span>Rare</span><span>Med rare</span><span>Med well</span><span>Cooked</span><span>Charcoal</span></div>
+      </div>
+
+      <div class="slot">
+        <div class="val">vitalik.eth</div>
+        <div class="hint">Into the pan</div>
+      </div>
+      <div class="controls">
+        <button class="push">Turn on the heat</button>
+      </div>
+      <div class="fineprint">No connect · no signatures · just paste</div>
+    </div>
+  </figure>
+
+  <!-- 2 · SERVED -->
+  <figure class="cell">
+    <figcaption><b>2</b> · How you came out</figcaption>
+    <div class="range hot">
+      <div class="plate">
+        <div class="mark">You came out…</div>
+        <div class="spec">0x4c…e9f2<br>Cooked 2.4s<br>Hotter than 84%</div>
+      </div>
+
+      <div class="lamps">
+        <div class="lamp on"><b></b>Gas on</div>
+        <div class="lamp hot"><b></b>Cooking</div>
+        <div class="lamp"><b></b>Burnt</div>
+      </div>
+
+      <div class="console">
+        <div class="knob">
+          <svg width="142" height="142" viewBox="0 0 142 142" role="img" aria-label="Bakelite oven knob turned to the fourth setting: cooked, 68 percent">
+            <circle cx="71" cy="71" r="68" fill="#e8dcc6" stroke="#211c19" stroke-width="2"/>
+            <g font-family="ui-monospace,monospace" font-size="7.5" fill="#8a7355" letter-spacing="1">
+              <text x="18" y="114" text-anchor="middle">I</text>
+              <text x="15" y="54" text-anchor="middle">II</text>
+              <text x="71" y="21" text-anchor="middle">III</text>
+              <text x="127" y="54" text-anchor="middle">IV</text>
+              <text x="124" y="114" text-anchor="middle">V</text>
+            </g>
+            <g stroke="#b5713a" stroke-width="2.5" stroke-linecap="round">
+              <path d="M 29 104 l -6 6"/><path d="M 25 60 l -8 -3"/><path d="M 71 38 l 0 -9"/><path d="M 117 60 l 8 -3"/><path d="M 113 104 l 6 6"/>
+            </g>
+            <circle cx="71" cy="71" r="45" fill="url(#bak)" stroke="#0f0c0a" stroke-width="2"/>
+            <defs>
+              <radialGradient id="bak" cx="36%" cy="28%">
+                <stop offset="0" stop-color="#584338"/><stop offset="1" stop-color="#221a15"/>
+              </radialGradient>
+            </defs>
+            <g transform="rotate(52 71 71)">
+              <rect x="68.5" y="31" width="5" height="23" rx="2.5" fill="#e0a468"/>
+            </g>
+            <circle cx="71" cy="71" r="45" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1.5"/>
+          </svg>
+          <div class="cap"><div class="n num">68<small>%</small></div></div>
+        </div>
+        <div class="readout">
+          <div class="setting">Setting IV of V</div>
+          <div class="band">Cooked</div>
+          <div class="said">“The smoke alarm has your address memorized.”</div>
+        </div>
+      </div>
+
+      <div class="rail">
+        <div class="pin"><i style="left:68%">▲</i></div>
+        <div class="bar"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="names"><span>Rare</span><span>Med rare</span><span>Med well</span><span>Cooked</span><span>Charcoal</span></div>
+      </div>
+
+      <p class="roast">“You paid €900 to be exploited by a protocol named after a dog.”</p>
+      <div class="under">More cooked than 84% of wallets scanned</div>
+
+      <div class="ticket">
+        <div class="hd">What went in the pan</div>
+        <div class="li">
+          <div class="what">Two knives still in<small>Unlimited approval → flagged spender · dead vault</small></div>
+          <div class="cost hot num">€4,120<small>still hot</small></div>
+        </div>
+        <div class="li">
+          <div class="what">Burnt in 2024–25<small>Two protocols that cooked you and closed</small></div>
+          <div class="cost num">€1,204<small>gone</small></div>
+        </div>
+        <div class="li">
+          <div class="what">Your worst day at the stove<small>14 March 2025 · one signature</small></div>
+          <div class="cost num">€2,914<small>gone</small></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="push">Get the knives out</button>
+        <button class="push quiet">Share how done you are</button>
+      </div>
+      <div class="fineprint">Sealed · press to check the receipts</div>
+    </div>
+  </figure>
+
+  <!-- 3 · THE PASS -->
+  <figure class="cell">
+    <figcaption><b>3</b> · The pass</figcaption>
+    <div class="range">
+      <div class="plate">
+        <div class="mark">The <i>Surgeon</i></div>
+        <div class="spec">Holds a knife<br>never your keys<br>you sign in World App</div>
+      </div>
+
+      <div class="lamps">
+        <div class="lamp on"><b></b>Gas on</div>
+        <div class="lamp hot"><b></b>Knives in</div>
+        <div class="lamp"><b></b>Cleared</div>
+      </div>
+
+      <div class="hob wide">
+        <svg width="200" height="120" viewBox="0 0 200 120" role="img" aria-label="The figure in the pan with two knives beside it, flames low">
+          <ellipse cx="100" cy="96" rx="66" ry="16" fill="none" stroke="#4a3d34" stroke-width="2"/>
+          <ellipse cx="100" cy="84" rx="52" ry="13" fill="#3a302a" stroke="#8a7355" stroke-width="2"/>
+          <rect x="150" y="77" width="40" height="6" rx="3" fill="#3a302a" stroke="#8a7355" stroke-width="1.5"/>
+          <circle cx="100" cy="34" r="14" fill="none" stroke="#f0e7d6" stroke-width="2.5"/>
+          <circle cx="95" cy="32" r="1.8" fill="#f0e7d6"/><circle cx="105" cy="32" r="1.8" fill="#f0e7d6"/>
+          <path d="M 96 40 h 8" stroke="#f0e7d6" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <rect x="85" y="50" width="30" height="26" rx="13" fill="none" stroke="#f0e7d6" stroke-width="2.5"/>
+          <g stroke="#e4562a" stroke-width="2.5" stroke-linecap="round">
+            <path d="M 62 62 l 0 -22"/><path d="M 138 62 l 0 -22"/>
+          </g>
+          <g fill="#e4562a"><path d="M 58 40 l 4 -12 l 4 12 z"/><path d="M 134 40 l 4 -12 l 4 12 z"/></g>
+        </svg>
+      </div>
+
+      <div class="ticket">
+        <div class="hd">Orders on the pass</div>
+        <div class="li">
+          <div class="what">Pull the unlimited USDC approval<small>Spender flagged 41 min ago</small></div>
+          <div class="cost hot num">1<small>waiting</small></div>
+        </div>
+        <div class="li">
+          <div class="what">Pull the dead vault approval<small>Contract renounced · TVL −99.7%</small></div>
+          <div class="cost hot num">2<small>waiting</small></div>
+        </div>
+      </div>
+
+      <div class="under" style="text-align:left">2 pulls · 1 signature · gas ≈ €0.42 · 0G Agentic ID #SRG-001</div>
+
+      <div class="interlock">
+        <span class="tag">Nobody cooks unsupervised</span>
+        An anonymous agent may taste and advise — <b>never cut</b>. A verified human has to be
+        standing at the stove before the knife moves.
+      </div>
+
+      <div class="controls" style="margin-top:auto">
+        <button class="push rest">Show the kitchen a human</button>
+        <button class="push" disabled>Knives out — locked</button>
+      </div>
+      <div class="fineprint">Let the daily check lapse and the Surgeon goes off duty</div>
+    </div>
+  </figure>
+
+  <!-- 4 · RESTING -->
+  <figure class="cell">
+    <figcaption><b>4</b> · Resting</figcaption>
+    <div class="range cool">
+      <div class="plate">
+        <div class="mark">Off the <i>heat</i></div>
+        <div class="spec">Re-cooked 40s<br>0x4c…e9f2<br>Both knives out</div>
+      </div>
+
+      <div class="lamps">
+        <div class="lamp"><b></b>Gas on</div>
+        <div class="lamp"><b></b>Cooking</div>
+        <div class="lamp rest"><b></b>Resting</div>
+      </div>
+
+      <div class="console">
+        <div class="knob">
+          <svg width="142" height="142" viewBox="0 0 142 142" role="img" aria-label="Knob turned back to setting two: medium rare, 31 percent">
+            <circle cx="71" cy="71" r="68" fill="#e8e6cf" stroke="#211c19" stroke-width="2"/>
+            <g font-family="ui-monospace,monospace" font-size="7.5" fill="#8a7355" letter-spacing="1">
+              <text x="18" y="114" text-anchor="middle">I</text>
+              <text x="15" y="54" text-anchor="middle">II</text>
+              <text x="71" y="21" text-anchor="middle">III</text>
+              <text x="127" y="54" text-anchor="middle">IV</text>
+              <text x="124" y="114" text-anchor="middle">V</text>
+            </g>
+            <g stroke="#b5713a" stroke-width="2.5" stroke-linecap="round">
+              <path d="M 29 104 l -6 6"/><path d="M 25 60 l -8 -3"/><path d="M 71 38 l 0 -9"/><path d="M 117 60 l 8 -3"/><path d="M 113 104 l 6 6"/>
+            </g>
+            <circle cx="71" cy="71" r="45" fill="url(#bak2)" stroke="#0f0c0a" stroke-width="2"/>
+            <defs>
+              <radialGradient id="bak2" cx="36%" cy="28%">
+                <stop offset="0" stop-color="#584338"/><stop offset="1" stop-color="#221a15"/>
+              </radialGradient>
+            </defs>
+            <g transform="rotate(-52 71 71)">
+              <rect x="68.5" y="31" width="5" height="23" rx="2.5" fill="#8fb37c"/>
+            </g>
+          </svg>
+          <div class="cap"><div class="n num">31<small>%</small></div></div>
+        </div>
+        <div class="readout">
+          <div class="setting">Setting II of V</div>
+          <div class="band rest">Medium<br>rare</div>
+          <div class="said">“Singed. You touched the pan but let go in time.”</div>
+        </div>
+      </div>
+
+      <div class="swing"><s class="num">68%</s><b class="num">31%</b></div>
+
+      <div class="rail">
+        <div class="pin"><i style="left:31%;color:var(--resting)">▲</i></div>
+        <div class="bar"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="names"><span>Rare</span><span>Med rare</span><span>Med well</span><span>Cooked</span><span>Charcoal</span></div>
+      </div>
+
+      <div class="knives out">Both knives out · €4,120 off the heat</div>
+
+      <div class="pass">
+        <div class="order done">
+          <div class="t">Unlimited USDC approval<small>Pulled · tx 0x9c4e…11ab</small></div>
+          <div class="st">Cold</div>
+        </div>
+        <div class="order done">
+          <div class="t">Dead vault approval<small>Pulled · same signature</small></div>
+          <div class="st">Cold</div>
+        </div>
+      </div>
+
+      <div class="under">74 → 68 → 68 → 31 · kept encrypted on 0G · €212,940 taken off the heat to date</div>
+
+      <div class="controls" style="margin-top:auto">
+        <button class="push rest">Share the recovery</button>
+        <button class="push quiet">My options</button>
+      </div>
+      <div class="fineprint">It's so over → we're so back · 40 seconds flat</div>
+    </div>
+  </figure>
+
+</div>
+
+<section class="rationale">
+  <h2>Why this one could win</h2>
+  <dl>
+    <dt>Palette</dt>
+    <dd>Enamel <span class="num">#F0E7D6</span>, cast iron <span class="num">#211C19</span>, copper
+        <span class="num">#B5713A</span>, ember <span class="num">#E4562A</span>, flame
+        <span class="num">#F6B23C</span>, resting green <span class="num">#6E8F5E</span>. The enamel
+        warms and darkens as you cook: cool on the intake, scorched on the verdict, cooled again on
+        the discharge — the background itself carries the story.
+        <div class="swatches" style="margin-top:8px"><i style="background:#f0e7d6"></i><i style="background:#211c19"></i><i style="background:#b5713a"></i><i style="background:#e4562a"></i><i style="background:#f6b23c"></i><i style="background:#6e8f5e"></i></div></dd>
+    <dt>Type</dt>
+    <dd>A condensed poster face for the stamped nameplate and band names, an old-style serif for
+        everything the app says out loud, and monospace kept down at label size — the enamel-era
+        appliance voice, not a dashboard voice.</dd>
+    <dt>Kept from B</dt>
+    <dd>The knob is now bakelite with a copper pointer, and the pan sits on a cast-iron hob that
+        gets its own inset panel on every screen. Both are load-bearing here rather than decorative:
+        the knob <em>is</em> the score, the pan <em>is</em> the subject.</dd>
+    <dt>Language</dt>
+    <dd>Every forensic word is gone. No case number, no findings, no evidence, no severity —
+        it is heat, pans, knives, orders on the pass, and resting.</dd>
+    <dt>Trade-off</dt>
+    <dd>Warmest and most on-brand of everything so far, and the knob still gives the demo its one
+        big move. Costs some data density: the ticket holds three lines comfortably, not eight.</dd>
+  </dl>
+</section>

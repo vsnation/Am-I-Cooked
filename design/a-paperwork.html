@@ -1,0 +1,395 @@
+<title>AM I COOKED? — Direction A: The Paperwork</title>
+<style>
+  :root {
+    --page-bg: #cfc6b4;
+    --page-fg: #2b2521;
+    --page-dim: #6d6353;
+    --rule: #b3a893;
+
+    /* the direction's own world — fixed inside the phone */
+    --paper: #f2ebdd;
+    --paper-2: #e8dfcc;
+    --carbon: #171310;
+    --pencil: #4e5a63;
+    --stamp: #a8291e;
+    --thermal: #c8781f;
+    --ink-heal: #2f6b48;
+    --hair: #c3b7a0;
+
+    --type: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --writer: "Courier New", Courier, ui-monospace, monospace;
+    --grotesk: "Haettenschweiler", "Arial Narrow Bold", "Impact", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --page-bg: #1a1714; --page-fg: #e6ded0; --page-dim: #9a8e7c; --rule: #3a332b; }
+  }
+  :root[data-theme="dark"] { --page-bg: #1a1714; --page-fg: #e6ded0; --page-dim: #9a8e7c; --rule: #3a332b; }
+  :root[data-theme="light"] { --page-bg: #cfc6b4; --page-fg: #2b2521; --page-dim: #6d6353; --rule: #b3a893; }
+
+  body {
+    background: var(--page-bg); color: var(--page-fg);
+    font-family: var(--type); margin: 0; padding: 32px 20px 56px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .masthead { max-width: 62ch; margin: 0 auto 30px; display: flex; flex-direction: column; gap: 10px; }
+  .kicker { font-family: var(--writer); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--page-dim); }
+  .masthead h1 { font-size: clamp(26px, 5vw, 38px); line-height: 1.06; margin: 0; text-wrap: balance; font-weight: 400; }
+  .masthead h1 b { font-weight: 400; border-bottom: 3px solid var(--stamp); }
+  .masthead p { margin: 0; font-size: 15.5px; line-height: 1.55; color: var(--page-dim); max-width: 58ch; }
+
+  .strip { display: flex; gap: 26px; overflow-x: auto; padding: 6px 4px 22px; scroll-snap-type: x mandatory; }
+  .cell { scroll-snap-align: center; flex: none; display: flex; flex-direction: column; gap: 9px; }
+  .cell > figcaption { font-family: var(--writer); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--page-dim); }
+  .cell > figcaption b { color: var(--page-fg); font-weight: 400; }
+
+  /* ---------- the phone: a sheet of paper in a clipboard ---------- */
+  .sheet {
+    width: 372px; height: 780px; flex: none; position: relative; overflow: hidden;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 27px, rgba(120,105,80,.09) 27px 28px),
+      linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+    color: var(--carbon);
+    border: 1px solid var(--hair);
+    box-shadow: 0 1px 0 #fff inset, 0 18px 34px rgba(0,0,0,.28);
+    padding: 20px 22px 22px;
+    display: flex; flex-direction: column;
+  }
+  .sheet::after { /* punch holes, like a filed report */
+    content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 10px;
+    background: radial-gradient(circle at 5px 92px, var(--page-bg) 4.5px, transparent 5px),
+                radial-gradient(circle at 5px 392px, var(--page-bg) 4.5px, transparent 5px),
+                radial-gradient(circle at 5px 692px, var(--page-bg) 4.5px, transparent 5px);
+    pointer-events: none;
+  }
+  .sheet > * { position: relative; z-index: 1; }
+
+  .hdr { border-bottom: 2px solid var(--carbon); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
+  .hdr .title { font-family: var(--grotesk); font-size: 27px; line-height: .95; letter-spacing: .01em; text-transform: uppercase; }
+  .hdr .title i { font-style: normal; color: var(--stamp); }
+  .hdr .meta { font-family: var(--writer); font-size: 8.5px; line-height: 1.5; letter-spacing: .08em; text-align: right; text-transform: uppercase; color: var(--pencil); }
+
+  .fieldset { display: flex; flex-direction: column; }
+  .field { display: grid; grid-template-columns: 88px 1fr; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--hair); align-items: baseline; }
+  .field .lbl { font-family: var(--writer); font-size: 8.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--pencil); }
+  .field .val { font-size: 13.5px; line-height: 1.35; }
+  .field .val em { font-style: italic; color: var(--pencil); }
+  .hand { font-family: var(--writer); font-size: 13px; color: var(--pencil); }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .grief-line { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 12px 0 0; }
+  .grief-line .big { font-family: var(--grotesk); font-size: 34px; letter-spacing: .01em; }
+  .grief-line .cap { font-family: var(--writer); font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--pencil); text-align: right; line-height: 1.5; }
+
+  .pan { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 150px; margin: 4px 0; }
+  .pan svg { display: block; }
+
+  .thesis { font-size: 18px; line-height: 1.38; text-align: center; margin: 6px 14px 14px; text-wrap: balance; }
+  .thesis u { text-decoration: none; border-bottom: 2px solid var(--thermal); }
+
+  .entry { border: 1.5px solid var(--carbon); background: #fffdf7; padding: 9px 11px; display: flex; flex-direction: column; gap: 3px; }
+  .entry .cap { font-family: var(--writer); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; color: var(--pencil); }
+  .entry .typed { font-family: var(--writer); font-size: 14.5px; }
+  .actions { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .stampbtn {
+    font-family: var(--grotesk); font-size: 19px; letter-spacing: .03em; text-transform: uppercase;
+    background: var(--stamp); color: #fdf6e8; border: 0; padding: 12px; cursor: pointer; width: 100%;
+    box-shadow: 3px 3px 0 var(--carbon);
+  }
+  .stampbtn.quiet { background: transparent; color: var(--carbon); border: 1.5px solid var(--carbon); box-shadow: none; font-size: 15px; }
+  .stampbtn.heal { background: var(--ink-heal); }
+  .rule-note { font-family: var(--writer); font-size: 8.5px; letter-spacing: .07em; color: var(--pencil); text-align: center; margin-top: 8px; text-transform: uppercase; }
+
+  /* verdict: a rubber stamp over the form, no gauge */
+  .verdict { position: relative; margin: 14px 0 4px; padding: 16px 0 6px; border-top: 2px solid var(--carbon); border-bottom: 2px solid var(--carbon); text-align: center; }
+  .verdict .score { font-family: var(--grotesk); font-size: 92px; line-height: .82; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+  .verdict .score small { font-size: 34px; }
+  .verdict .band { font-family: var(--writer); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; margin-top: 6px; color: var(--pencil); }
+  .chop {
+    position: absolute; right: -4px; top: 4px; transform: rotate(9deg);
+    border: 3px double var(--stamp); color: var(--stamp);
+    font-family: var(--grotesk); font-size: 17px; letter-spacing: .06em; text-transform: uppercase;
+    padding: 4px 9px 2px; opacity: .88; line-height: 1;
+  }
+  .chop small { display: block; font-family: var(--writer); font-size: 7.5px; letter-spacing: .12em; opacity: .9; }
+
+  /* the thermal strip replaces the glow: doneness as a printed scale */
+  .thermo { margin: 12px 0 2px; }
+  .thermo .bar { display: flex; height: 13px; border: 1px solid var(--carbon); }
+  .thermo .bar span { flex: 1; }
+  .thermo .bar span:nth-child(1) { background: #f6efe0; }
+  .thermo .bar span:nth-child(2) { background: #e7c99b; }
+  .thermo .bar span:nth-child(3) { background: var(--thermal); }
+  .thermo .bar span:nth-child(4) { background: #8f4a18; }
+  .thermo .bar span:nth-child(5) { background: #3a2a1e; }
+  .thermo .ticks { display: flex; font-family: var(--writer); font-size: 7px; letter-spacing: .06em; text-transform: uppercase; color: var(--pencil); margin-top: 3px; }
+  .thermo .ticks span { flex: 1; }
+  .thermo .ticks span:last-child { text-align: right; }
+  .thermo .mark { position: relative; height: 11px; }
+  .thermo .mark i { position: absolute; left: 68%; transform: translateX(-50%); font-family: var(--writer); font-size: 9px; font-style: normal; color: var(--stamp); }
+
+  .roast { font-size: 15px; line-height: 1.4; font-style: italic; text-align: center; margin: 14px 10px 8px; text-wrap: balance; }
+  .pctline { font-family: var(--writer); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; text-align: center; color: var(--pencil); }
+  .knives { font-family: var(--writer); font-size: 11px; text-align: center; color: var(--stamp); letter-spacing: .04em; margin: 10px 0 0; text-transform: uppercase; }
+
+  .wax { display: flex; align-items: center; justify-content: center; gap: 7px; font-family: var(--writer); font-size: 8.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--pencil); margin-top: 11px; }
+  .wax b { width: 17px; height: 17px; border-radius: 50%; background: radial-gradient(circle at 34% 30%, #c04234, #7d1f19 70%); display: inline-block; }
+
+  /* surgeon: a prescription pad */
+  .rx { border: 1.5px solid var(--carbon); padding: 10px 11px; display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 10px; background: #fffdf7; }
+  .rx .glyph { font-family: var(--type); font-size: 30px; line-height: .8; color: var(--stamp); }
+  .rx .who { font-family: var(--writer); font-size: 9px; line-height: 1.65; letter-spacing: .04em; color: var(--pencil); text-transform: uppercase; }
+  .rx .who b { color: var(--carbon); font-weight: 400; }
+  .line-item { display: grid; grid-template-columns: 16px 1fr auto; gap: 9px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--hair); }
+  .line-item .n { font-family: var(--writer); font-size: 10px; color: var(--pencil); }
+  .line-item .what { font-size: 13px; line-height: 1.3; }
+  .line-item .what small { display: block; font-family: var(--writer); font-size: 9px; color: var(--pencil); margin-top: 2px; }
+  .line-item .state { font-family: var(--writer); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--pencil); }
+  .line-item.done .state { color: var(--ink-heal); }
+  .interlock { border: 1.5px dashed var(--stamp); padding: 10px 11px; margin: 10px 0; font-size: 12.5px; line-height: 1.45; }
+  .interlock .cap { display: block; font-family: var(--writer); font-size: 8px; letter-spacing: .16em; text-transform: uppercase; color: var(--stamp); margin-bottom: 4px; }
+
+  /* discharge */
+  .delta { text-align: center; margin: 16px 0 6px; }
+  .delta .row { font-family: var(--grotesk); font-size: 64px; line-height: .9; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+  .delta .row s { font-size: 28px; color: var(--pencil); margin-right: 12px; }
+  .delta .row b { color: var(--ink-heal); font-weight: 400; }
+  .delta .band { display: inline-block; border: 2px solid var(--ink-heal); color: var(--ink-heal); font-family: var(--writer); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; padding: 2px 9px; margin-top: 9px; transform: rotate(-2.5deg); }
+  .ledger { border-top: 1px solid var(--hair); margin-top: 14px; padding-top: 8px; }
+  .ledger .k { font-family: var(--writer); font-size: 8px; letter-spacing: .16em; text-transform: uppercase; color: var(--pencil); margin-bottom: 7px; }
+  .ledger svg { display: block; width: 100%; height: auto; }
+  .signoff { font-family: var(--writer); font-size: 9px; letter-spacing: .06em; color: var(--pencil); margin-top: 12px; display: flex; justify-content: space-between; text-transform: uppercase; }
+
+  .rationale { max-width: 62ch; margin: 34px auto 0; border-top: 1px solid var(--rule); padding-top: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .rationale h2 { font-size: 20px; margin: 0; font-weight: 400; }
+  .rationale dl { margin: 0; display: grid; grid-template-columns: 92px 1fr; gap: 9px 14px; font-size: 14.5px; line-height: 1.5; }
+  .rationale dt { font-family: var(--writer); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--page-dim); padding-top: 4px; }
+  .rationale dd { margin: 0; }
+  .rationale .swatches { display: flex; gap: 0; border: 1px solid var(--rule); }
+  .rationale .swatches i { height: 30px; flex: 1; }
+  @media (max-width: 640px) { body { padding: 22px 12px 40px; } .sheet { width: 88vw; height: 720px; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<header class="masthead">
+  <div class="kicker">Direction A of 3 · apps/web · same flow, same copy</div>
+  <h1>The Paperwork: an autopsy report you could <b>file in a drawer</b></h1>
+  <p>The morgue half of the brand taken literally. Cream stock, typewriter fields, a rubber
+     stamp for the verdict, no glow anywhere. Heat exists only as printed ink on a thermal
+     scale, so the doneness reads as a measurement rather than a mood. All four screens below.</p>
+</header>
+
+<div class="strip">
+
+  <!-- 1 · INTAKE -->
+  <figure class="cell" style="margin:0">
+    <figcaption><b>1</b> · Intake</figcaption>
+    <div class="sheet">
+      <div class="hdr">
+        <div class="title">Am I <i>Cooked?</i></div>
+        <div class="meta">Wallet autopsy division<br>Scored in a TEE<br>Address never stored</div>
+      </div>
+
+      <div class="grief-line">
+        <div class="big num">€4,812,331</div>
+        <div class="cap">Lost by wallets<br>scanned · live</div>
+      </div>
+
+      <div class="pan">
+        <svg width="196" height="150" viewBox="0 0 200 152" role="img" aria-label="A serene figure sitting in a frying pan over a flame">
+          <path d="M 92 30 q -7 -8 0 -15" fill="none" stroke="#6d6353" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 106 34 q 7 -8 0 -15" fill="none" stroke="#6d6353" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="99" cy="58" r="15" fill="none" stroke="#171310" stroke-width="2.5"/>
+          <circle cx="94" cy="56" r="1.9" fill="#171310"/><circle cx="104" cy="56" r="1.9" fill="#171310"/>
+          <path d="M 95 63 h 8" stroke="#171310" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <rect x="84" y="74" width="30" height="28" rx="13" fill="none" stroke="#171310" stroke-width="2.5"/>
+          <rect x="98" y="88" width="26" height="14" rx="7" fill="#f2ebdd" stroke="#171310" stroke-width="2.5"/>
+          <rect x="46" y="102" width="112" height="15" rx="6" fill="#171310"/>
+          <rect x="152" y="105" width="40" height="8" rx="4" fill="#171310"/>
+          <path d="M 74 138 q -7 -11 0 -20 q 7 9 0 20" fill="none" stroke="#c8781f" stroke-width="2.5"/>
+          <path d="M 100 143 q -8 -13 0 -24 q 8 11 0 24" fill="none" stroke="#c8781f" stroke-width="2.5"/>
+          <path d="M 126 138 q -7 -11 0 -20 q 7 9 0 20" fill="none" stroke="#c8781f" stroke-width="2.5"/>
+        </svg>
+      </div>
+
+      <p class="thesis">Everyone got <u>cooked</u> this year. The only question is how much.</p>
+
+      <div class="entry">
+        <div class="cap">Subject address — print clearly</div>
+        <div class="typed">vitalik.eth<span aria-hidden="true">▌</span></div>
+      </div>
+      <div class="actions">
+        <button class="stampbtn">Run the autopsy</button>
+      </div>
+      <div class="rule-note">No connect · no signatures · just paste</div>
+    </div>
+  </figure>
+
+  <!-- 2 · VERDICT -->
+  <figure class="cell" style="margin:0">
+    <figcaption><b>2</b> · Verdict</figcaption>
+    <div class="sheet">
+      <div class="hdr">
+        <div class="title">Autopsy <i>Report</i></div>
+        <div class="meta">Case Nº 001<br>0x4c…e9f2<br>Filed 26 Jul 2026</div>
+      </div>
+
+      <div class="fieldset">
+        <div class="field"><div class="lbl">Exposure</div><div class="val">2 hacked protocols touched · <span class="num">€1,204</span> present at incident</div></div>
+        <div class="field"><div class="lbl">Open wounds</div><div class="val" style="color:var(--stamp)">Unlimited approval → flagged drainer<br>Approval → dead contract</div></div>
+        <div class="field"><div class="lbl">Ghost bags</div><div class="val"><span class="num">€900</span> <em>still in protocols that died in 2024</em></div></div>
+        <div class="field"><div class="lbl">Worst day</div><div class="val">14 March 2025 · <span class="num">−€2,914</span> in one signature</div></div>
+      </div>
+
+      <div class="verdict">
+        <div class="chop">Cooked<small>Band IV of V</small></div>
+        <div class="score num">68<small>%</small></div>
+        <div class="band">Doneness</div>
+      </div>
+
+      <div class="thermo">
+        <div class="bar"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="mark"><i>▲</i></div>
+        <div class="ticks"><span>Rare</span><span>Med rare</span><span>Med well</span><span>Cooked</span><span>Charcoal</span></div>
+      </div>
+
+      <p class="roast">“You paid €900 to be exploited by a protocol named after a dog.”</p>
+      <div class="pctline">More cooked than 84% of wallets scanned</div>
+      <div class="knives">Two knives still in · €4,120 live</div>
+
+      <div class="actions">
+        <button class="stampbtn">Want the knives out?</button>
+        <button class="stampbtn quiet">Share the misery</button>
+      </div>
+      <div class="wax"><b></b> Sealed · tap to verify</div>
+    </div>
+  </figure>
+
+  <!-- 3 · SURGEON -->
+  <figure class="cell" style="margin:0">
+    <figcaption><b>3</b> · The Surgeon</figcaption>
+    <div class="sheet">
+      <div class="hdr">
+        <div class="title">The <i>Surgeon</i></div>
+        <div class="meta">Prescription pad<br>Agent signs nothing<br>You sign in World App</div>
+      </div>
+
+      <div class="rx">
+        <div class="glyph">℞</div>
+        <div class="who">0G Agentic ID · <b>#SRG-001</b><br>Authority: <b style="color:var(--stamp)">none — anonymous</b><br>Expires: daily liveness</div>
+      </div>
+
+      <div class="fieldset">
+        <div class="line-item">
+          <div class="n">01</div>
+          <div class="what">Revoke unlimited USDC approval<small>Spender flagged as drainer · 41 min ago</small></div>
+          <div class="state">Waiting</div>
+        </div>
+        <div class="line-item">
+          <div class="n">02</div>
+          <div class="what">Revoke approval to dead vault<small>Contract renounced · TVL −99.7%</small></div>
+          <div class="state">Waiting</div>
+        </div>
+      </div>
+
+      <div class="rule-note" style="text-align:left;margin:9px 0 0">2 revocations · 1 batched signature · gas ≈ €0.42</div>
+
+      <div class="interlock">
+        <span class="cap">Safety interlock</span>
+        Anonymous agents may diagnose — <b>never cut</b>. A verified human must back every
+        signature this agent proposes.
+      </div>
+
+      <div class="actions" style="margin-top:auto">
+        <button class="stampbtn">Verify human backing</button>
+        <button class="stampbtn quiet" disabled style="opacity:.45">Operate — locked</button>
+      </div>
+      <div class="rule-note">Authority expires · lapse it and the Surgeon goes off duty</div>
+    </div>
+  </figure>
+
+  <!-- 4 · DISCHARGE -->
+  <figure class="cell" style="margin:0">
+    <figcaption><b>4</b> · Discharge</figcaption>
+    <div class="sheet">
+      <div class="hdr">
+        <div class="title">Discharge <i>Papers</i></div>
+        <div class="meta">Re-scan complete<br>Case Nº 001 · closed<br>0x4c…e9f2</div>
+      </div>
+
+      <div class="delta">
+        <div class="row"><s>68%</s><b>31%</b></div>
+        <div class="band">Medium rare</div>
+      </div>
+
+      <div class="thermo">
+        <div class="bar"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="mark"><i style="left:31%;color:var(--ink-heal)">▲</i></div>
+        <div class="ticks"><span>Rare</span><span>Med rare</span><span>Med well</span><span>Cooked</span><span>Charcoal</span></div>
+      </div>
+
+      <div class="fieldset" style="margin-top:8px">
+        <div class="line-item done">
+          <div class="n">01</div>
+          <div class="what">Unlimited USDC approval<small>Revoked · tx 0x9c4e…11ab</small></div>
+          <div class="state">Closed</div>
+        </div>
+        <div class="line-item done">
+          <div class="n">02</div>
+          <div class="what">Dead vault approval<small>Revoked · same batch</small></div>
+          <div class="state">Closed</div>
+        </div>
+      </div>
+
+      <p class="roast" style="margin:12px 10px 4px">Both knives out. €4,120 of live danger defused in 40 seconds.</p>
+
+      <div class="ledger">
+        <div class="k">Doneness on file · encrypted on 0G</div>
+        <svg viewBox="0 0 300 74" role="img" aria-label="Doneness falling from 74 in May to 31 now">
+          <line x1="10" y1="62" x2="290" y2="62" stroke="#c3b7a0"/>
+          <polyline points="30,20 110,25 190,25 262,50" fill="none" stroke="#171310" stroke-width="2"/>
+          <circle cx="30" cy="20" r="3.5" fill="#171310"/><circle cx="110" cy="25" r="3.5" fill="#171310"/>
+          <circle cx="190" cy="25" r="3.5" fill="#171310"/><circle cx="262" cy="50" r="5" fill="#2f6b48"/>
+          <text x="22" y="12" font-family="Courier New,monospace" font-size="9" fill="#6d6353">74</text>
+          <text x="102" y="17" font-family="Courier New,monospace" font-size="9" fill="#6d6353">68</text>
+          <text x="182" y="17" font-family="Courier New,monospace" font-size="9" fill="#6d6353">68</text>
+          <text x="252" y="42" font-family="Courier New,monospace" font-size="10" fill="#2f6b48">31</text>
+          <text x="21" y="73" font-family="Courier New,monospace" font-size="8" fill="#8d8171">MAY</text>
+          <text x="101" y="73" font-family="Courier New,monospace" font-size="8" fill="#8d8171">JUN</text>
+          <text x="181" y="73" font-family="Courier New,monospace" font-size="8" fill="#8d8171">JUL</text>
+          <text x="248" y="73" font-family="Courier New,monospace" font-size="8" fill="#8d8171">NOW</text>
+        </svg>
+      </div>
+
+      <div class="actions" style="margin-top:auto">
+        <button class="stampbtn heal">Share the recovery</button>
+        <button class="stampbtn quiet">My options</button>
+      </div>
+      <div class="signoff"><span>Attending: the Surgeon</span><span>€212,940 defused to date</span></div>
+    </div>
+  </figure>
+
+</div>
+
+<section class="rationale">
+  <h2>Why this one could win</h2>
+  <dl>
+    <dt>Palette</dt>
+    <dd>Paper <span class="num">#F2EBDD</span>, carbon <span class="num">#171310</span>, stamp blood
+        <span class="num">#A8291E</span>, pencil blue-grey <span class="num">#4E5A63</span>, thermal ochre
+        <span class="num">#C8781F</span>, healed ink <span class="num">#2F6B48</span>.
+        <div class="swatches" style="margin-top:8px"><i style="background:#f2ebdd"></i><i style="background:#171310"></i><i style="background:#a8291e"></i><i style="background:#4e5a63"></i><i style="background:#c8781f"></i><i style="background:#2f6b48"></i></div></dd>
+    <dt>Type</dt>
+    <dd>A condensed grotesque does the shouting (score, stamps, headers), an old-style serif carries
+        the roast and the thesis, and a typewriter face holds every field label and machine value —
+        three voices, one document.</dd>
+    <dt>Layout</dt>
+    <dd>A ruled form on a baseline grid: label gutter left, values right, punch holes down the
+        spine. The verdict is a stamp struck across the form, not a dashboard widget.</dd>
+    <dt>Risk</dt>
+    <dd>Light and quiet in a feed of dark crypto apps — that contrast is the whole bet. It also
+        drops every emoji, which costs some of v7's warmth and speed of read.</dd>
+    <dt>Trade-off</dt>
+    <dd>Strongest for the share card and the trust story; weakest for the demo's dopamine — there
+        is no needle to watch climb.</dd>
+  </dl>
+</section>
