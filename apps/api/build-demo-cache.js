@@ -10,7 +10,7 @@ import { createHash } from "node:crypto";
 import { autopsy, loadIncidents } from "./autopsy.js";
 import { resolveAddress, multichainApprovals } from "./onchain.js";
 
-const SCHEMA = 8; // MUST match server.js — the server refuses a mismatched file
+const SCHEMA = 9; // MUST match server.js — the server refuses a mismatched file
 const KEY = process.env.GRAPH_API_KEY;
 if (!KEY) { console.error("GRAPH_API_KEY missing"); process.exit(1); }
 

@@ -37,7 +37,13 @@ const RL_WINDOW_MS = Number(process.env.SCAN_RATE_WINDOW_MS || 60 * 1000);
 const MAX_COLD_SCANS = Number(process.env.MAX_CONCURRENT_SCANS || 4);
 const REPLAY_COOLDOWN_MS = Number(process.env.REPLAY_COOLDOWN_MS || 120 * 1000);
 const ADMIN_TOKEN = process.env.COOKED_ADMIN_TOKEN || "";
-const SCHEMA = 8;
+// 9: f256386 changed what a score MEANS (word-level incident matching, partial coverage,
+// wound cap), so every report built before it is wrong, not merely old. This counter is
+// the guard against serving those — bump it with any scoring change. Missing that bump is
+// why production kept answering demo wallets with pre-fix verdicts: the Mongo/memory
+// layers self-invalidate on it, and so does demo-cache.json, which is then refused until
+// it is rebuilt (the demo wallets fall back to a live, correct, slower scan meanwhile).
+const SCHEMA = 9;
 const SELF_ORIGIN = process.env.SELF_ORIGIN || ("http://127.0.0.1:" + PORT); // bump to invalidate all cached reports after a scoring change
 if (!KEY) { console.error("[cooked-api] GRAPH_API_KEY missing"); process.exit(1); }
 
