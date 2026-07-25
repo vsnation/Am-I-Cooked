@@ -5,7 +5,10 @@ standardized (Messari) subgraph schemas via The Graph gateway. Extracted from
 `apps/web/lib/autopsy.js` — extraction was packaging, not a rewrite.
 
 - **MCP server** (`src/index.js`, stdio): `cooked_autopsy`, `cooked_lending_surface`,
-  `cooked_dex_surface`, `cooked_sources` — usable from any generic MCP client.
+  `cooked_dex_surface`, `cooked_incident_check`, `cooked_sources` — usable from any
+  generic MCP client. The autopsy report includes exploit-exposure vs the curated
+  176-incident registry, ghost-portfolio + behavioral surfaces, and a partial cooked
+  score (honest about which feeds are still pending).
 - **Skill definition**: `SKILL.md` — drop into an agent's skills directory.
 - **Library**: `src/autopsy.js`, zero dependencies, works in Node and the browser.
 
@@ -14,8 +17,12 @@ standardized (Messari) subgraph schemas via The Graph gateway. Extracted from
 ```bash
 npm install
 GRAPH_API_KEY=<studio key> npm start     # MCP server on stdio
-npm test                                  # offline tests (mocked gateway)
+npm test                                  # offline tests (mocked gateway + incidents)
 ```
+
+The incident registry loads from `hacks/incidents.json` in the monorepo by default;
+set `COOKED_INCIDENTS=/path/to/incidents.json` to override (needed if the package is
+run outside the monorepo).
 
 Wire into an MCP client:
 

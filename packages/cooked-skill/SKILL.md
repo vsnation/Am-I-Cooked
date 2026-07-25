@@ -17,9 +17,10 @@ from The Graph gateway at call time.
 
 | Tool | Input | Returns |
 |---|---|---|
-| `cooked_autopsy` | `address` | Full report: lending + DEX surfaces, `generatedAt`, pending feeds flagged |
+| `cooked_autopsy` | `address` | Full report: lending + DEX + incident exposure + ghost + behavioral surfaces, partial `cooked` score with band |
 | `cooked_lending_surface` | `address` | Per-protocol open positions via ONE standardized Messari query |
 | `cooked_dex_surface` | `address` | Uniswap v3 LP positions + recent swap flow |
+| `cooked_incident_check` | `terms[]` | Names/symbols cross-referenced against the 176-incident registry (no API key needed) |
 | `cooked_sources` | — | The subgraph registry being scanned |
 
 ## Direct library use (no MCP client)
@@ -34,7 +35,10 @@ const report = await autopsy(process.env.GRAPH_API_KEY, "0xd8dA…6045");
 - `lending[].openPositions[].side` — `COLLATERAL` vs `BORROWER`; borrow positions with no
   collateral on the same market are the risk signal.
 - `dex.recentSwaps` is ordered newest-first; timestamps are unix seconds.
-- `approvals` / `incidents` surfaces report `pending-feed` until their feeds land — say so
-  rather than implying full coverage.
+- `incidents.matches` is name/symbol-level matching (address-level lands with the
+  approvals feed); `ghost` = value parked where nothing lives; `behavioral` is a
+  documented heuristic v0.
+- `cooked` is a PARTIAL score (`partial: true`, `pendingFeeds` lists what's missing —
+  approvals is 40% of the rubric). Present it as partial, never as the full verdict.
 - Coverage extension: any Messari-conforming lending subgraph is ONE line in `REGISTRY`
   (`src/autopsy.js`) — no new query code.
