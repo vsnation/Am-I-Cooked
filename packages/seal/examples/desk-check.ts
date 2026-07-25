@@ -67,7 +67,7 @@ try {
   const ledger = await broker.ledger.getLedger();
   pass("compute ledger", `exists · balance ${ethers.formatEther(ledger.totalBalance ?? ledger[1] ?? 0n)} OG`);
 } catch {
-  const dep = Number(process.env.OG_LEDGER_DEPOSIT || 0.1);
+  const dep = Number(process.env.OG_LEDGER_DEPOSIT || 3); // network minimum for ledger creation
   await broker.ledger.addLedger(dep);
   pass("compute ledger", `created with ${dep} OG deposit`);
 }
