@@ -360,7 +360,7 @@
     </div>
     <div class="srg-head">
       <svg width="42" height="42" viewBox="0 0 130 130"><g fill="#86251f"><circle cx="65" cy="65" r="44"/><circle cx="30" cy="52" r="10"/><circle cx="99" cy="45" r="9"/><circle cx="94" cy="98" r="10"/><circle cx="38" cy="97" r="8"/></g><circle cx="65" cy="65" r="31" fill="none" stroke="#c86a52" stroke-width="2.5"/><g transform="rotate(38 65 65)"><rect x="61" y="34" width="8" height="17" rx="3" fill="#c86a52"/><path d="M 61 53 h 8 v 26 q 0 12 -4 17 q -4 -5 -4 -17 z" fill="#c86a52"/></g></svg>
-      <div class="idbadge"><b>0G Agentic ID</b> · #SRG-001<br>authority: <b id="authLvl">NONE — anonymous</b></div>
+      <div class="idbadge"><b>0G Agentic ID</b> · <span id="srgAgent">#SRG-001</span><br>authority: <b id="authLvl">NONE — anonymous</b></div>
     </div>
     <div class="plan" id="plan">
       <div class="wound" id="w1"><span class="ico">🔪</span><div class="t">Revoke unlimited USDC approval<small>spender flagged as drainer · 41 min ago</small></div><span class="st">waiting</span></div>
@@ -676,7 +676,16 @@
   }
 
   // ---- surgeon ----
+  async function loadSurgeonStatus(){
+    try {
+      var r = await fetch('/cooked-api/surgeon/status'); var d = await r.json();
+      if (d.agent) document.getElementById('srgAgent').textContent = d.agent.slice(0,6)+'…'+d.agent.slice(-4);
+      window.__surgeonHuman = !!d.humanBacked;
+      document.getElementById('authLvl').textContent = d.humanBacked ? 'REVOKE — human-backed ✓ (AgentBook)' : 'NONE — agent not yet human-backed';
+    } catch(e){}
+  }
   function resetSurgeon(){
+    loadSurgeonStatus();
     document.getElementById('authLvl').textContent = 'NONE — anonymous';
     var lock = document.getElementById('lock');
     lock.className = 'interlock';
