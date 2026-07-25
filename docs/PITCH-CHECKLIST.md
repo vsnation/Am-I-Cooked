@@ -4,7 +4,7 @@ Sources: ethglobal.com/events/lisbon2026/prizes (verbatim re-check 25 Jul) and t
 17 opening-ceremony slide photos (24 Jul).
 
 - **Submissions close: Sunday 26 Jul, 09:00**
-- **Live demo:** https://freenodalvpn.xyz/cooked/
+- **Live demo:** https://tracely.live/cooked/
 - **Our three partners:** 0G, World, The Graph
 
 ## Organizer rules (from the opening slides)

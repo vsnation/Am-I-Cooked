@@ -8,7 +8,14 @@ import { autopsy, loadIncidents } from "./autopsy.js";
 import { resolveAddress, multichainApprovals } from "./onchain.js";
 import { AlarmEngine, pollTopPools, replayDrain } from "./alarm.js";
 import { surgeonAuthorize, surgeonStatus, surgeonSelfCheck } from "./surgeon.js";
+import { cardSVG, sharePageHTML } from "./card.js";
 import { gql } from "./autopsy.js";
+
+const PUBLIC_BASE = process.env.PUBLIC_BASE || "https://tracely.live";
+// sharp rasterizes the share card; without it we degrade to SVG (browsers fine, X won't preview)
+let sharp = null;
+try { sharp = (await import("sharp")).default; }
+catch { console.error("[cooked-api] sharp not installed — share cards served as SVG"); }
 
 const PORT = Number(process.env.PORT || 7801);
 const KEY = process.env.GRAPH_API_KEY;
@@ -68,6 +75,7 @@ if (MONGO_URL) {
 
 let scans = 0, hits = 0;
 const inflight = new Map(); // key -> Promise: coalesce concurrent scans of one address
+const cardCache = new Map(); // key -> {at, buf, type}: rendered share banners
 // Cache by a hash of the address, not the address itself — no plaintext ledger of who
 // looked up what (public data either way, but nothing links a person to a lookup).
 const keyOf = addr => createHash("sha256").update(addr).digest("hex");
@@ -162,6 +170,36 @@ const server = http.createServer(async (req, res) => {
       lastReplayAt = Date.now();
       const r = replayDrain(alarms);
       return send(200, { started: true, ...r });
+    }
+    // ---- shareable results: OG banner + share page (X/Telegram/Discord previews) ----
+    if (url.pathname === "/card" || url.pathname.startsWith("/r/")) {
+      const input = url.pathname === "/card"
+        ? (url.searchParams.get("address") || "").trim()
+        : decodeURIComponent(url.pathname.slice(3)).trim();
+      let resolved;
+      try { resolved = await resolveAddress(input); }
+      catch (e) { return send(400, { error: e.message }); }
+      const addr = resolved.toLowerCase(), key = keyOf(addr);
+      const rep = demoStore.get(key) ?? (await getCached(addr))?.report ?? null;
+      const name = rep?.input && /\.eth$/i.test(rep.input) ? rep.input : `${resolved.slice(0, 6)}…${resolved.slice(-4)}`;
+      const facts = rep ? {
+        name, score: rep.cooked.score, band: rep.cooked.band, pending: false,
+        statLine: `${rep.surfaces.incidents.matches.length} drained protocols touched · ${rep.surfaces.approvals?.counts?.total ?? 0} live approvals still open`,
+      } : { name, pending: true, statLine: "" };
+      if (url.pathname === "/card") {
+        const hit = cardCache.get(key);
+        if (hit && Date.now() - hit.at < 600_000) { res.writeHead(200, { "content-type": hit.type, "cache-control": "public, max-age=600" }); return res.end(hit.buf); }
+        const svg = cardSVG(facts);
+        const out = sharp
+          ? { buf: await sharp(Buffer.from(svg)).png().toBuffer(), type: "image/png" }
+          : { buf: Buffer.from(svg), type: "image/svg+xml" };
+        cardCache.set(key, { at: Date.now(), ...out });
+        if (cardCache.size > 200) cardCache.delete(cardCache.keys().next().value);
+        res.writeHead(200, { "content-type": out.type, "cache-control": "public, max-age=600" });
+        return res.end(out.buf);
+      }
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" });
+      return res.end(sharePageHTML({ base: PUBLIC_BASE, resolved, ...facts }));
     }
     if (url.pathname === "/surgeon/status") {
       const self = await surgeonSelfCheck(SELF_ORIGIN + "/surgeon/probe");

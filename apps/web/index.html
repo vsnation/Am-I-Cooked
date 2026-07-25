@@ -501,9 +501,13 @@
         <div class="s" id="cardScore">68<small>%</small></div>
         <div class="band" id="cardBand">COOKED</div>
         <div class="r" id="cardRoast">"You paid €900 to be exploited by a protocol named after a dog. More cooked than 84% of wallets scanned."</div>
-        <div class="f"><span>🔏 SEALED · 0G CHAIN</span><span>amicooked.xyz</span></div>
+        <div class="f"><span>🔏 SEALED · 0G CHAIN</span><span>tracely.live/cooked</span></div>
       </div>
-      <button class="btn ghost" style="margin-top:12px" onclick="closeModal('shareModal')">close</button>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn hot" style="flex:1.4" onclick="postToX()">𝕏 Post it</button>
+        <button class="btn ghost" style="flex:1" id="copyLinkBtn" onclick="copyShareLink()">copy link</button>
+      </div>
+      <button class="btn ghost" style="margin-top:8px" onclick="closeModal('shareModal')">close</button>
     </div>
   </div>
 
@@ -1048,6 +1052,25 @@
     try { await fetch('/cooked-api/alarms/replay'); } catch(e){}
   }
 
+  // ---- share: the /r/<addr> link carries OG meta + banner, so X shows a card ----
+  function shareUrl(){
+    var a = window.__scanAddr;
+    return a ? 'https://tracely.live/cooked/r/' + encodeURIComponent(a) : 'https://tracely.live/cooked/';
+  }
+  function postToX(){
+    var score = (document.getElementById('cardScore').textContent || '').trim().replace(/\s+/g, '');
+    var band = (document.getElementById('cardBand').textContent || '').trim();
+    var text = VD ? ('my wallet just got autopsied: ' + score + ' ' + band + ' 🔪 how cooked are you?')
+                  : 'AM I COOKED? — the 60-second wallet autopsy 🔪';
+    window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(shareUrl()), '_blank');
+  }
+  function copyShareLink(){
+    var u = shareUrl(), b = document.getElementById('copyLinkBtn');
+    var done = function(){ b.textContent = '✓ copied'; setTimeout(function(){ b.textContent = 'copy link'; }, 1600); };
+    if (navigator.clipboard) navigator.clipboard.writeText(u).then(done, function(){ window.prompt('copy this link', u); });
+    else window.prompt('copy this link', u);
+  }
+
   // ---- first-visit intro tour: the annotated demo clip, skippable always ----
   function openIntro(){
     var i = document.getElementById('intro'); i.classList.add('on');
@@ -1089,6 +1112,16 @@
     clearTimeout(prewarmTimer); prewarmTimer = setTimeout(prewarm, 900);
   });
   setTimeout(prewarm, 1500);
+
+  // Deep link from a shared card: /cooked/?a=<addr|ens> boots straight into that scan.
+  try {
+    var deepA = new URLSearchParams(location.search).get('a');
+    if (deepA && validAddr(deepA)){
+      tourBlocked = true;
+      document.getElementById('addrIn').value = deepA;
+      setTimeout(startScan, 600);
+    }
+  } catch(e){}
 
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js'); } catch (e) {}
 </script>

@@ -1,7 +1,7 @@
 # apps/web — AM I COOKED?
 
 The app shell (prototype v7: 4 screens, animated, installable PWA).
-Live demo: https://freenodalvpn.xyz/cooked/
+Live demo: https://tracely.live/cooked/
 
 Planned data wiring:
 - `lib/autopsy` — standardized-schema queries via The Graph gateway (client-side)

@@ -10,7 +10,7 @@ single worst day. A sealed judge inside a **0G Compute TEE** stamps your cooked 
 knives out: revokes the dangerous approvals, live. Misery goes viral (68% cooked 💀);
 recovery brings you back (68 → 31 🔪→🩹).
 
-**Live prototype:** https://freenodalvpn.xyz/cooked/ (installable PWA)
+**Live prototype:** https://tracely.live/cooked/ (installable PWA)
 
 ## Architecture
 
