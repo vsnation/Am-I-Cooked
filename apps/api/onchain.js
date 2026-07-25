@@ -12,13 +12,13 @@ import { approvalsSurface } from "./approvals.js";
 // eth_getLogs over wide ranges with no key. Mainnet scans full history; L2s use a
 // recent window (their block heights make from-genesis scans impractical).
 export const CHAINS = [
-  { id: 1, name: "Ethereum", rpc: "https://mainnet.gateway.tenderly.co", lookback: 3_000_000, explorer: "https://etherscan.io" }, // ~1yr; keyed archive RPC would allow full history
-  { id: 8453, name: "Base", rpc: "https://base.gateway.tenderly.co", lookback: 8_000_000, explorer: "https://basescan.org" },
-  { id: 42161, name: "Arbitrum", rpc: "https://arbitrum.gateway.tenderly.co", lookback: 40_000_000, explorer: "https://arbiscan.io" },
-  { id: 10, name: "Optimism", rpc: "https://optimism.gateway.tenderly.co", lookback: 20_000_000, explorer: "https://optimistic.etherscan.io" },
-  { id: 137, name: "Polygon", rpc: "https://polygon.gateway.tenderly.co", lookback: 10_000_000, explorer: "https://polygonscan.com" },
-  { id: 43114, name: "Avalanche", rpc: "https://avalanche.gateway.tenderly.co", lookback: 10_000_000, explorer: "https://snowtrace.io" },
-  { id: 100, name: "Gnosis", rpc: "https://gnosis.gateway.tenderly.co", lookback: 10_000_000, explorer: "https://gnosisscan.io" },
+  { id: 1, name: "Ethereum", rpc: "https://mainnet.gateway.tenderly.co", lookback: 3_000_000, blockSeconds: 12, explorer: "https://etherscan.io" }, // ~1yr; keyed archive RPC would allow full history
+  { id: 8453, name: "Base", rpc: "https://base.gateway.tenderly.co", lookback: 8_000_000, blockSeconds: 2, explorer: "https://basescan.org" },
+  { id: 42161, name: "Arbitrum", rpc: "https://arbitrum.gateway.tenderly.co", lookback: 40_000_000, blockSeconds: 0.25, explorer: "https://arbiscan.io" },
+  { id: 10, name: "Optimism", rpc: "https://optimism.gateway.tenderly.co", lookback: 20_000_000, blockSeconds: 2, explorer: "https://optimistic.etherscan.io" },
+  { id: 137, name: "Polygon", rpc: "https://polygon.gateway.tenderly.co", lookback: 10_000_000, blockSeconds: 2.1, explorer: "https://polygonscan.com" },
+  { id: 43114, name: "Avalanche", rpc: "https://avalanche.gateway.tenderly.co", lookback: 10_000_000, blockSeconds: 2, explorer: "https://snowtrace.io" },
+  { id: 100, name: "Gnosis", rpc: "https://gnosis.gateway.tenderly.co", lookback: 10_000_000, blockSeconds: 5, explorer: "https://gnosisscan.io" },
 ];
 
 const SEL_APPROVE = "0x095ea7b3";
@@ -58,7 +58,7 @@ export async function multichainApprovals(owner, incidents, opts = {}) {
       const run = (async () => {
         let fromBlock = ch.fromBlock;
         if (ch.lookback) { const tip = await chainTip(ch.rpc); fromBlock = Math.max(0, tip - ch.lookback); }
-        const surface = await approvalsSurface(ch.rpc, owner, incidents, { fromBlock });
+        const surface = await approvalsSurface(ch.rpc, owner, incidents, { fromBlock, blockSeconds: ch.blockSeconds });
         return (surface.wounds || []).map(w => ({
           ...w, chain: ch.name, chainId: ch.id, explorer: ch.explorer,
           revoke: buildRevoke(ch.id, w.token, w.spender),

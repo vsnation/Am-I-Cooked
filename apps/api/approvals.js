@@ -148,17 +148,26 @@ export async function approvalsSurface(rpcUrl, owner, incidents, opts = {}) {
   const allowances = await rpcBatch(rpcUrl, pairs.map(p => ({
     to: p.token, data: SEL_ALLOWANCE + pad32(owner) + pad32(p.spender),
   })));
+  // A FAILED allowance re-check (per-item RPC error, malformed return) fails CLOSED:
+  // the pair stays open at its granted value, flagged unverified — a wound is never
+  // silently reported as revoked just because a provider hiccuped. "0x" (empty return,
+  // token gone) still counts as 0/revoked.
+  const toBig = h => { try { return h === "0x" ? 0n : BigInt(h); } catch { return null; } };
   const open = pairs
-    .map((p, i) => ({ ...p, allowance: (allowances[i] && allowances[i] !== "0x") ? BigInt(allowances[i]) : 0n }))
+    .map((p, i) => {
+      const fresh = allowances[i] == null ? null : toBig(allowances[i]);
+      return { ...p, allowance: fresh ?? p.approvedValue, allowanceUnverified: fresh === null };
+    })
     .filter(p => p.allowance > 0n);
 
   const byAddress = Object.fromEntries(
     (incidents?.addresses ?? []).map(a => [a.address.toLowerCase(), a]));
 
   const now = Date.now() / 1000;
+  const blockSeconds = opts.blockSeconds ?? BLOCK_SECONDS; // L2 block times differ wildly from mainnet's 12s
   const wounds = open.map(p => {
     const unlimited = p.allowance >= UNLIMITED_FLOOR;
-    const grantedAtEst = now - (tip - p.bn) * BLOCK_SECONDS;
+    const grantedAtEst = now - (tip - p.bn) * blockSeconds;
     const ageYears = (now - grantedAtEst) / 31_536_000;
     const hit = byAddress[p.spender] ?? byAddress[p.token];
     const label = KNOWN_SPENDERS[p.spender] ?? null;
@@ -166,11 +175,13 @@ export async function approvalsSurface(rpcUrl, owner, incidents, opts = {}) {
     if (hit) reasons.push(`${hit.kind} address from the ${hit.target} incident`);
     if (unlimited) reasons.push(label ? `unlimited allowance to ${label}` : "unlimited allowance to an unrecognized contract");
     if (ageYears > 2) reasons.push(`granted ~${ageYears.toFixed(1)}y ago and never revoked`);
+    if (p.allowanceUnverified) reasons.push("live allowance re-check failed — showing the granted amount");
     return {
       token: p.token, symbol: null, decimals: null,
       spender: p.spender, spenderLabel: label,
       allowance: unlimited ? "unlimited" : p.allowance.toString(),
       unlimited,
+      allowanceUnverified: p.allowanceUnverified,
       grantedBlock: p.bn,
       grantedAtEst: new Date(grantedAtEst * 1000).toISOString().slice(0, 10),
       incident: hit ? { target: hit.target, kind: hit.kind } : null,

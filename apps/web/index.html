@@ -226,6 +226,20 @@
   .cardwrap .r { font-family:var(--serif); font-style:italic; font-size:13px; line-height:1.4; }
   .cardwrap .f { display:flex; justify-content:space-between; font-size:9px; letter-spacing:.1em; margin-top:12px; opacity:.85; }
 
+  .guardian { font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--heal); text-align:center; margin:6px 0 0; cursor:pointer; }
+  .guardian b { color:var(--bone); }
+  .guardian .pulse { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--heal); box-shadow:0 0 8px var(--heal); animation:gpulse 1.6s ease-in-out infinite; vertical-align:0; margin-right:5px; }
+  @keyframes gpulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+  .alarm-banner { position:absolute; left:0; right:0; top:0; z-index:20; transform:translateY(-120%); transition:transform .4s cubic-bezier(.2,.9,.25,1);
+    background:linear-gradient(180deg,#3a0f0a,#2a0c08); border-bottom:2px solid var(--blood); padding:12px 16px calc(12px + env(safe-area-inset-top)); box-shadow:0 8px 30px rgba(214,71,47,.4); }
+  .alarm-banner.on { transform:none; }
+  .alarm-banner .a-head { font-family:var(--mono); font-size:10px; letter-spacing:.16em; color:#ff8a70; display:flex; align-items:center; gap:6px; }
+  .alarm-banner .a-siren { animation:siren .8s steps(2) infinite; }
+  @keyframes siren { 50%{opacity:.3} }
+  .alarm-banner .a-body { font-size:14px; font-weight:700; margin:3px 0 2px; color:var(--bone); }
+  .alarm-banner .a-body b { color:#ff9576; }
+  .alarm-banner .a-sub { font-family:var(--mono); font-size:10px; color:var(--muted); }
+  .alarm-banner .a-cta { margin-top:8px; background:var(--blood); color:#fff; border:0; border-radius:8px; padding:9px; width:100%; font-weight:800; font-size:13px; cursor:pointer; }
   @media(prefers-reduced-motion:reduce){ .world *{ animation:none !important; transition:none !important; } }
 </style>
 
@@ -233,6 +247,12 @@
 <div class="rig">
 <div class="phone" id="phone">
   <canvas id="fx"></canvas>
+  <div class="alarm-banner" id="alarmBanner">
+    <div class="a-head"><span class="a-siren">🚨</span> <span id="aTag">LIVE LIQUIDITY ALARM</span><span style="margin-left:auto;cursor:pointer;color:var(--muted)" onclick="dismissAlarm()">✕</span></div>
+    <div class="a-body" id="aBody">—</div>
+    <div class="a-sub" id="aSub">—</div>
+    <button class="a-cta" onclick="alarmToSurgeon()">🔪 A protocol you touched is draining — get the knives out</button>
+  </div>
 
   <!-- 1 · LANDING (paste → preheat happens right here) -->
   <div class="screen active" id="s1">
@@ -247,6 +267,7 @@
       <div class="num" id="grief">€ 4,812,331</div>
       <div class="lbl">lost by wallets scanned · live</div>
     </div>
+    <div class="guardian" id="guardian" onclick="triggerReplay()"><span class="pulse"></span>GUARDIAN ACTIVE · <b id="gWatch">watching</b> DeFi liquidity live</div>
     <div class="mascot" id="mascot">
       <svg width="205" height="143" viewBox="0 0 200 148">
         <path class="msc-steam" d="M 92 30 q -7 -8 0 -15"/>
@@ -478,6 +499,7 @@
     var scr = document.querySelectorAll('.screen');
     for (var i = 0; i < scr.length; i++) scr[i].classList.remove('active');
     document.getElementById('s' + n).classList.add('active');
+    if (n !== 1) { var ab = document.getElementById('alarmBanner'); if (ab) ab.classList.remove('on'); }
     setFx(n <= 2 ? 'ember' : (n === 4 ? 'spark' : 'off'));
     if (n === 1) resetLanding();
     if (n === 2) runVerdict();
@@ -855,6 +877,32 @@
 
   function openModal(id){ document.getElementById(id).classList.add('on'); }
   function closeModal(id){ document.getElementById(id).classList.remove('on'); }
+
+  // ---- guardian: live liquidity alarm ----
+  var ALARM = null, dismissedAlarm = null;
+  async function pollAlarms(){
+    try {
+      var r = await fetch('/cooked-api/alarms'); var d = await r.json();
+      var a = (d.alarms || [])[0];
+      var g = document.getElementById('gWatch'); if (g) g.textContent = 'watching';
+      if (a && a.poolId !== dismissedAlarm){
+        ALARM = a;
+        document.getElementById('aTag').textContent = a.replay ? 'LIQUIDITY ALARM · REPLAY' : 'LIVE LIQUIDITY ALARM';
+        document.getElementById('aBody').innerHTML = '<b>' + esc(a.protocol) + '</b> is draining — ' + a.dropPct + '% of liquidity gone';
+        document.getElementById('aSub').textContent = '$' + a.peakTvlUSD.toLocaleString('en-US') + ' → $' + a.nowTvlUSD.toLocaleString('en-US') + ' · severity ' + a.severity;
+        if (CUR === 1) document.getElementById('alarmBanner').classList.add('on'); // hook lives on the landing; never covers the flow
+      } else if (!a){
+        ALARM = null; document.getElementById('alarmBanner').classList.remove('on');
+      }
+    } catch(e){}
+  }
+  setInterval(pollAlarms, 4000); pollAlarms();
+  function alarmToSurgeon(){ document.getElementById('alarmBanner').classList.remove('on'); if (VD) show(3); else { show(1); document.getElementById('addrIn').focus(); } }
+  function dismissAlarm(){ dismissedAlarm = ALARM ? ALARM.poolId : null; document.getElementById('alarmBanner').classList.remove('on'); }
+  async function triggerReplay(){
+    var g = document.getElementById('gWatch'); if (g) g.textContent = 'threat incoming…';
+    try { await fetch('/cooked-api/alarms/replay'); } catch(e){}
+  }
 
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js'); } catch (e) {}
 </script>

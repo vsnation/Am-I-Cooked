@@ -217,7 +217,7 @@ export async function autopsy(apiKey, address, opts = {}) {
     ...lending.flatMap(l => l.openPositions.flatMap(p => [p.market, p.token])),
     ...dex.lpPositions.flatMap(p => p.pair.split("/")),
     ...dex.recentSwaps.flatMap(s => s.pair.split("/")),
-    ...(approvals.items || []).map(i => i.tokenSymbol).filter(Boolean),
+    ...(approvals.items || []).map(i => i.symbol).filter(Boolean),
   ];
   const incidents = incidentSurface(universe);
   const surfaces = {

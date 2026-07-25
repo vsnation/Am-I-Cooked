@@ -6,6 +6,8 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { autopsy, loadIncidents } from "./autopsy.js";
 import { resolveAddress, multichainApprovals } from "./onchain.js";
+import { AlarmEngine, pollTopPools, replayDrain } from "./alarm.js";
+import { gql } from "./autopsy.js";
 
 const PORT = Number(process.env.PORT || 7801);
 const KEY = process.env.GRAPH_API_KEY;
@@ -19,6 +21,15 @@ const REGISTRY = JSON.parse(readFileSync(new URL("./incidents.json", import.meta
 loadIncidents(REGISTRY);
 const DRAINERS = REGISTRY.addresses.map(a => a.address);
 const approvalsProvider = (addr) => multichainApprovals(addr, REGISTRY, {});
+
+// --- guardian: watch DeFi liquidity for large outflows ---
+const alarms = new AlarmEngine();
+async function pollAlarms() {
+  try { for (const s of await pollTopPools(gql, KEY)) alarms.observe(s); }
+  catch (e) { /* transient subgraph error — next tick retries */ }
+}
+setInterval(pollAlarms, 15000);
+pollAlarms();
 
 const mem = new Map(); // addr -> { at, report }
 let col = null;
@@ -64,8 +75,17 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   const send = (code, obj) => { res.writeHead(code, { "content-type": "application/json" }); res.end(JSON.stringify(obj)); };
   try {
-    if (url.pathname === "/health") return send(200, { ok: true, scans, hits, mongo: !!col, memEntries: mem.size });
-    if (url.pathname !== "/scan") return send(404, { error: "routes: /scan?address=0x…, /health" });
+    if (url.pathname === "/health") return send(200, { ok: true, scans, hits, mongo: !!col, memEntries: mem.size, alarms: alarms.active().length });
+    if (url.pathname === "/alarms") return send(200, { alarms: alarms.active() });
+    if (url.pathname === "/alarms/for") {
+      const input = (url.searchParams.get("address") || "").trim();
+      let resolved; try { resolved = await resolveAddress(input); } catch (e) { return send(400, { error: e.message }); }
+      const cached = await getCached(resolved.toLowerCase());
+      if (!cached) return send(200, { alarms: [], note: "scan this address first" });
+      return send(200, { alarms: alarms.forExposure(cached.report) });
+    }
+    if (url.pathname === "/alarms/replay") { const r = replayDrain(alarms); return send(200, { started: true, ...r }); }
+    if (url.pathname !== "/scan") return send(404, { error: "routes: /scan, /alarms, /alarms/for, /alarms/replay, /health" });
     const input = (url.searchParams.get("address") || "").trim();
     let resolved;
     try { resolved = await resolveAddress(input); }
