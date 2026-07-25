@@ -487,13 +487,8 @@
   <div class="modal" id="sealModal" onclick="this.classList.remove('on')">
     <div class="sheet" onclick="event.stopPropagation()">
       <h4>🔏 Verified verdict</h4>
-      <div class="kv">
-        judge ran inside <b>0G Compute TEE</b> <span class="ok">✓ attested</span><br>
-        score hash <b>0x8f2a…c41d</b><br>
-        registry tx <b>0g:0x77b1…09e3</b> <span class="ok">✓ on-chain</span><br>
-        rubric hash-committed <b>before launch</b> <span class="ok">✓</span><br>
-        our servers saw your address <b>0 times</b>
-      </div>
+      <div class="kv" id="sealKv">checking the registry…</div>
+      <button class="btn hot" id="sealNowBtn" style="margin-top:12px;display:none" onclick="sealNow()">🔏 Seal it — TEE judge + on-chain attest</button>
       <button class="btn ghost" style="margin-top:14px" onclick="closeModal('sealModal')">close</button>
     </div>
   </div>
@@ -1109,7 +1104,44 @@
     if (items.length){ kn.style.display = ''; kn.classList.add('on'); kn.textContent = '🔪 ' + items.length + ' knives still in · tap “want the knives out?”'; }
   }
 
-  function openModal(id){ document.getElementById(id).classList.add('on'); }
+  function openModal(id){ document.getElementById(id).classList.add('on'); if (id === 'sealModal') loadSealStatus(); }
+  // ---- real seal state: TEE verdict + registry tx, never staged values ----
+  var sealPoll = null;
+  function short(h){ return h ? h.slice(0, 8) + '…' + h.slice(-4) : '—'; }
+  async function loadSealStatus(){
+    var kv = document.getElementById('sealKv'), btn = document.getElementById('sealNowBtn');
+    if (!window.__scanAddr || !VD){ kv.innerHTML = 'run a real scan first — the staged demo has nothing to seal'; btn.style.display = 'none'; return; }
+    try {
+      var r = await fetch('/cooked-api/seal-status?address=' + encodeURIComponent(window.__scanAddr));
+      var d = await r.json();
+      if (d.sealed){
+        clearInterval(sealPoll); sealPoll = null; btn.style.display = 'none';
+        kv.innerHTML =
+          'judge ran inside <b>0G Compute TEE</b> ' + (d.teeVerified ? '<span class="ok">✓ signature verified</span>' : '(TEE check pending)') + '<br>'
+          + (d.model ? 'model <b>' + esc(d.model) + '</b><br>' : '')
+          + 'score hash <b>' + esc(short(d.scoreHash)) + '</b><br>'
+          + 'registry tx <b><a href="' + esc(d.explorerTx || '#') + '" target="_blank" rel="noopener" style="color:var(--flame)">' + esc(short(d.txHash)) + '</a></b> <span class="ok">✓ on-chain</span><br>'
+          + 'rubric hash-committed at deploy <b>' + esc(short(d.rubricHash)) + '</b> <span class="ok">✓</span><br>'
+          + 'lookups cached by <b>address hash only</b> — no plaintext ledger';
+      } else if (d.sealing){
+        btn.style.display = 'none';
+        kv.innerHTML = 'sealing now — TEE inference + on-chain attest, ~20s…';
+        if (!sealPoll) sealPoll = setInterval(loadSealStatus, 4000);
+      } else if (d.available === false){
+        btn.style.display = 'none';
+        kv.innerHTML = 'this verdict is <b>not sealed</b> — the sealing service is offline right now';
+      } else {
+        kv.innerHTML = 'this verdict is <b>not sealed yet</b> — seal it and the score hash anchors in CookedRegistry on 0G';
+        btn.style.display = '';
+      }
+    } catch(e){ kv.innerHTML = 'could not reach the registry — try again'; }
+  }
+  async function sealNow(){
+    var btn = document.getElementById('sealNowBtn'); btn.style.display = 'none';
+    document.getElementById('sealKv').innerHTML = 'sealing now — TEE inference + on-chain attest, ~20s…';
+    try { await fetch('/cooked-api/seal?address=' + encodeURIComponent(window.__scanAddr)); } catch(e){}
+    if (!sealPoll) sealPoll = setInterval(loadSealStatus, 4000);
+  }
   function closeModal(id){ document.getElementById(id).classList.remove('on'); }
 
   // ---- guardian: live liquidity alarm ----

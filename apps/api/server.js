@@ -16,6 +16,11 @@ const PUBLIC_BASE = process.env.PUBLIC_BASE || "https://tracely.live";
 let sharp = null;
 try { sharp = (await import("sharp")).default; }
 catch { console.error("[cooked-api] sharp not installed — share cards served as SVG"); }
+// The sealed judge (0G TEE + registry attest) loads lazily — a box without the 0G deps
+// or key still serves scans, it just reports sealing unavailable.
+let sealReport = null;
+try { ({ sealReport } = await import("./sealjudge.js")); }
+catch (e) { console.error(`[cooked-api] sealing unavailable: ${e.message}`); }
 
 const PORT = Number(process.env.PORT || 7801);
 const KEY = process.env.GRAPH_API_KEY;
@@ -64,6 +69,8 @@ if (MONGO_URL) {
     const client = new MongoClient(MONGO_URL, { serverSelectionTimeoutMS: 3000 });
     await client.connect();
     col = client.db("cooked").collection("scans");
+    sealCol = client.db("cooked").collection("seals");
+    for (const s of await sealCol.find({}).toArray().catch(() => [])) seals.set(s._id, s.seal);
     // TTL indexes only act on BSON dates — the old index sat on `at` (a Number), so it
     // silently never expired anything and the collection grew without bound.
     await col.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
@@ -77,6 +84,9 @@ if (MONGO_URL) {
 let scans = 0, hits = 0;
 const inflight = new Map(); // key -> Promise: coalesce concurrent scans of one address
 const cardCache = new Map(); // key -> {at, buf, type}: rendered share banners
+const seals = new Map();     // key -> seal record (verdict, hashes, txHash, …)
+const sealing = new Map();   // key -> Promise: one TEE run per address at a time
+let sealCol = null;          // mongo persistence for seals (they're anchored on-chain anyway)
 // Cache by a hash of the address, not the address itself — no plaintext ledger of who
 // looked up what (public data either way, but nothing links a person to a lookup).
 const keyOf = addr => createHash("sha256").update(addr).digest("hex");
@@ -178,6 +188,33 @@ const server = http.createServer(async (req, res) => {
       return send(200, { started: true, ...r });
     }
     // ---- shareable results: OG banner + share page (X/Telegram/Discord previews) ----
+    // ---- the sealed judge: real TEE verdicts anchored in CookedRegistry ----
+    if (url.pathname === "/seal-status" || url.pathname === "/seal") {
+      const input = (url.searchParams.get("address") || "").trim();
+      let resolved; try { resolved = await resolveAddress(input); } catch (e) { return send(400, { error: e.message }); }
+      const key = keyOf(resolved.toLowerCase());
+      const existing = seals.get(key);
+      if (url.pathname === "/seal-status" || existing)
+        return send(200, existing
+          ? { sealed: true, ...existing }
+          : { sealed: false, sealing: sealing.has(key), available: !!sealReport });
+      if (!sealReport) return send(503, { error: "sealing unavailable on this host" });
+      if (rateLimited(clientIp(req)) && !isAdmin(req)) return send(429, { error: "rate limited" });
+      const rep = demoStore.get(key) ?? (await getCached(resolved.toLowerCase()))?.report;
+      if (!rep) return send(409, { error: "scan this address first — only completed verdicts get sealed" });
+      if (!sealing.has(key)) {
+        const p = sealReport(rep)
+          .then(async seal => {
+            seals.set(key, seal);
+            if (sealCol) await sealCol.updateOne({ _id: key }, { $set: { seal } }, { upsert: true }).catch(() => {});
+            return seal;
+          })
+          .catch(e => { console.error(`[cooked-api] seal failed: ${e.message}`); })
+          .finally(() => sealing.delete(key));
+        sealing.set(key, p);
+      }
+      return send(202, { sealed: false, sealing: true });
+    }
     if (url.pathname === "/card" || url.pathname.startsWith("/r/")) {
       const input = url.pathname === "/card"
         ? (url.searchParams.get("address") || "").trim()
@@ -261,4 +298,18 @@ const server = http.createServer(async (req, res) => {
     send(502, { error: e.message });
   }
 });
+// Pre-seal the demo wallets (sequentially — one wallet, one nonce) so the verify
+// modal shows real hashes and a real registry tx the moment anyone taps it on stage.
+if (sealReport && demoStore.size) setTimeout(async () => {
+  for (const [key, rep] of demoStore) {
+    if (seals.has(key)) continue;
+    try {
+      const seal = await sealReport(rep);
+      seals.set(key, seal);
+      if (sealCol) await sealCol.updateOne({ _id: key }, { $set: { seal } }, { upsert: true }).catch(() => {});
+      console.log(`[cooked-api] pre-sealed ${rep.input}: ${seal.txHash}`);
+    } catch (e) { console.error(`[cooked-api] pre-seal failed (${rep.input}): ${e.message}`); }
+  }
+}, 8000);
+
 server.listen(PORT, "127.0.0.1", () => console.log(`[cooked-api] on 127.0.0.1:${PORT} · mongo=${!!col}`));
