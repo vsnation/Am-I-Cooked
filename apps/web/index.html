@@ -13,6 +13,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <style>
   html, body { background:#0d0a07 !important; overscroll-behavior:none; }
+  /* app-like chrome: page still scrolls, but no visible rails; sideways overflow never scrolls */
+  html { scrollbar-width:none; overflow-x:hidden; }
+  html::-webkit-scrollbar, body::-webkit-scrollbar { width:0; height:0; display:none; }
   .world {
     --char:#171210; --soot:#211a15; --line:#3a2e23; --bone:#eae0ce; --muted:#a6937d;
     --ember:#ff6a2b; --flame:#ffd23f; --blood:#d6472f; --wax:#86251f; --heal:#7ba886;
@@ -43,7 +46,8 @@
     .screen{ padding:max(26px, env(safe-area-inset-top)) 22px max(22px, env(safe-area-inset-bottom)); }
   }
 
-  .screen { position:absolute; inset:0; padding:26px 22px; display:none; flex-direction:column; overflow-y:auto; z-index:1; transition:background 1.8s ease; }
+  .screen { position:absolute; inset:0; padding:26px 22px; display:none; flex-direction:column; overflow-y:auto; overflow-x:hidden; z-index:1; transition:background 1.8s ease; scrollbar-width:none; }
+  .screen::-webkit-scrollbar { width:0; height:0; display:none; }
   .screen.hotbg { background:radial-gradient(130% 85% at 50% 8%, rgba(92,58,34,.5), transparent 72%); }
   .screen.healbg { background:radial-gradient(130% 85% at 50% 8%, rgba(123,168,134,.16), transparent 72%); }
   .screen.active { display:flex; animation:scrIn .5s cubic-bezier(.2,.9,.25,1); }
