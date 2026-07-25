@@ -1,6 +1,8 @@
 {
-  "note": "Wallets pre-baked for the live demo. Add an address or ENS name here and re-run build-demo-cache.js on the API host.",
-  "wallets": [
-    "vitalik.eth"
-  ]
+ "note": "Wallets pre-baked for the live demo. Add an address or ENS name here and re-run build-demo-cache.js on the API host.",
+ "wallets": [
+  "vitalik.eth",
+  "jaredfromsubway.eth",
+  "sifuvision.eth"
+ ]
 }

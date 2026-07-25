@@ -19,6 +19,20 @@ export const CHAINS = [
   { id: 137, name: "Polygon", rpc: "https://polygon.gateway.tenderly.co", lookback: 10_000_000, blockSeconds: 2.1, explorer: "https://polygonscan.com" },
   { id: 43114, name: "Avalanche", rpc: "https://avalanche.gateway.tenderly.co", lookback: 10_000_000, blockSeconds: 2, explorer: "https://snowtrace.io" },
   { id: 100, name: "Gnosis", rpc: "https://gnosis.gateway.tenderly.co", lookback: 10_000_000, blockSeconds: 5, explorer: "https://gnosisscan.io" },
+  { id: 59144, name: "Linea", rpc: "https://linea.gateway.tenderly.co", lookback: 8_000_000, blockSeconds: 2, explorer: "https://lineascan.build" },
+  { id: 5000, name: "Mantle", rpc: "https://mantle.gateway.tenderly.co", lookback: 8_000_000, blockSeconds: 2, explorer: "https://mantlescan.xyz" },
+  { id: 81457, name: "Blast", rpc: "https://blast.gateway.tenderly.co", lookback: 8_000_000, blockSeconds: 2, explorer: "https://blastscan.io" },
+  { id: 324, name: "zkSync Era", rpc: "https://zksync.gateway.tenderly.co", lookback: 15_000_000, blockSeconds: 1, explorer: "https://era.zksync.network" },
+  { id: 480, name: "World Chain", rpc: "https://worldchain-mainnet.gateway.tenderly.co", lookback: 8_000_000, blockSeconds: 2, explorer: "https://worldscan.org" },
+  { id: 130, name: "Unichain", rpc: "https://unichain.gateway.tenderly.co", lookback: 15_000_000, blockSeconds: 1, explorer: "https://uniscan.xyz" },
+  { id: 146, name: "Sonic", rpc: "https://sonic.gateway.tenderly.co", lookback: 15_000_000, blockSeconds: 1, explorer: "https://sonicscan.org" },
+  { id: 80094, name: "Berachain", rpc: "https://berachain.gateway.tenderly.co", lookback: 8_000_000, blockSeconds: 2, explorer: "https://berascan.com" },
+  { id: 57073, name: "Ink", rpc: "https://ink.gateway.tenderly.co", lookback: 15_000_000, blockSeconds: 1, explorer: "https://explorer.inkonchain.com" },
+  { id: 1868, name: "Soneium", rpc: "https://soneium.gateway.tenderly.co", lookback: 8_000_000, blockSeconds: 2, explorer: "https://soneium.blockscout.com" },
+  { id: 252, name: "Fraxtal", rpc: "https://fraxtal.gateway.tenderly.co", lookback: 8_000_000, blockSeconds: 2, explorer: "https://fraxscan.com" },
+  { id: 42220, name: "Celo", rpc: "https://celo.gateway.tenderly.co", lookback: 15_000_000, blockSeconds: 1, explorer: "https://celoscan.io" },
+  { id: 1284, name: "Moonbeam", rpc: "https://moonbeam.gateway.tenderly.co", lookback: 1_500_000, blockSeconds: 12, explorer: "https://moonbeam.moonscan.io" },
+  { id: 2020, name: "Ronin", rpc: "https://ronin.gateway.tenderly.co", lookback: 5_000_000, blockSeconds: 3, explorer: "https://app.roninchain.com" },
 ];
 
 const SEL_APPROVE = "0x095ea7b3";

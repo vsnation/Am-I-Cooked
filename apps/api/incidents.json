@@ -2691,6 +2691,23 @@
     "allbridge",
     "core"
    ]
+  },
+  {
+   "target": "SushiSwap RouteProcessor2",
+   "date": "Apr 2023",
+   "year": 2023,
+   "month": 4,
+   "lostUSD": 3300000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "processRoute skipped pool validation - attacker-supplied pool drained tokens from wallets with live RouteProcessor2 approvals",
+   "matchKeys": [
+    "sushiswap",
+    "sushi",
+    "routeprocessor",
+    "routeprocessor2"
+   ]
   }
  ],
  "addresses": [
@@ -2927,6 +2944,12 @@
    "chain": "ethereum",
    "kind": "attacker",
    "address": "0x651591b68a9c9650fb23f642162353306281ffde"
+  },
+  {
+   "target": "SushiSwap RouteProcessor2",
+   "chain": "ethereum",
+   "kind": "vulnerable contract",
+   "address": "0x044b75f554b886a065b9567891e45c79542d7357"
   }
  ]
 }

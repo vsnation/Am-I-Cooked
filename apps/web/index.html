@@ -541,9 +541,8 @@
     var inp = document.getElementById('addrIn');
     var raw = inp.value.trim();
     var demoMode = new URLSearchParams(location.search).get('demo') === '1' || raw.toLowerCase() === 'demo';
-    var addr = raw.toLowerCase() === 'vitalik.eth' ? '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' : raw;
-    if (raw.toLowerCase() !== 'demo' && !/^0x[0-9a-fA-F]{40}$/.test(addr)){
-      if (/\.eth$/i.test(raw)) inp.value = 'ENS soon — paste the 0x address';
+    var addr = raw; // 0x address or ENS name — the API resolves ENS server-side
+    if (raw.toLowerCase() !== 'demo' && !/^0x[0-9a-fA-F]{40}$/.test(addr) && !/^[a-z0-9-]+(\.[a-z0-9-]+)*\.eth$/i.test(addr)){
       inp.classList.add('bad');
       setTimeout(function(){ inp.classList.remove('bad'); }, 450);
       return;
