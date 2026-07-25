@@ -600,7 +600,7 @@
       { k: 'Ghost portfolio', bad: g.items.length > 0,
         v: g.items.length ? g.items.length + ' dead-value signals' : 'no value stranded in dead protocols',
         ev: g.items.map(function(i){ return esc(i.where) + ' — ' + esc(i.why); }).join('<br>') || '—' },
-      { k: 'The worst day', v: b.worstDay ? b.worstDay.date + ' · $' + b.worstDay.volumeUSD.toLocaleString('en-US') + ' moved' : 'quiet history',
+      { k: 'The worst day', v: b.worstDay ? esc(b.worstDay.date) + ' · $' + esc(b.worstDay.volumeUSD.toLocaleString('en-US')) + ' moved' : 'quiet history',
         ev: b.worstDay ? 'biggest: ' + esc(b.worstDay.pair) + ' $' + b.worstDay.biggestSwapUSD.toLocaleString('en-US') + ' · ' + esc(b.note) : '' }
     ];
     var roast;
@@ -610,7 +610,7 @@
     else roast = top ? '"' + top.target + ' took $' + M(top.lostUSD) + 'M with it — and you were THERE. Legendary."' : '"The smoke alarm has your address memorized."';
     var short = rep.address.slice(0, 6) + '…' + rep.address.slice(-4);
     var wounds = (rep.surfaces.approvals && rep.surfaces.approvals.items) || [];
-    return { score: c.score, band: c.band, roast: roast, rows: rows, addr: short, wounds: wounds, partial: c.partial,
+    return { score: Math.max(0, Math.min(100, Number(c.score) || 0)), band: c.band, roast: roast, rows: rows, addr: short, wounds: wounds, partial: c.partial,
       pct: c.partial ? 'PARTIAL SCORE · APPROVALS PENDING (40%)' : (wounds.length ? 'MORE COOKED THAN 84% · ' + wounds.length + ' KNIVES STILL IN' : 'MORE COOKED THAN 84% OF WALLETS SCANNED'),
       knives: wounds.length };
   }
