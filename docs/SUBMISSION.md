@@ -32,6 +32,84 @@
 > €4,120 of live exposure defused). That's the card people actually share — not the
 > shame, the comeback.
 
+## Ethereum developer tools (multiselect)
+
+- **viem** — the API layer (ENS resolution, allowance re-checks, revoke tx encoding)
+- **ethers** (v6) — SEAL MCP server (0G chain calls, Agentic ID contract)
+- **The Graph** — autopsy queries via the Graph gateway (Messari standardized schemas)
+- **Tenderly** — their public per-chain gateways serve our wide-range `eth_getLogs` approval scans on all 21 chains
+- **ENS** — any `.eth` name works as scan input (3-RPC fallback resolver)
+- **solc** — compiles `CookedRegistry.sol` / `AgenticID.sol` (no Hardhat/Foundry — a deploy script is all two small contracts need)
+
+## Blockchain networks (multiselect)
+
+- **Ethereum mainnet** — autopsy (The Graph) + full-history approval scan
+- **0G Galileo testnet** — TEE inference, encrypted Storage, CookedRegistry + Agentic ID
+- **World Chain** — approval scan + AgentBook human-backing verifier for the Surgeon
+- Approval scan also covers: **Base, Arbitrum, Optimism, Polygon, Avalanche, Gnosis,
+  Linea, Mantle, Blast, zkSync Era, Unichain, Sonic, Berachain, Ink, Soneium,
+  Fraxtal, Celo, Moonbeam, Ronin** (21 EVM chains total — every keyless gateway that
+  passed a wide-range getLogs probe)
+
+## Programming languages (multiselect)
+
+- **JavaScript** — the product (web PWA, Node API, cooked-skill), dependency-free by design
+- **TypeScript** — SEAL MCP server (Bun)
+- **Solidity** — CookedRegistry, AgenticID (ERC-7857 draft surface)
+- **HTML/CSS** — hand-written, no framework
+
+## Web frameworks (multiselect)
+
+- **None — deliberately.** The frontend is a framework-free vanilla-JS PWA
+  (installable, service worker); the API is bare `node:http`. Zero frontend
+  dependencies, nothing to build.
+
+## Databases (multiselect)
+
+- **MongoDB** — optional scan cache with TTL auto-expiry; keyed by sha256(address),
+  never the address itself. The service degrades to in-memory when Mongo is down.
+- **0G Storage** — the user-facing persistence: scan history, AES-256-GCM encrypted
+  client-side before upload.
+
+## Design tools (multiselect)
+
+- **None** — the UI is hand-coded HTML/CSS (the "cooked, not hacked" register is a
+  written design brief, not a Figma file).
+
+## Other technologies (freetext multiselect)
+
+- **MCP (Model Context Protocol)** — two servers ship in the monorepo: SEAL (0G as
+  8 MCP tools) and cooked-skill (the autopsy as an agent skill)
+- **0G Compute & Storage TypeScript SDKs**
+- **Worldcoin AgentKit** (AgentBook verifier; MiniKit signing flow staged in the UI)
+- **Bun** — SEAL runtime + test runner
+- **Messari standardized subgraph schemas** — one query shape across lending markets
+- **zod**, **js-sha3**, `node:test` (75+ unit tests, all mocked-RPC, no network)
+- **PWA / Service Worker** — installable, offline shell
+
+## AI tools usage
+
+> Two very different answers, both true.
+>
+> **AI inside the product:** the cooked score is not computed by our backend — it's
+> an LLM verdict (DeepSeek-R1) running inside a 0G Compute TEE. The judge prompt
+> embeds the full scoring rubric whose keccak256 is committed on-chain in
+> CookedRegistry at deploy, the TEE's response signature is verified per-call, and
+> the verdict hash is anchored first-write-wins. So "AI decided you're 68% cooked"
+> comes with a proof chain: rubric hash → sealed inference → attestation → on-chain
+> anchor. Stub mode emits fake-but-self-consistent attestations so the whole
+> pipeline is testable offline.
+>
+> **AI building the product:** the team ran Claude Code (Anthropic) as pair
+> programmers throughout — multiple agents on different machines coordinating
+> through ccbridge, a tiny self-hosted task queue + message bus we wrote for this
+> hackathon (`ccb.js` and its protocol in `CLAUDE.md`, both in the repo — arguably
+> our fourth deliverable). Agents claimed tasks, heartbeated leases, handed work
+> off with evidence (test counts, commit shas, live URLs), and escalated conflicts
+> to humans. Claude wrote most of the implementation and the test suites; humans
+> set the product direction, the hard rules (key custody, privacy boundary, TEE
+> verification), reviewed everything, and signed every commit and transaction.
+
 ## How it's made (min 280 chars)
 
 > Monorepo, three deliberate layers.
