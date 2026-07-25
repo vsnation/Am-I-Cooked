@@ -239,10 +239,11 @@
   .intro .vwrap { position:relative; }
   .intro video { display:block; height:min(88vh, 780px); aspect-ratio:390/844; width:auto; max-width:94vw; object-fit:cover;
     border-radius:20px; border:1px solid var(--line); box-shadow:0 24px 80px rgba(0,0,0,.7), 0 0 40px rgba(255,106,43,.12); }
-  .intro .skip { position:absolute; top:calc(10px + env(safe-area-inset-top)); right:10px; z-index:2;
-    background:#fff; color:#171210; border:0; border-radius:999px;
-    font:800 12px/1 var(--mono); letter-spacing:.12em; padding:11px 16px; cursor:pointer;
-    box-shadow:0 4px 18px rgba(0,0,0,.55); }
+  .intro .skip { position:absolute; top:10px; right:10px; z-index:2;
+    background:rgba(13,10,7,.55); color:var(--muted); border:1px solid var(--line); border-radius:999px;
+    font:600 10px/1 var(--mono); letter-spacing:.14em; padding:7px 11px; cursor:pointer;
+    backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); transition:color .15s ease, border-color .15s ease; }
+  .intro .skip:hover { border-color:var(--ember); color:var(--ember); }
   .intro .skip:active { transform:scale(.96); }
   .intro .ihint { position:absolute; bottom:calc(16px + env(safe-area-inset-bottom)); left:0; right:0; text-align:center;
     font:600 10px/1 var(--mono); letter-spacing:.14em; color:var(--muted); }
