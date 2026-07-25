@@ -607,10 +607,11 @@
   }
   // Obtain a proof from the World App (native or via QR), normalised to the 4 fields the
   // verifier needs. Rejects if there is no World App reachable (caller keeps the interlock held).
-  function getWorldProof(appId, action, kind){
+  function getWorldProof(appId, action, kind, level){
+    level = level || 'device'; // `device` works for any World App user; `orb` would exclude non-Orb humans
     var mk = window.MiniKit;
     if (mk && mk.isInstalled && mk.isInstalled() && mk.commandsAsync && mk.commandsAsync.verify){
-      return mk.commandsAsync.verify({ action: action, verification_level: 'orb' }).then(function(res){
+      return mk.commandsAsync.verify({ action: action, verification_level: level }).then(function(res){
         var p = res && res.finalPayload;
         if (!p || p.status === 'error') throw new Error((p && p.error_code) || 'verification cancelled');
         return { nullifier_hash: p.nullifier_hash, merkle_root: p.merkle_root, proof: p.proof, verification_level: p.verification_level };
@@ -621,7 +622,7 @@
       : 'Confirm a live human is authorising the Surgeon before it proposes a revoke';
     return loadIDKit().then(function(IDKit){
       return new Promise(function(resolve, reject){
-        IDKit.init({ app_id: appId, action: action, verification_level: 'orb', action_description: desc,
+        IDKit.init({ app_id: appId, action: action, verification_level: level, action_description: desc,
           onSuccess: function(res){ resolve({ nullifier_hash: res.nullifier_hash, merkle_root: res.merkle_root, proof: res.proof, verification_level: res.verification_level }); },
           onError: function(e){ reject(new Error((e && e.code) || 'verification closed')); } });
         IDKit.open();
@@ -633,7 +634,8 @@
     var cfg = await worldConfig();
     if (!cfg || !cfg.configured) throw new Error('World verification not configured on this host');
     var action = kind === 'identity' ? cfg.actions.identity : cfg.actions.selfie;
-    var proof = await getWorldProof(cfg.appId, action, kind);
+    var level = (cfg.levels && cfg.levels[kind]) || 'device';
+    var proof = await getWorldProof(cfg.appId, action, kind, level);
     var r = await fetch('/cooked-api/world/verify', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ action: action, proof: proof }) });
     var d = await r.json();
     if (!d.verified) throw new Error(d.reason || 'World could not verify that');

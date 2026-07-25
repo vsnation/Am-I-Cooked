@@ -21,7 +21,7 @@ test("verifyBody maps IDKit proof fields and defaults the level", () => {
   assert.equal(b.merkle_root, "b");
   assert.equal(b.proof, "c");
   assert.equal(b.action, "surgeon-liveness");
-  assert.equal(b.verification_level, "orb"); // defaulted
+  assert.equal(b.verification_level, "device"); // defaulted — device works for any World App user (no Orb)
   assert.equal("signal_hash" in b, false);   // omitted when no signal
   assert.equal(verifyBody(PROOF, "x", "0xsig").signal_hash, "0xsig"); // included when given
 });

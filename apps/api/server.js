@@ -268,7 +268,7 @@ const server = http.createServer(async (req, res) => {
     // unlocks the recourse panel. The client learns the public app id + action names here so
     // there is a single source of truth (the .env), never a hard-coded id in the bundle.
     if (url.pathname === "/world/config") {
-      return send(200, { appId: WORLD.appId, configured: WORLD.configured, actions: WORLD.actions });
+      return send(200, { appId: WORLD.appId, configured: WORLD.configured, actions: WORLD.actions, levels: WORLD.levels });
     }
     if (url.pathname === "/world/verify") {
       if (req.method !== "POST") return send(405, { error: "POST a { action, proof } body" });

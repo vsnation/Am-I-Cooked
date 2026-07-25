@@ -12,11 +12,20 @@ const ACTIONS = {
   selfie: process.env.WORLD_ACTION_LIVENESS || "surgeon-liveness",
   identity: process.env.WORLD_ACTION_RECOURSE || "recourse-eligibility",
 };
+// Verification level the client should request per track. Default to `device` so any World
+// App user completes it — requiring `orb` would exclude everyone without an Orb, which
+// defeats the point of these checks. Overridable per action (e.g. `document` for a real
+// ID/age Identity Check) without touching the bundle. Valid: device | orb | document | secure_document.
+const LEVELS = {
+  selfie: process.env.WORLD_LEVEL_LIVENESS || "device",
+  identity: process.env.WORLD_LEVEL_RECOURSE || "device",
+};
 
 export const WORLD = {
   appId: APP_ID,
   configured: /^app_[0-9a-f]{32}$/i.test(APP_ID),
   actions: ACTIONS,
+  levels: LEVELS,
   // which prize track a given action serves — surfaced to the client for labelling
   kindOf(action) {
     if (action && action === ACTIONS.selfie) return "selfie";
@@ -34,7 +43,7 @@ export function verifyBody(proof, action, signalHash) {
     nullifier_hash: proof.nullifier_hash,
     merkle_root: proof.merkle_root,
     proof: proof.proof,
-    verification_level: proof.verification_level || "orb",
+    verification_level: proof.verification_level || "device",
     action,
   };
   if (signalHash) b.signal_hash = signalHash;
