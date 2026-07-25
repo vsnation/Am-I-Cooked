@@ -1,8 +1,76 @@
-# Loom narration scripts — three track videos
+# Loom narration scripts
+
+*One flagship submission cut + three per-track cuts. All 780×1688 (>720p).*
 
 *Play the mp4 in Loom, record your voice over it. Timestamps are approximate — each
 line describes what's on screen so you can pace naturally. Conversational beats
 ~130 words/min; pause where the dots are.*
+
+---
+
+---
+
+## 0 · FINAL SUBMISSION DEMO — `final-demo.mp4` (2:53)
+
+*The flagship cut — all three sponsors in one arc. `[ … ]` = pause / let the screen
+breathe. `(beat)` = short half-second stop. Read ~125 wpm; there's slack built in.*
+
+**0:00 — landing.** "This is AM I COOKED — a sixty-second autopsy for your crypto
+wallet." [ … ] "Everyone got cooked this year. The only question is how much."
+
+**0:12 — typing the address.** "So let's find out. This wallet lost seven and a half
+million dollars — to an approval it forgot to revoke." (beat) "No wallet connect. No
+signatures. You just paste an address."
+
+**0:24 — RUN, scanning.** "And in seconds, The Graph gives us the whole picture —
+every lending market, every DEX, every pool this wallet ever touched." [ … ]
+
+**0:34 — drained protocols.** "First: the protocols it used that later got hacked —
+matched against a hundred and seventy-seven real incidents." (beat) "With receipts."
+
+**0:44 — open wounds.** "Then the dangerous part: live approvals that can drain this
+wallet TODAY — no signature needed — traced across twenty-one chains." [ … ]
+
+**0:55 — ghost portfolio.** "And the fun part: money it forgot it had. Like finding
+cash in last year's jacket."
+
+**1:03 — the verdict stamp.** "That becomes a score." (beat) "But here's what makes
+it different — this score wasn't computed by our server." [ … ] "An AI judge issued
+it, inside a 0G Compute TEE."
+
+**1:15 — tap the seal.** "So don't take our word for it." (beat) "Tap the seal.
+Here's the real attestation — the TEE signature, verified. The score hash. And the
+transaction that anchored it on-chain." [ … ]
+
+**1:30 — the explorer.** "And there it is. On the 0G explorer. Status: success. Our
+registry contract. Anyone can open this — mid-demo, right now." (beat) "You don't
+trust the score. You verify it." [ … ]
+
+**1:45 — back in the app, guardian.** "But a coroner tells you how you died. We built
+a smoke detector." [ … ] "The guardian watches DeFi liquidity in real time — a
+second Graph feed."
+
+**1:56 — the alarm fires.** "And when a protocol you're exposed to starts draining —"
+(beat) "— the alarm goes off. This is a labeled replay of a real drain." [ … ]
+"Revoke before it reaches you, not after."
+
+**2:08 — the Surgeon, authority NONE.** "So we fix it. Meet the Surgeon — an on-chain
+agent." (beat) "But look: authority, none. Because an AI that can move your funds is
+exactly what you're afraid of."
+
+**2:20 — World ID / connect.** "So it stays locked until a real human backs it — a
+live World ID check." [ … ] "Scan, connect —" (beat) "— connected. A verified human
+now stands behind the agent."
+
+**2:34 — you sign / OPERATE / discharge.** "And even now, it only proposes. The human
+signs every transaction." (beat) "Operate — the wounds close —" [ … ] "and discharge:
+sixty-eight percent, down to thirty-one. The comeback card, not the shame card."
+
+**2:48 — end slate.** "The Graph finds it. 0G proves it. World makes the fix safe."
+(beat) "AM I COOKED — live at tracely-dot-live-slash-cooked."
+
+*Total spoken ≈ 2:50 with the pauses. If you run long, the safe cuts are the ghost-
+portfolio line (0:55) and one of the two 'verify it' beats.*
 
 ---
 
