@@ -82,8 +82,9 @@ Continuity tracks are for prior-event projects; we take the standard ones.
 
 - [x] At least one working example agent using the framework — seal ships
       examples/goldfish.ts and examples/desk-check.ts
-- [ ] Architecture diagram (recommended) — one diagram of app → SEAL (MCP) → 0G
-      serves both 0G tracks
+- [x] Architecture diagram (recommended) — accurate mermaid diagram at the top of
+      the README (renders on GitHub), covering app → SEAL (MCP) → 0G Compute /
+      Storage / Chain plus the World interlock
 
 ## World
 
@@ -95,8 +96,9 @@ Continuity tracks are for prior-event projects; we take the standard ones.
 - [ ] End-to-end working flow — biggest gap: revoke signing in World App is
       staged in the UI, MiniKit wiring pending (t15, blocked by APP_ID from t6,
       which needs a human on the World dev portal)
-- [ ] "Genuinely new workflow" pitch line ready: an agent whose *authority*
-      (not identity) is human-backed and expires daily
+- [x] "Genuinely new workflow" pitch line ready: an agent whose *authority*
+      (not identity) is human-backed and expires daily — scripted in
+      docs/DEMO-SCRIPT.md
 
 ### Selfie Check Beta + Identity Check Beta (\$1,000 / \$750 each)
 
@@ -146,6 +148,9 @@ fits every sponsor's window), live data via the Graph gateway, no mocks.
       everyone pitching must be able to explain any part of the code unaided
 - [ ] Live demo healthy at judging time — freeze deploys before Sunday morning,
       keep the demo-wallet cache warm (t35)
+- [x] Demo scripts written — docs/DEMO-SCRIPT.md: 4-minute finalist run with
+      cumulative time markers, 60–90s booth variants per partner, Q&A prep
+      (AI-usage question, the privacy claim, what's unfinished)
 - [ ] Booth plan for Sunday: who demos at the 0G, World and Graph booths
 - [ ] If finalist (announced Sunday): dry-run the 4-minute demo and 3-minute Q&A
 - [ ] Checklist pass 3 hours before the deadline (t17)
