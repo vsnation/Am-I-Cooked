@@ -834,6 +834,19 @@
     var lock = document.getElementById('lock');
     b.disabled = true;
     b.innerHTML = '<span class="spin"></span> checking AgentBook…';
+    if (new URLSearchParams(location.search).get('demo') === '1'){
+      // The staged story only: a LABELED simulation of the backing beat. The live
+      // path below always asks AgentBook, and demo mode has no wallet, so nothing
+      // here hands out real signing authority.
+      await new Promise(function(res){ setTimeout(res, 900); });
+      window.__surgeonHuman = true;
+      b.disabled = false; b.innerHTML = '✅ Human-backed · demo';
+      document.getElementById('authLvl').textContent = 'REVOKE — human-backed · DEMO';
+      lock.className = 'interlock ok';
+      lock.innerHTML = '<span class="tag">🔓 Interlock open · demo</span>Staged backing for the demo story — the live gate requires a real human in AgentBook.';
+      document.getElementById('operateBtn').disabled = false;
+      return;
+    }
     var granted = false, reason = 'the verifier did not answer';
     try {
       var r = await fetch('/cooked-api/surgeon/status');

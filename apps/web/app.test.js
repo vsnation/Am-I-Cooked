@@ -68,9 +68,9 @@ await p.click('text=Want the knives out'); await p.waitForTimeout(700);
 ok('OPERATE disabled while anonymous', await p.isDisabled('#operateBtn'));
 await shot('t6-locked');
 await p.click('#verifyBtn'); await p.waitForTimeout(1900);
-ok('OPERATE enabled after selfie check', !(await p.isDisabled('#operateBtn')));
-ok('authority badge updated', (await p.textContent('#authLvl')).includes('selfie-backed'));
-ok('selfie countdown ticking', await p.isVisible('#cd'));
+ok('OPERATE enabled after backing check', !(await p.isDisabled('#operateBtn')));
+ok('authority badge updated', (await p.textContent('#authLvl')).includes('human-backed'));
+ok('interlock opens (demo-labeled)', /Interlock open/.test(await p.textContent('#lock')));
 ok('batch + gas line present', (await p.textContent('#s3')).includes('batched'));
 await shot('t7-armed');
 
