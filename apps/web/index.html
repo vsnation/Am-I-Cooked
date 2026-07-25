@@ -291,7 +291,7 @@
 <div class="phone" id="phone">
   <canvas id="fx"></canvas>
   <div class="alarm-banner" id="alarmBanner">
-    <div class="a-head"><span class="a-siren">🚨</span> <span id="aTag">LIVE LIQUIDITY ALARM</span><span style="margin-left:auto;cursor:pointer;color:var(--muted)" onclick="dismissAlarm()">✕</span></div>
+    <div class="a-head"><span class="a-siren">🚨</span> <span id="aTag">LIVE LIQUIDITY ALARM</span><button aria-label="dismiss alarm" onclick="dismissAlarm()" style="margin-left:auto;cursor:pointer;color:var(--bone);background:none;border:0;font:700 16px/1 var(--mono);padding:10px 12px;margin:-10px -12px -10px auto">✕</button></div>
     <div class="a-body" id="aBody">—</div>
     <div class="a-sub" id="aSub">—</div>
     <button class="a-cta" onclick="alarmToSurgeon()">🔪 A protocol you touched is draining — get the knives out</button>
@@ -989,26 +989,27 @@
   function closeModal(id){ document.getElementById(id).classList.remove('on'); }
 
   // ---- guardian: live liquidity alarm ----
-  var ALARM = null, dismissedAlarm = null;
+  var ALARM = null, dismissedAlarms = {}; // poolId -> true: a dismissed alarm stays dismissed
   async function pollAlarms(){
     try {
       var r = await fetch('/cooked-api/alarms'); var d = await r.json();
-      var a = (d.alarms || [])[0];
+      // first alarm the user hasn't dismissed — a muted alarm must never resurface
+      var a = (d.alarms || []).filter(function(x){ return !dismissedAlarms[x.poolId]; })[0];
       var g = document.getElementById('gWatch'); if (g) g.textContent = 'watching';
-      if (a && a.poolId !== dismissedAlarm){
+      if (a){
         ALARM = a;
         document.getElementById('aTag').textContent = a.replay ? 'LIQUIDITY ALARM · REPLAY' : 'LIVE LIQUIDITY ALARM';
         document.getElementById('aBody').innerHTML = '<b>' + esc(a.protocol) + '</b> is draining — ' + a.dropPct + '% of liquidity gone';
         document.getElementById('aSub').textContent = '$' + a.peakTvlUSD.toLocaleString('en-US') + ' → $' + a.nowTvlUSD.toLocaleString('en-US') + ' · severity ' + a.severity;
         if (CUR === 1) document.getElementById('alarmBanner').classList.add('on'); // hook lives on the landing; never covers the flow
-      } else if (!a){
+      } else {
         ALARM = null; document.getElementById('alarmBanner').classList.remove('on');
       }
     } catch(e){}
   }
   setInterval(pollAlarms, 4000); pollAlarms();
   function alarmToSurgeon(){ document.getElementById('alarmBanner').classList.remove('on'); if (VD) show(3); else { show(1); document.getElementById('addrIn').focus(); } }
-  function dismissAlarm(){ dismissedAlarm = ALARM ? ALARM.poolId : null; document.getElementById('alarmBanner').classList.remove('on'); }
+  function dismissAlarm(){ if (ALARM) dismissedAlarms[ALARM.poolId] = true; ALARM = null; document.getElementById('alarmBanner').classList.remove('on'); }
   async function triggerReplay(){
     var g = document.getElementById('gWatch'); if (g) g.textContent = 'threat incoming…';
     try { await fetch('/cooked-api/alarms/replay'); } catch(e){}
