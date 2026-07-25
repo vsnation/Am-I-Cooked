@@ -559,6 +559,29 @@
   }
   var VD = null;      // real verdict data; null = staged demo story
   var SCANP = null;   // in-flight scan promise
+  // 75s client cap: first scan of a heavy wallet legitimately runs ~30s (multichain
+  // approvals trace), but a stalled request must land in scanFailed, never hang the oven.
+  function scanFetch(addr){
+    var ctl = new AbortController();
+    var kill = setTimeout(function(){ ctl.abort(); }, 75000);
+    return fetch('/cooked-api/scan?address=' + addr.toLowerCase(), { signal: ctl.signal })
+      .then(function(r){ return r.json(); })
+      .catch(function(){ return null; })
+      .finally(function(){ clearTimeout(kill); });
+  }
+  // Pre-heating: start the scan while the user is still on the landing (page load for
+  // the prefill, debounce on typing). RUN then rides the same promise — the oven is
+  // already hot. Server coalesces identical in-flight scans, so this never doubles cost.
+  var PREWARM = { key: null, promise: null };
+  var prewarmTimer = null;
+  function prewarm(){
+    if (new URLSearchParams(location.search).get('demo') === '1') return;
+    var v = (document.getElementById('addrIn').value || '').trim();
+    if (v.toLowerCase() === 'demo' || !validAddr(v)) return;
+    var key = v.toLowerCase();
+    if (PREWARM.key === key) return;
+    PREWARM = { key: key, promise: scanFetch(key) };
+  }
   function startScan(){
     var inp = document.getElementById('addrIn');
     var raw = inp.value.trim();
@@ -570,16 +593,8 @@
       return;
     }
     VD = null;
-    // 75s client cap: first scan of a heavy wallet legitimately runs ~30s (7-chain
-    // approvals trace), but a stalled request must land in scanFailed, never hang the oven.
-    SCANP = demoMode ? null : (function(){
-      var ctl = new AbortController();
-      var kill = setTimeout(function(){ ctl.abort(); }, 75000);
-      return fetch('/cooked-api/scan?address=' + addr.toLowerCase(), { signal: ctl.signal })
-        .then(function(r){ return r.json(); })
-        .catch(function(){ return null; })
-        .finally(function(){ clearTimeout(kill); });
-    })();
+    SCANP = demoMode ? null
+      : (PREWARM.key === addr.toLowerCase() ? PREWARM.promise : scanFetch(addr));
     document.getElementById('addrBox').classList.add('gone');
     document.getElementById('mascot').classList.add('cooking');
     var box = document.getElementById('scanBox');
@@ -933,6 +948,13 @@
     var g = document.getElementById('gWatch'); if (g) g.textContent = 'threat incoming…';
     try { await fetch('/cooked-api/alarms/replay'); } catch(e){}
   }
+
+  // Pre-heat triggers: the prefilled wallet warms right after load; typed input warms
+  // after a 900ms pause. By RUN time the scan is in flight or already cached.
+  document.getElementById('addrIn').addEventListener('input', function(){
+    clearTimeout(prewarmTimer); prewarmTimer = setTimeout(prewarm, 900);
+  });
+  setTimeout(prewarm, 1500);
 
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js'); } catch (e) {}
 </script>
