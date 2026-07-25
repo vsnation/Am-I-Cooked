@@ -92,6 +92,10 @@
 - **Worldcoin AgentKit** (AgentBook verifier; MiniKit signing flow staged in the UI)
 - **Bun** — SEAL runtime + test runner
 - **Messari standardized subgraph schemas** — one query shape across lending markets
+- **Multicall3** — hand-encoded `tryAggregate` batches ~300 `allowance()` re-checks into
+  one `eth_call`, which is what made heavy wallets (vitalik.eth: 2,166 wounds) scannable
+- **Playwright** — 27-assertion e2e suite run against the live production URL
+- **sharp** — rasterizes the 1200×630 SVG verdict card for `/r/<address>` link previews
 - **zod**, **js-sha3**, `node:test` (75+ unit tests, all mocked-RPC, no network)
 - **PWA / Service Worker** — installable, offline shell
 
@@ -166,13 +170,17 @@
 > Two very different answers, both true.
 >
 > **AI inside the product:** the cooked score is not computed by our backend — it's
-> an LLM verdict (DeepSeek-R1) running inside a 0G Compute TEE. The judge prompt
-> embeds the full scoring rubric whose keccak256 is committed on-chain in
-> CookedRegistry at deploy, the TEE's response signature is verified per-call, and
-> the verdict hash is anchored first-write-wins. So "AI decided you're 68% cooked"
-> comes with a proof chain: rubric hash → sealed inference → attestation → on-chain
-> anchor. Stub mode emits fake-but-self-consistent attestations so the whole
-> pipeline is testable offline.
+> an LLM verdict running inside a 0G Compute TEE (qwen2.5-omni-7b, discovered
+> through the 0G provider registry; the stub backend stands in for it offline as
+> `stub/deepseek-r1-tee`). The judge prompt embeds the full scoring rubric whose
+> keccak256 is committed on-chain in CookedRegistry at deploy, the TEE's response
+> signature is verified per-call, and the verdict hash is anchored first-write-wins.
+> Sealing refuses to run if the on-chain rubricHash diverges from local rubric.md,
+> and the parser recomputes the rubric math and rejects off-rubric output. So "AI
+> decided you're 68% cooked" comes with a proof chain: rubric hash → sealed
+> inference → attestation → on-chain anchor. Stub mode emits fake-but-self-consistent
+> attestations that seal_verify genuinely validates and rejects when tampered, so the
+> whole pipeline is testable offline.
 >
 > **AI building the product:** the team ran Claude Code (Anthropic) as pair
 > programmers throughout — multiple agents on different machines coordinating
@@ -180,7 +188,8 @@
 > hackathon (`ccb.js` and its protocol in `CLAUDE.md`, both in the repo — arguably
 > our fourth deliverable). Agents claimed tasks, heartbeated leases, handed work
 > off with evidence (test counts, commit shas, live URLs), and escalated conflicts
-> to humans. Claude wrote most of the implementation and the test suites; humans
+> to humans. Claude wrote most of the implementation and the test suites (75+ unit
+> tests plus a 27-assertion Playwright suite that runs against production); humans
 > set the product direction, the hard rules (key custody, privacy boundary, TEE
 > verification), reviewed everything, and signed every commit and transaction.
 
