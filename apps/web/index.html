@@ -643,7 +643,7 @@
         }, 2500);
         var d = await SCANP;
         clearTimeout(hint);
-        if (d && d.report) { VD = mapReport(d.report); window.__scanAddr = addr; }
+        if (d && d.report) { VD = mapReport(d.report); window.__scanAddr = addr; scanDoneAt = Date.now(); }
         else { scanFailed(); return; }   // real scan failed → honest error, never a fake demo
       }
       show(2);
@@ -991,6 +991,26 @@
 
   // ---- guardian: live liquidity alarm ----
   var ALARM = null, dismissedAlarms = {}; // poolId -> true: a dismissed alarm stays dismissed
+  var scanDoneAt = 0;                     // a real scan completed — alarms surface 10s after, not before
+  var alarmBeeped = {};                   // poolId -> true: one beep per alarm
+  // Two-tone siren, synthesized — no asset, and the user has already interacted
+  // (typed + tapped RUN) so the AudioContext is allowed to sound.
+  function alarmSound(){
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var t = ctx.currentTime;
+      [880, 620].forEach(function(hz, i){
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'square'; o.frequency.value = hz;
+        g.gain.setValueAtTime(0.0001, t + i * .28);
+        g.gain.exponentialRampToValueAtTime(0.1, t + i * .28 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + i * .28 + 0.24);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t + i * .28); o.stop(t + i * .28 + 0.26);
+      });
+      window.__alarmBeeped = true;
+    } catch(e){}
+  }
   async function pollAlarms(){
     try {
       var r = await fetch('/cooked-api/alarms'); var d = await r.json();
@@ -1002,7 +1022,12 @@
         document.getElementById('aTag').textContent = a.replay ? 'LIQUIDITY ALARM · REPLAY' : 'LIVE LIQUIDITY ALARM';
         document.getElementById('aBody').innerHTML = '<b>' + esc(a.protocol) + '</b> is draining — ' + a.dropPct + '% of liquidity gone';
         document.getElementById('aSub').textContent = '$' + a.peakTvlUSD.toLocaleString('en-US') + ' → $' + a.nowTvlUSD.toLocaleString('en-US') + ' · severity ' + a.severity;
-        if (CUR === 1) document.getElementById('alarmBanner').classList.add('on'); // hook lives on the landing; never covers the flow
+        // Alarms surface only once the user has a verdict to relate them to — a scan
+        // finished at least 10s ago — then on ANY screen, with one siren beep each.
+        if (scanDoneAt && Date.now() - scanDoneAt > 10000){
+          document.getElementById('alarmBanner').classList.add('on');
+          if (!alarmBeeped[a.poolId]){ alarmBeeped[a.poolId] = true; alarmSound(); }
+        }
       } else {
         ALARM = null; document.getElementById('alarmBanner').classList.remove('on');
       }
