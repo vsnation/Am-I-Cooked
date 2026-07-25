@@ -4,22 +4,22 @@
 import http from "node:http";
 import { readFileSync } from "node:fs";
 import { autopsy, loadIncidents } from "./autopsy.js";
-import { resolveAddress, approvalsSurface } from "./onchain.js";
+import { resolveAddress, multichainApprovals } from "./onchain.js";
 
 const PORT = Number(process.env.PORT || 7801);
 const KEY = process.env.GRAPH_API_KEY;
 const RPC_URL = process.env.ETH_RPC_URL || "https://rpc.mevblocker.io";
 const MONGO_URL = process.env.MONGO_URL || "";
 const TTL_MS = Number(process.env.CACHE_TTL_MS || 10 * 60 * 1000);
-const SCHEMA = 4; // bump to invalidate all cached reports after a scoring change
+const SCHEMA = 5; // bump to invalidate all cached reports after a scoring change
 if (!KEY) { console.error("[cooked-api] GRAPH_API_KEY missing"); process.exit(1); }
 
 const REGISTRY = JSON.parse(readFileSync(new URL("./incidents.json", import.meta.url), "utf8"));
 loadIncidents(REGISTRY);
 const DRAINERS = REGISTRY.addresses.map(a => a.address);
 const approvalsProvider = (addr) => Promise.race([
-  approvalsSurface(addr, DRAINERS, {}),
-  new Promise((_, rej) => setTimeout(() => rej(new Error("approvals scan timed out")), 20000)),
+  multichainApprovals(addr, REGISTRY, {}),
+  new Promise((_, rej) => setTimeout(() => rej(new Error("approvals scan timed out")), 30000)),
 ]);
 
 const mem = new Map(); // addr -> { at, report }

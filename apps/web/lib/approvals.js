@@ -140,9 +140,9 @@ function decodeString(hex) {
 
 /** Live approvals for `owner`: event history reduced to pairs, then re-verified with
  *  allowance() calls, decorated with token metadata and address-level incident tags. */
-export async function approvalsSurface(rpcUrl, owner, incidents) {
+export async function approvalsSurface(rpcUrl, owner, incidents, opts = {}) {
   const t0 = Date.now();
-  const { logs, tip, chunked } = await approvalEvents(rpcUrl, owner);
+  const { logs, tip, chunked } = await approvalEvents(rpcUrl, owner, opts);
   const pairs = latestPairs(logs).filter(p => p.approvedValue > 0n);
 
   const allowances = await rpcBatch(rpcUrl, pairs.map(p => ({
