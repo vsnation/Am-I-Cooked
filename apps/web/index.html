@@ -240,11 +240,11 @@
   .intro video { display:block; height:min(88vh, 780px); aspect-ratio:390/844; width:auto; max-width:94vw; object-fit:cover;
     border-radius:20px; border:1px solid var(--line); box-shadow:0 24px 80px rgba(0,0,0,.7), 0 0 40px rgba(255,106,43,.12); }
   .intro .skip { position:absolute; top:10px; right:10px; z-index:2;
-    background:rgba(13,10,7,.55); color:var(--muted); border:1px solid var(--line); border-radius:999px;
-    font:600 10px/1 var(--mono); letter-spacing:.14em; padding:7px 11px; cursor:pointer;
-    backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); transition:color .15s ease, border-color .15s ease; }
-  .intro .skip:hover { border-color:var(--ember); color:var(--ember); }
-  .intro .skip:active { transform:scale(.96); }
+    width:30px; height:30px; display:flex; align-items:center; justify-content:center; padding:0;
+    background:var(--soot); color:var(--ember); border:1px solid var(--line); border-radius:999px;
+    font:700 13px/1 var(--mono); cursor:pointer; transition:border-color .15s ease, box-shadow .15s ease; }
+  .intro .skip:hover { border-color:var(--ember); box-shadow:0 0 12px rgba(255,106,43,.35); }
+  .intro .skip:active { transform:scale(.94); }
   .intro .ihint { position:absolute; bottom:calc(16px + env(safe-area-inset-bottom)); left:0; right:0; text-align:center;
     font:600 10px/1 var(--mono); letter-spacing:.14em; color:var(--muted); }
   .guardian b { color:var(--bone); }
@@ -282,7 +282,7 @@
 <div class="intro" id="intro" role="dialog" aria-label="35 second tour">
   <div class="vwrap">
     <video id="introVid" src="tour.mp4" muted playsinline preload="metadata" onended="closeIntro()"></video>
-    <button class="skip" onclick="closeIntro()">SKIP ✕</button>
+    <button class="skip" onclick="closeIntro()" aria-label="Skip tour">✕</button>
   </div>
   <div class="ihint">35-SEC TOUR · SKIP ANY TIME — THE OVEN IS ALREADY HOT</div>
 </div>
