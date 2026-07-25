@@ -7,6 +7,7 @@ import { autopsy, loadIncidents } from "./autopsy.js";
 
 const PORT = Number(process.env.PORT || 7801);
 const KEY = process.env.GRAPH_API_KEY;
+const RPC_URL = process.env.ETH_RPC_URL || "https://rpc.mevblocker.io";
 const MONGO_URL = process.env.MONGO_URL || "";
 const TTL_MS = Number(process.env.CACHE_TTL_MS || 10 * 60 * 1000);
 if (!KEY) { console.error("[cooked-api] GRAPH_API_KEY missing"); process.exit(1); }
@@ -55,7 +56,7 @@ const server = http.createServer(async (req, res) => {
     scans++;
     const cached = await getCached(addr);
     if (cached) { hits++; return send(200, { cached: true, layer: cached.layer, ageMs: Date.now() - cached.at, report: cached.report }); }
-    const report = await autopsy(KEY, addr);
+    const report = await autopsy(KEY, addr, { rpcUrl: RPC_URL });
     await putCached(addr, report);
     send(200, { cached: false, report });
   } catch (e) {

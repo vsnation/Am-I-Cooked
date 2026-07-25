@@ -3,6 +3,8 @@
 // ONE query shape covers every conforming market — that is why a 10-second autopsy
 // is feasible. Designed for extraction as a standalone skill package.
 
+import { approvalsSurface } from "./approvals.js";
+
 const GATEWAY = "https://gateway.thegraph.com/api";
 
 // Incident registry is injected (browser fetches it, server reads it) — keeps this
@@ -115,7 +117,7 @@ export function incidentSurface(universe) {
     if (hit) matches.push({ target: inc.target, date: inc.date, lostUSD: inc.lostUSD, type: inc.type, recovered: inc.recovered, matchedOn: hit });
   }
   return {
-    method: "name/symbol cross-reference vs curated registry (176 incidents, address-level matching pending approvals feed)",
+    method: "name/symbol cross-reference vs curated registry (176 incidents; address-level matching lives in the approvals surface)",
     registrySize: registry().incidents.length,
     matches,
     incidentLossUSD: matches.reduce((a, m) => a + m.lostUSD, 0),
@@ -166,31 +168,38 @@ export function behavioralSurface(dex) {
   };
 }
 
-/** Partial cooked score. Transparent formula, final weights live in the sealed judge:
- *  open wounds 40 (pending approvals feed) · exploit exposure 25 · ghost 20 (pending) ·
- *  behavioral 15 (pending). Until the other feeds land, only exploit exposure scores —
- *  reported as partial, never presented as the full verdict. */
+/** Cooked score. Transparent formula, final weights live in the sealed judge:
+ *  open wounds 40 · exploit exposure 25 · ghost 20 · behavioral 15. If the approvals
+ *  feed is unavailable the score is reported as partial, never presented as the full
+ *  verdict. */
 export function cookedScore(surfaces) {
   const exploit = Math.min(100, surfaces.incidents.matches.length * 34);
   const ghost = surfaces.ghost?.score ?? 0;
   const behavioral = surfaces.behavioral?.score ?? 0;
-  // rubric weights: wounds .40 (pending approvals feed) · exploit .25 · ghost .20 · behavioral .15
-  const score = Math.round(exploit * 0.25 + ghost * 0.20 + behavioral * 0.15);
+  const wounds = typeof surfaces.approvals?.score === "number" ? surfaces.approvals.score : null;
+  // rubric weights: wounds .40 · exploit .25 · ghost .20 · behavioral .15
+  const score = Math.round((wounds ?? 0) * 0.40 + exploit * 0.25 + ghost * 0.20 + behavioral * 0.15);
   const bands = [[20, "RARE"], [40, "MEDIUM RARE"], [60, "MEDIUM WELL"], [80, "COOKED"], [100, "CHARCOAL"]];
   return {
-    partial: true,
-    pendingFeeds: ["approvals(40%)"],
-    components: { exploitExposure: exploit, ghostPortfolio: ghost, behavioral },
+    partial: wounds === null,
+    pendingFeeds: wounds === null ? ["approvals(40%)"] : [],
+    components: { openWounds: wounds, exploitExposure: exploit, ghostPortfolio: ghost, behavioral },
     score,
     band: bands.find(([max]) => score <= max)[1],
   };
 }
 
-/** Full autopsy: the four risk surfaces (two live, two pending their feeds). */
-export async function autopsy(apiKey, address) {
-  const [lending, dex] = await Promise.all([
+/** Full autopsy: the four risk surfaces. Pass opts.rpcUrl to light up the approvals
+ *  feed (open wounds); without it — or if the RPC fails — the score degrades to
+ *  partial instead of the scan dying. */
+export async function autopsy(apiKey, address, opts = {}) {
+  const [lending, dex, approvals] = await Promise.all([
     lendingSurface(apiKey, address),
     dexSurface(apiKey, address),
+    opts.rpcUrl
+      ? approvalsSurface(opts.rpcUrl, address, registry())
+          .catch(e => ({ status: "unavailable", error: e.message }))
+      : Promise.resolve({ status: "pending-feed" }),
   ]);
   const universe = [
     ...lending.flatMap(l => l.openPositions.flatMap(p => [p.market, p.token])),
@@ -202,7 +211,7 @@ export async function autopsy(apiKey, address) {
     lending, dex, incidents,
     ghost: ghostSurface(lending, dex),
     behavioral: behavioralSurface(dex),
-    approvals: { status: "pending-feed" },
+    approvals,
   };
   return {
     address,

@@ -13,8 +13,9 @@ const key = env.GRAPH_API_KEY;
 if (!key) { console.error("GRAPH_API_KEY missing from .env"); process.exit(1); }
 
 const address = process.argv[2] ?? "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"; // vitalik.eth
+const rpcUrl = env.ETH_RPC_URL || "https://rpc.mevblocker.io";
 const t0 = Date.now();
-const report = await autopsy(key, address);
+const report = await autopsy(key, address, { rpcUrl });
 const ms = Date.now() - t0;
 
 const d = report.surfaces.dex;
@@ -30,5 +31,13 @@ for (const m of inc.matches.slice(0, 6))
 const g = report.surfaces.ghost, b = report.surfaces.behavioral;
 console.log(`ghost          ${g.items.length} dead-value signals${g.items[0] ? ` · e.g. ${g.items[0].where} (${g.items[0].why})` : ""}`);
 if (b.worstDay) console.log(`worst day      ${b.worstDay.date} · $${b.worstDay.volumeUSD.toLocaleString("en-US")} moved · biggest ${b.worstDay.pair} $${b.worstDay.biggestSwapUSD.toLocaleString("en-US")}`);
-console.log(`cooked         ${report.cooked.score} (${report.cooked.band}) · PARTIAL — pending: ${report.cooked.pendingFeeds.join(", ")}`);
-console.log(`elapsed        ${ms}ms · all data live from gateway (no mocks)`);
+const a = report.surfaces.approvals;
+if (a.wounds) {
+  console.log(`approvals      ${a.totalApprovalEvents} events → ${a.pairsSeen} pairs · ${a.openCount} OPEN (${a.unlimitedCount} unlimited) · ${a.healedCount} revoked · wounds score ${a.score} · ${a.elapsedMs}ms`);
+  for (const w of a.wounds.slice(0, 6))
+    console.log(`  🔪 [${w.risk}] ${w.symbol} → ${w.spenderLabel ?? w.spender.slice(0, 10) + "…"} · ${w.allowance === "unlimited" ? "UNLIMITED" : "limited"} · since ~${w.grantedAtEst}${w.incident ? ` · ${w.incident.target} ${w.incident.kind}` : ""}`);
+} else {
+  console.log(`approvals      ${a.status}${a.error ? ` (${a.error})` : ""}`);
+}
+console.log(`cooked         ${report.cooked.score} (${report.cooked.band})${report.cooked.partial ? ` · PARTIAL — pending: ${report.cooked.pendingFeeds.join(", ")}` : " · all four surfaces live"}`);
+console.log(`elapsed        ${ms}ms · all data live from gateway + RPC (no mocks)`);
