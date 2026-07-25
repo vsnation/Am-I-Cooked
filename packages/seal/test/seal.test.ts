@@ -2,23 +2,42 @@ import { describe, expect, test } from "bun:test";
 import { StubBackend } from "../src/core.js";
 
 describe("SEAL core (stub backend — same interface live mode must satisfy)", () => {
-  test("infer returns output + verifiable attestation", async () => {
+  test("infer returns output + an integral attestation that claims no TEE", async () => {
     const s = new StubBackend();
     const r = await s.infer("am i cooked?");
     expect(r.output).toContain("scored input");
     const v = await s.verify(r.attestation);
-    expect(v.valid).toBe(true);
+    expect(v.integrity).toBe(true);
     expect(v.model).toBe(s.model);
     expect(v.timestamp).toBeGreaterThan(0);
+    // The stub has no enclave behind it. Reporting valid=true here is what let a
+    // development record pass for a real one downstream.
+    expect(v.valid).toBe(false);
+    expect(v.teeVerified).toBe(false);
   });
 
-  test("tampered attestation fails verification", async () => {
+  test("tampered attestation fails the integrity check", async () => {
     const s = new StubBackend();
     const r = await s.infer("x");
     const forged = r.attestation.replace(/.$/, c => (c === "a" ? "b" : "a"));
-    expect((await s.verify(forged)).valid).toBe(false);
-    expect((await s.verify("att1-garbage")).valid).toBe(false);
-    expect((await s.verify("")).valid).toBe(false);
+    expect((await s.verify(forged)).integrity).toBe(false);
+    expect((await s.verify("att1-garbage")).integrity).toBe(false);
+    expect((await s.verify("")).integrity).toBe(false);
+    for (const bad of [forged, "att1-garbage", ""]) expect((await s.verify(bad)).valid).toBe(false);
+  });
+
+  test("a hand-forged record is never valid — the MAC is unkeyed, so integrity is not proof", async () => {
+    const { LiveBackend } = await import("../src/core.js");
+    const live = new LiveBackend();
+    // Anyone can build a well-formed record: the suffix is sha256 of the body, no secret.
+    const { createHash } = await import("node:crypto");
+    const body = "deepseek-r1|1700000000|0xprovider|chat-123|" + "0".repeat(64);
+    const mac = createHash("sha256").update(body).digest("hex").slice(0, 16);
+    const v = await live.verify(`og1-${body}-${mac}`);
+    expect(v.integrity).toBe(true);   // it IS well-formed…
+    expect(v.valid).toBe(false);      // …and that proves nothing
+    expect(v.teeVerified).toBeNull();
+    expect(v.reason).toContain("not witnessed by this process");
   });
 
   test("memory roundtrip + prefix list", async () => {

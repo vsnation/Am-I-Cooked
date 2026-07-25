@@ -3,6 +3,14 @@
 import { createHash } from "node:crypto";
 
 export interface InferResult { output: string; attestation: string; txHash?: string }
+/** `valid` means the TEE check passed, not merely that the record is well-formed.
+ *  `integrity` is the cheap, unkeyed self-consistency check; `teeVerified` is the only
+ *  field that carries a trust claim, and it is null when this process never saw the
+ *  response (another session's record cannot be validated from its bytes alone). */
+export interface VerifyResult {
+  valid: boolean; model: string; timestamp: number;
+  integrity: boolean; teeVerified: boolean | null; reason?: string;
+}
 export interface SealBackend {
   infer(prompt: string, model?: string): Promise<InferResult>;
   memoryPut(key: string, value: string): Promise<{ cid: string; encrypted: true }>;
@@ -11,7 +19,7 @@ export interface SealBackend {
   agentMint(name: string, meta: Record<string, unknown>): Promise<{ agenticId: string; explorerUrl: string }>;
   agentLoad(agenticId: string): Promise<{ meta: Record<string, unknown>; memoryRoot: string }>;
   chainCall(to: string, data: string, value?: string): Promise<{ txHash: string }>;
-  verify(attestation: string): Promise<{ valid: boolean; model: string; timestamp: number }>;
+  verify(attestation: string): Promise<VerifyResult>;
 }
 
 export const sha = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -52,13 +60,20 @@ export class StubBackend implements SealBackend {
   async chainCall(to: string, data: string, value = "0") {
     return { txHash: `0xstub${sha(to + data + value).slice(0, 58)}` };
   }
-  async verify(attestation: string) {
+  /** Stub attestations are self-consistent by construction and carry NO trust claim —
+   *  there is no enclave behind them. teeVerified is always false so nothing built on
+   *  the stub can mistake a development record for a real one. */
+  async verify(attestation: string): Promise<VerifyResult> {
     const m = /^att1-(.+)-([0-9a-f]{16})$/.exec(attestation);
-    if (!m) return { valid: false, model: "", timestamp: 0 };
+    if (!m) return { valid: false, model: "", timestamp: 0, integrity: false, teeVerified: false, reason: "not a stub attestation" };
     const [, body, mac] = m;
-    const valid = sha(body).slice(0, 16) === mac;
+    const integrity = sha(body).slice(0, 16) === mac;
     const [model, ts] = body.split("|");
-    return { valid, model: valid ? model : "", timestamp: valid ? Number(ts) : 0 };
+    return {
+      valid: false, integrity, teeVerified: false,
+      model: integrity ? model : "", timestamp: integrity ? Number(ts) : 0,
+      reason: integrity ? "stub backend — self-consistent, but no TEE ran" : "integrity check failed",
+    };
   }
 }
 
@@ -91,13 +106,19 @@ export class LiveBackend implements SealBackend {
   }
   private async broker() {
     if (!this.brokerP) this.brokerP = (async () => {
+      // Resolve the wallet FIRST: importing the SDK before checking config meant a
+      // missing key surfaced as "Cannot find module …", hiding the actual requirement.
+      const wallet = await this.wallet();
       const { createZGComputeNetworkBroker } = await import("@0gfoundation/0g-compute-ts-sdk");
-      return createZGComputeNetworkBroker(await this.wallet());
+      return createZGComputeNetworkBroker(wallet);
     })();
     return this.brokerP;
   }
   private async memCipherKey(): Promise<Buffer> {
-    const pk = process.env.OG_PRIVATE_KEY ?? "";
+    const pk = process.env.OG_PRIVATE_KEY;
+    // Defaulting to "" derived a real, deterministic key from an empty secret — memory
+    // would encrypt and decrypt happily while being readable by anyone running the code.
+    if (!pk) throw new Error("SEAL live mode: OG_PRIVATE_KEY not set (memory encryption key derives from it)");
     return createHash("sha256").update(pk + ":seal-mem").digest();
   }
 
@@ -209,15 +230,25 @@ export class LiveBackend implements SealBackend {
     return { txHash: receipt.hash };
   }
 
-  async verify(attestation: string) {
+  /** The `-<mac>` suffix is an UNKEYED hash of the record's own bytes: it detects
+   *  corruption, and nothing else. Anyone can compute it, so it can never establish that
+   *  a TEE ran. Only `this.verified` — set when processResponse checked the provider's
+   *  signature at response time — carries that claim. An attestation this process did
+   *  not witness is therefore reported unverified, with the provider and chatID embedded
+   *  in the body so an auditor can re-check it upstream. */
+  async verify(attestation: string): Promise<VerifyResult> {
     const m = /^og1-(.+)-([0-9a-f]{16})$/.exec(attestation);
-    if (!m) return { valid: false, model: "", timestamp: 0 };
+    if (!m) return { valid: false, model: "", timestamp: 0, integrity: false, teeVerified: null, reason: "not a 0G attestation" };
     const [, body, mac] = m;
-    const intact = sha(body).slice(0, 16) === mac;
-    const teeValid = this.verified.get(mac);
-    const [model, ts] = body.split("|");
-    const valid = intact && teeValid !== false; // unknown MAC (other session): integrity-only check
-    return { valid, model: valid ? model : "", timestamp: valid ? Number(ts) : 0 };
+    const integrity = sha(body).slice(0, 16) === mac;
+    const teeVerified = this.verified.has(mac) ? this.verified.get(mac)! : null;
+    const [model, ts, provider, chatID] = body.split("|");
+    const valid = integrity && teeVerified === true;
+    const reason = !integrity ? "integrity check failed"
+      : teeVerified === true ? undefined
+      : teeVerified === false ? "TEE signature check failed at response time"
+      : `not witnessed by this process — re-check chatID ${chatID} with provider ${provider}`;
+    return { valid, integrity, teeVerified, model: integrity ? model : "", timestamp: integrity ? Number(ts) : 0, reason };
   }
 }
 

@@ -18,7 +18,12 @@ const recalled = await seal.memoryGet("goldfish:lastThought");
 console.log("3· remembered", recalled.value);
 
 const proof = await seal.verify(thought.attestation);
-console.log("4· proved    ", proof.valid ? `✓ ran on ${proof.model} @ ${new Date(proof.timestamp).toISOString()}` : "✗ INVALID");
+// valid = a TEE actually signed this response. integrity = the record is intact.
+// On the stub the second is true and the first is deliberately not — that is the honest
+// reading, and the whole point of running the same code against the live backend.
+console.log("4· proved    ", proof.valid
+  ? `✓ TEE-verified on ${proof.model} @ ${new Date(proof.timestamp).toISOString()}`
+  : proof.integrity ? `~ record intact, no TEE claim (${proof.reason})` : "✗ INVALID");
 
-if (!proof.valid || recalled.value !== thought.output) { console.error("goldfish is broken"); process.exit(1); }
+if (!proof.integrity || recalled.value !== thought.output) { console.error("goldfish is broken"); process.exit(1); }
 console.log("goldfish remembers everything and can prove it. 🐟");

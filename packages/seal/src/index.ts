@@ -46,7 +46,7 @@ server.registerTool("seal_chain_call",
   async ({ to, data, value }) => asText(await backend.chainCall(to, data, value)));
 
 server.registerTool("seal_verify",
-  { description: "Verify ANY agent's attestation — the trust primitive. Returns validity, model, timestamp.",
+  { description: "Verify ANY agent's attestation. Returns {valid, integrity, teeVerified, model, timestamp, reason}. valid=true ONLY when a TEE signature was checked at response time; integrity=true just means the record is intact (its MAC is unkeyed, so integrity alone proves nothing). teeVerified=null means this process never witnessed the response — re-check the embedded provider+chatID upstream.",
     inputSchema: { attestation: z.string() } },
   async ({ attestation }) => asText(await backend.verify(attestation)));
 

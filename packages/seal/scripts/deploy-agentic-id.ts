@@ -32,5 +32,8 @@ const deploy = async (name: string, args: unknown[] = []) => {
 };
 
 const oracle = await deploy("MockOracle");
-const agentic = await deploy("AgenticID", [oracle]);
+// The deployer is the minter: mint() is gated so nobody else can forge a Surgeon identity.
+const agentic = await deploy("AgenticID", [oracle, wallet.address]);
+const minter = await new ethers.Contract(agentic, ["function minter() view returns (address)"], wallet).minter();
+console.log(`readback minter ${minter} ${minter === wallet.address ? "MATCHES deployer" : "MISMATCH — do not use"}`);
 console.log(`\nadd to .env:\nOG_AGENT_CONTRACT=${agentic}`);

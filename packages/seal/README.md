@@ -8,6 +8,13 @@ SEAL is an MCP server exposing the 0G stack — Compute (TEE inference), Storage
 AI client can call. `seal_verify` is the differentiator: **any client can verify any
 OTHER agent's attestation**, which makes SEAL a trust primitive, not an API wrapper.
 
+What `seal_verify` does and does not claim: an attestation's `-<mac>` suffix is an
+**unkeyed** hash of its own body, so it detects tampering and nothing more — anyone can
+compute one. `valid: true` is returned **only** when the provider's TEE signature was
+checked at response time by this process (`teeVerified: true`). A record from another
+session comes back `teeVerified: null` with the provider and chatID it embeds, so an
+auditor can re-check it upstream. Integrity is not proof, and the API says so.
+
 ## Architecture
 
 ```mermaid
@@ -63,7 +70,9 @@ bun start             # run the MCP server on stdio (SEAL_MODE=stub|live)
 
 1. **`examples/goldfish.ts`** — a goldfish with permanent memory (~20 lines): mints an
    Agentic ID, runs sealed inference, stores the thought, recalls it, verifies its own
-   attestation. `bun run goldfish`.
+   attestation. `bun run goldfish`. (Memory blobs live on 0G Storage permanently, but the
+   `key -> rootHash` index is in-process — a restart forgets *where* things are, not the
+   data. A persisted index is the obvious next step.)
 2. **AM I COOKED?** (`apps/web` in this monorepo) — the flagship: contains **zero 0G SDK
    imports**; every 0G call goes through SEAL.
 
