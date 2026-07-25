@@ -229,6 +229,9 @@
   .sharerow { display:flex; gap:8px; margin-top:8px; }
   .sharerow .btn { flex:1; min-width:0; }
   .sharebtn { font-size:13px; padding:12px 8px; white-space:nowrap; }
+  /* Telegram's own mark (telegram.org/img/t_logo.svg) keeps its brand blue on the dark
+     button — recolouring a third-party logo to match our palette is not ours to do. */
+  .tgi { width:15px; height:15px; vertical-align:-3px; margin-right:3px; }
   .cardwrap { background:#5c3a22; color:#f0e2cb; border-radius:16px; padding:18px; font-family:var(--mono); box-shadow:0 16px 40px rgba(0,0,0,.5); }
   .cardwrap.heal { background:#dfa575; color:#241505; }
   .cardwrap .h { display:flex; justify-content:space-between; font-size:9px; letter-spacing:.16em; text-transform:uppercase; opacity:.8; }
@@ -275,6 +278,18 @@
   .scanw{ color:var(--flame); }
   @media(prefers-reduced-motion:reduce){ .world *{ animation:none !important; transition:none !important; } }
 </style>
+
+<!-- Telegram's official mark, path verbatim from telegram.org/img/t_logo.svg — defined
+     once, referenced by both share modals so the two copies can never drift. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <linearGradient id="tglogoGrad" x1="50%" x2="50%" y1="0%" y2="99.258%">
+    <stop offset="0%" stop-color="#2AABEE"/><stop offset="100%" stop-color="#229ED9"/>
+  </linearGradient>
+  <symbol id="tglogo" viewBox="0 0 128 128">
+    <circle cx="64" cy="64" r="64" fill="url(#tglogoGrad)"/>
+    <path fill="#FFF" d="M28.9700376,63.3244248 C47.6273373,55.1957357 60.0684594,49.8368063 66.2934036,47.2476366 C84.0668845,39.855031 87.7600616,38.5708563 90.1672227,38.528 C90.6966555,38.5191258 91.8804274,38.6503351 92.6472251,39.2725385 C93.294694,39.7979149 93.4728387,40.5076237 93.5580865,41.0057381 C93.6433345,41.5038525 93.7494885,42.63857 93.6651041,43.5252052 C92.7019529,53.6451182 88.5344133,78.2034783 86.4142057,89.5379542 C85.5170662,94.3339958 83.750571,95.9420841 82.0403991,96.0994568 C78.3237996,96.4414641 75.5015827,93.6432685 71.9018743,91.2836143 C66.2690414,87.5912212 63.0868492,85.2926952 57.6192095,81.6896017 C51.3004058,77.5256038 55.3966232,75.2369981 58.9976911,71.4967761 C59.9401076,70.5179421 76.3155302,55.6232293 76.6324771,54.2720454 C76.6721165,54.1030573 76.7089039,53.4731496 76.3346867,53.1405352 C75.9604695,52.8079208 75.4081573,52.921662 75.0095933,53.0121213 C74.444641,53.1403447 65.4461175,59.0880351 48.0140228,70.8551922 C45.4598218,72.6091037 43.1463059,73.4636682 41.0734751,73.4188859 C38.7883453,73.3695169 34.3926725,72.1268388 31.1249416,71.0646282 C27.1169366,69.7617838 23.931454,69.0729605 24.208838,66.8603276 C24.3533167,65.7078514 25.9403832,64.5292172 28.9700376,63.3244248 Z"/>
+  </symbol>
+</defs></svg>
 
 <div id="splash" style="position:fixed;inset:0;z-index:9999;background:radial-gradient(70% 46% at 50% 34%,rgba(255,106,43,.12),transparent 70%),#0d0a07;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s ease;font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
   <svg id="splashMark" width="82" height="82" viewBox="0 0 100 100" style="filter:drop-shadow(0 10px 26px rgba(255,106,43,.3))">
@@ -509,7 +524,7 @@
       <button class="btn hot sharebtn" id="miseryNativeBtn" style="margin-top:12px;display:none" onclick="nativeShare('misery', this)">📤 Share…</button>
       <div class="sharerow">
         <button class="btn hot sharebtn" id="miseryXBtn" onclick="postToX('misery')">𝕏 Post it</button>
-        <button class="btn ghost sharebtn" onclick="shareTelegram('misery')">✈️ Telegram</button>
+        <button class="btn ghost sharebtn" onclick="shareTelegram('misery')"><svg class="tgi"><use href="#tglogo"/></svg>Telegram</button>
       </div>
       <div class="sharerow">
         <button class="btn ghost sharebtn" id="saveMiseryBtn" onclick="saveCard('misery', this)">⬇ Save image</button>
@@ -531,7 +546,7 @@
       <button class="btn hot sharebtn" id="healNativeBtn" style="margin-top:12px;display:none" onclick="nativeShare('recovery', this)">📤 Share…</button>
       <div class="sharerow">
         <button class="btn hot sharebtn" id="healXBtn" onclick="postToX('recovery')">𝕏 Post it</button>
-        <button class="btn ghost sharebtn" onclick="shareTelegram('recovery')">✈️ Telegram</button>
+        <button class="btn ghost sharebtn" onclick="shareTelegram('recovery')"><svg class="tgi"><use href="#tglogo"/></svg>Telegram</button>
       </div>
       <div class="sharerow">
         <button class="btn ghost sharebtn" id="healSaveBtn" onclick="saveCard('recovery', this)">⬇ Save image</button>
