@@ -57,7 +57,7 @@ function mockGateway() {
     calls.push(url);
     const id = String(url).split("/subgraphs/id/")[1];
     const schema = REGISTRY.find(s => s.id === id)?.schema;
-    return { json: async () => ({ data: FIXTURES[schema] }) };
+    return { ok: true, status: 200, json: async () => ({ data: FIXTURES[schema] }) };
   };
   return { calls, restore: () => { globalThis.fetch = real; } };
 }
@@ -97,7 +97,7 @@ test("autopsy: full report shape against mocked gateway + test incidents", async
 test("gql: proxy mode routes through proxyBase instead of the gateway", async () => {
   const real = globalThis.fetch;
   let seen;
-  globalThis.fetch = async (url) => { seen = String(url); return { json: async () => ({ data: { ok: 1 } }) }; };
+  globalThis.fetch = async (url) => { seen = String(url); return { ok: true, status: 200, json: async () => ({ data: { ok: 1 } }) }; };
   try {
     await gql({ proxyBase: "https://example.com/cooked-api" }, "SubId", "query {}");
     assert.equal(seen, "https://example.com/cooked-api/subgraphs/id/SubId");
@@ -106,7 +106,7 @@ test("gql: proxy mode routes through proxyBase instead of the gateway", async ()
 
 test("gql: surfaces subgraph errors as thrown Errors", async () => {
   const real = globalThis.fetch;
-  globalThis.fetch = async () => ({ json: async () => ({ errors: [{ message: "boom" }] }) });
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({ errors: [{ message: "boom" }] }) });
   try {
     await assert.rejects(() => gql("k", "SomeId", "query {}"), /SomeId: boom/);
   } finally { globalThis.fetch = real; }
