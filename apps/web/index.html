@@ -340,7 +340,7 @@
       <svg width="42" height="42" viewBox="0 0 130 130"><g fill="#86251f"><circle cx="65" cy="65" r="44"/><circle cx="30" cy="52" r="10"/><circle cx="99" cy="45" r="9"/><circle cx="94" cy="98" r="10"/><circle cx="38" cy="97" r="8"/></g><circle cx="65" cy="65" r="31" fill="none" stroke="#c86a52" stroke-width="2.5"/><g transform="rotate(38 65 65)"><rect x="61" y="34" width="8" height="17" rx="3" fill="#c86a52"/><path d="M 61 53 h 8 v 26 q 0 12 -4 17 q -4 -5 -4 -17 z" fill="#c86a52"/></g></svg>
       <div class="idbadge"><b>0G Agentic ID</b> · #SRG-001<br>authority: <b id="authLvl">NONE — anonymous</b></div>
     </div>
-    <div class="plan">
+    <div class="plan" id="plan">
       <div class="wound" id="w1"><span class="ico">🔪</span><div class="t">Revoke unlimited USDC approval<small>spender flagged as drainer · 41 min ago</small></div><span class="st">waiting</span></div>
       <div class="wound" id="w2"><span class="ico">🔪</span><div class="t">Revoke approval to dead vault<small>contract renounced · TVL −99.7%</small></div><span class="st">waiting</span></div>
     </div>
@@ -479,7 +479,7 @@
     setFx(n <= 2 ? 'ember' : (n === 4 ? 'spark' : 'off'));
     if (n === 1) resetLanding();
     if (n === 2) runVerdict();
-    if (n === 3){ resetSurgeon(); document.getElementById('srgDemo').style.display = VD ? '' : 'none'; }
+    if (n === 3){ resetSurgeon(); renderWounds(); document.getElementById('srgDemo').style.display = (VD && VD.wounds && VD.wounds.length) ? 'none' : (VD ? '' : 'none'); }
     if (n === 4) runDischarge();
   }
   function go(n){ show(n); }
@@ -542,8 +542,11 @@
       { k: 'Drained protocols touched', bad: m.length > 0, open: m.length > 0,
         v: m.length ? m.length + ' of your protocols got DRAINED' : 'none found — suspiciously clean',
         ev: m.length ? m.map(function(x){ return '⚠ <b>' + x.target + '</b> — $' + M(x.lostUSD) + 'M drained · ' + x.date + ' · via ' + x.matchedOn.toUpperCase() + ' · funds ' + x.recovered; }).join('<br>') : 'not a single hacked protocol in this history' },
-      { k: 'Open wounds', v: 'approvals scan — feed in progress', dim: true,
-        ev: 'unlimited allowances + known-drainer matching land with the approvals feed (40% of final score)' },
+      (function(){ var ap = rep.surfaces.approvals || {}; var w = ap.items || [];
+        return { k: 'Open wounds', bad: w.length > 0, open: w.length > 0,
+          v: w.length ? w.length + ' live dangerous approval' + (w.length>1?'s':'') + ' across ' + (ap.chains||[]).length + ' chain' + ((ap.chains||[]).length>1?'s':'') : 'no open wounds — approvals are clean',
+          ev: w.length ? w.slice(0,6).map(function(x){ return '🔪 <b>'+(x.symbol||x.token.slice(0,8))+'</b> → '+(x.spenderLabel||(x.spender.slice(0,10)+'…'))+' · '+x.chain+' · '+x.risk+(x.unlimited?' · unlimited':''); }).join('<br>') : 'nothing to revoke — nice' };
+      })(),
       { k: 'Ghost portfolio', bad: g.items.length > 0,
         v: g.items.length ? g.items.length + ' dead-value signals' : 'no value stranded in dead protocols',
         ev: g.items.map(function(i){ return i.where + ' — ' + i.why; }).join('<br>') || '—' },
@@ -556,8 +559,10 @@
     else if (c.score <= 60) roast = top ? '"You touched ' + top.target + ' before it lost $' + M(top.lostUSD) + 'M. The pan remembers."' : '"Marinating in questionable decisions since your first signature."';
     else roast = top ? '"' + top.target + ' took $' + M(top.lostUSD) + 'M with it — and you were THERE. Legendary."' : '"The smoke alarm has your address memorized."';
     var short = rep.address.slice(0, 6) + '…' + rep.address.slice(-4);
-    return { score: c.score, band: c.band, roast: roast, rows: rows, addr: short,
-      pct: 'PARTIAL SCORE · APPROVALS FEED PENDING (40%) · SEALED JUDGE SOON', knives: null };
+    var wounds = (rep.surfaces.approvals && rep.surfaces.approvals.items) || [];
+    return { score: c.score, band: c.band, roast: roast, rows: rows, addr: short, wounds: wounds, partial: c.partial,
+      pct: c.partial ? 'PARTIAL SCORE · APPROVALS PENDING (40%)' : (wounds.length ? 'MORE COOKED THAN 84% · ' + wounds.length + ' KNIVES STILL IN' : 'MORE COOKED THAN 84% OF WALLETS SCANNED'),
+      knives: wounds.length };
   }
 
   // ---- verdict ----
@@ -575,7 +580,8 @@
       document.getElementById('pctV').textContent = VD.pct;
       document.getElementById('cardScore').innerHTML = VD.score + '<small>%</small>';
       document.getElementById('cardBand').textContent = VD.band;
-      document.getElementById('cardRoast').textContent = VD.roast + ' (partial score — approvals pending)';
+      document.getElementById('cardRoast').textContent = VD.roast + (VD.partial ? ' (partial — approvals pending)' : '');
+      if (VD.knives) document.getElementById('knivesV').textContent = '🔪 ' + VD.knives + ' knives still in · tap “want the knives out?”';
       document.getElementById('cardAddr').textContent = VD.addr;
     }
     var ROAST = VD ? VD.roast : DEMO_ROAST;
@@ -661,6 +667,13 @@
   }
   function operate(){
     document.getElementById('operateBtn').disabled = true;
+    if (window.__wounds && window.__wounds.length && window.ethereum){
+      operateReal().catch(function(){ runStagedOperate(); });
+      return;
+    }
+    runStagedOperate();
+  }
+  function runStagedOperate(){
     cut('w1', 300, '0x9f3a…');
     cut('w2', 2100, '0x1d80…');
     later(function(){
@@ -770,6 +783,46 @@
       if (k >= 1) clearInterval(iv);
     }, 33);
     timers.push(iv);
+  }
+
+  // Render the real wounds (top 3) into the Surgeon's plan, or keep the staged pair.
+  function renderWounds(){
+    if (!VD || !VD.wounds || !VD.wounds.length) return; // demo / no-wounds → staged w1,w2 stay
+    var top = VD.wounds.slice(0, 3);
+    document.getElementById('plan').innerHTML = top.map(function(w, i){
+      return '<div class="wound" id="w' + i + '"><span class="ico">🔪</span><div class="t">Revoke ' +
+        (w.symbol || w.token.slice(0,8)) + ' approval<small>' + (w.spenderLabel || (w.spender.slice(0,10)+'…')) +
+        ' · ' + w.chain + ' · ' + w.risk + (w.unlimited ? ' · unlimited' : '') + '</small></div><span class="st">waiting</span></div>';
+    }).join('');
+    window.__wounds = top;
+  }
+  async function sendRevoke(w){
+    if (!window.ethereum) throw new Error('no-wallet');
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    try { await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x' + w.revoke.chainId.toString(16) }] }); } catch(e){}
+    var from = (await window.ethereum.request({ method: 'eth_accounts' }))[0];
+    return await window.ethereum.request({ method: 'eth_sendTransaction',
+      params: [{ from: from, to: w.revoke.to, data: w.revoke.data, value: '0x0' }] });
+  }
+  async function operateReal(){
+    var wounds = window.__wounds || [];
+    var ok = 0;
+    for (var i = 0; i < wounds.length; i++){
+      var w = wounds[i], el = document.getElementById('w' + i);
+      el.className = 'wound doing'; el.querySelector('.st').innerHTML = '<span class="spin"></span> sign in wallet…';
+      try {
+        var tx = await sendRevoke(w);
+        el.className = 'wound healed'; el.querySelector('.ico').textContent = '🩹';
+        el.querySelector('.st').textContent = 'revoked ✓'; ok++;
+      } catch(e){
+        el.className = 'wound'; el.querySelector('.st').textContent = (e && e.message === 'no-wallet') ? 'connect wallet' : 'rejected';
+        if (e && e.message === 'no-wallet') throw e; // fall back to simulated flow
+      }
+    }
+    var lock = document.getElementById('lock');
+    lock.className = 'interlock ok';
+    lock.innerHTML = '<span class="tag">🛎 Operation complete</span>' + ok + '/' + wounds.length + ' revocations signed on-chain. Re-scanning…';
+    later(function(){ show(4); }, 2200);
   }
 
   function openModal(id){ document.getElementById(id).classList.add('on'); }
