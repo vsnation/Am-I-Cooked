@@ -1,4 +1,9 @@
 /.idea
-
+node_modules/
+.env*
+*.log
+dist/
+# internal tooling & docs stay local
 CLAUDE.md
 ccb.js
+.mcp.json

@@ -1,0 +1,17 @@
+{
+  "name": "seal-mcp",
+  "version": "0.1.0",
+  "description": "One config line gives your AI client private TEE inference, permanent encrypted memory, and proof of every answer — 0G Compute / Storage / Chain / Agentic ID as MCP tools.",
+  "type": "module",
+  "bin": { "seal-mcp": "src/index.ts" },
+  "scripts": {
+    "start": "bun src/index.ts",
+    "test": "bun test",
+    "goldfish": "bun examples/goldfish.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "license": "MIT"
+}
