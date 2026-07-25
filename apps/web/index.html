@@ -234,6 +234,18 @@
   .cardwrap .f { display:flex; justify-content:space-between; font-size:9px; letter-spacing:.1em; margin-top:12px; opacity:.85; }
 
   .guardian { font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--heal); text-align:center; margin:6px 0 0; cursor:pointer; }
+  .tourchip { font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--muted); text-align:center; margin:4px 0 0; cursor:pointer; }
+  .tourchip b { color:var(--flame); }
+  .intro { position:fixed; inset:0; z-index:120; background:rgba(13,10,7,.97); display:none; align-items:center; justify-content:center; }
+  .intro.on { display:flex; }
+  .intro video { height:min(88vh, 780px); aspect-ratio:390/844; width:auto; max-width:94vw; object-fit:cover;
+    border-radius:20px; border:1px solid var(--line); box-shadow:0 24px 80px rgba(0,0,0,.7), 0 0 40px rgba(255,106,43,.12); }
+  .intro .skip { position:absolute; top:calc(14px + env(safe-area-inset-top)); right:16px; z-index:2;
+    background:var(--soot); color:var(--bone); border:1px solid var(--line); border-radius:999px;
+    font:700 12px/1 var(--mono); letter-spacing:.12em; padding:10px 16px; cursor:pointer; }
+  .intro .skip:hover { border-color:var(--ember); color:var(--ember); }
+  .intro .ihint { position:absolute; bottom:calc(16px + env(safe-area-inset-bottom)); left:0; right:0; text-align:center;
+    font:600 10px/1 var(--mono); letter-spacing:.14em; color:var(--muted); }
   .guardian b { color:var(--bone); }
   .guardian .pulse { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--heal); box-shadow:0 0 8px var(--heal); animation:gpulse 1.6s ease-in-out infinite; vertical-align:0; margin-right:5px; }
   @keyframes gpulse { 0%,100%{opacity:.4} 50%{opacity:1} }
@@ -266,6 +278,12 @@
   <style>@keyframes swpp{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(10deg)}}@media(prefers-reduced-motion:reduce){#splashPtr{animation:none}}</style>
 </div>
 <script>(function(){var d=document.getElementById('splashDots'),n=0;var t=setInterval(function(){d.textContent='.'.repeat(n=(n+1)%4);},350);function go(){clearInterval(t);var s=document.getElementById('splash');if(!s)return;s.style.opacity='0';setTimeout(function(){s.remove();},520);}var t0=Date.now();window.addEventListener('load',function(){setTimeout(go,Math.max(0,650-(Date.now()-t0)));});setTimeout(go,3500);})();</script>
+<div class="intro" id="intro" role="dialog" aria-label="35 second tour">
+  <video id="introVid" src="intro.mp4" muted playsinline preload="metadata" onended="closeIntro()"></video>
+  <button class="skip" onclick="closeIntro()">SKIP ✕</button>
+  <div class="ihint">35-SEC TOUR · SKIP ANY TIME — THE OVEN IS ALREADY HOT</div>
+</div>
+
 <div class="world">
 <div class="rig">
 <div class="phone" id="phone">
@@ -291,6 +309,7 @@
       <div class="lbl">lost by wallets scanned · live</div>
     </div>
     <div class="guardian" id="guardian" onclick="triggerReplay()"><span class="pulse"></span>GUARDIAN ACTIVE · <b id="gWatch">watching</b> DeFi liquidity live</div>
+    <div class="tourchip" onclick="openIntro()">▶ <b>35-SEC TOUR</b> · what this thing does</div>
     <div class="mascot" id="mascot">
       <svg width="205" height="143" viewBox="0 0 200 148">
         <path class="msc-steam" d="M 92 30 q -7 -8 0 -15"/>
@@ -992,6 +1011,21 @@
     var g = document.getElementById('gWatch'); if (g) g.textContent = 'threat incoming…';
     try { await fetch('/cooked-api/alarms/replay'); } catch(e){}
   }
+
+  // ---- first-visit intro tour: the annotated demo clip, skippable always ----
+  function openIntro(){
+    var i = document.getElementById('intro'); i.classList.add('on');
+    var v = document.getElementById('introVid');
+    try { v.currentTime = 0; v.muted = true; v.play().catch(function(){}); } catch(e){}
+  }
+  function closeIntro(){
+    var i = document.getElementById('intro'); i.classList.remove('on');
+    try { document.getElementById('introVid').pause(); } catch(e){}
+    try { localStorage.setItem('cookedIntroSeen', '1'); } catch(e){}
+  }
+  try {
+    if (new URLSearchParams(location.search).get('demo') !== '1' && !localStorage.getItem('cookedIntroSeen')) openIntro();
+  } catch(e){}
 
   // Pre-heat triggers: the prefilled wallet warms right after load; typed input warms
   // after a 900ms pause. By RUN time the scan is in flight or already cached.
