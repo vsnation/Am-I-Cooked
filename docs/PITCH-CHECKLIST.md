@@ -23,7 +23,7 @@ These gate everything below.
   open source, deployed and live; demo video in the submission; live judging of
   4 minutes demo plus 3 minutes Q&A. Their warning: "don't prepare this last
   minute". Finalist pack: 1,000 USDC per member, ETHGlobal Plus for 12 months,
-  $500 flight credit, ETHConf 2027 Pro Pass, $15,000+ in developer credits.
+  \$500 flight credit, ETHConf 2027 Pro Pass, \$15,000+ in developer credits.
 - **Track selection: exactly one track per team** (From Scratch vs Continuity),
   picked on the dashboard. We are From Scratch — the repo was born at the event.
 - **AI usage** is allowed (Claude, Codex, Cursor), but judges will ask how AI was
@@ -39,14 +39,14 @@ These gate everything below.
 
 | Sponsor | Track | 1st prize | Fit |
 |---|---|---|---|
-| 0G | Best AI Product on 0G | $3,000 | Core: sealed TEE judge, Storage, Agentic ID, registry |
-| 0G | Best Infrastructure & Tooling | $1,500 | SEAL as standalone dev tooling; qualifies automatically |
-| World | AgentKit New Use Cases | $4,000 | Core: human-backed Surgeon via AgentBook |
-| World | Selfie Check Beta | $1,000 | The ON-DUTY gate; needs integration and testing docs |
-| World | Identity Check Beta | $1,000 | Two-boolean recourse (t15); same docs plus data-minimization note |
-| The Graph | Best AI Tooling for The Graph | $2,500 | cooked-skill (MCP server + SKILL) is literally the brief |
-| The Graph | Best AI Use Case | $2,000 | Graph is load-bearing; the judge is the AI reasoning layer |
-| The Graph | Composable / Standardized | $2,000 | Messari standardized schemas plus Uniswap v3 composition |
+| 0G | Best AI Product on 0G | \$3,000 | Core: sealed TEE judge, Storage, Agentic ID, registry |
+| 0G | Best Infrastructure & Tooling | \$1,500 | SEAL as standalone dev tooling; qualifies automatically |
+| World | AgentKit New Use Cases | \$4,000 | Core: human-backed Surgeon via AgentBook |
+| World | Selfie Check Beta | \$1,000 | The ON-DUTY gate; needs integration and testing docs |
+| World | Identity Check Beta | \$1,000 | Two-boolean recourse (t15); same docs plus data-minimization note |
+| The Graph | Best AI Tooling for The Graph | \$2,500 | cooked-skill (MCP server + SKILL) is literally the brief |
+| The Graph | Best AI Use Case | \$2,000 | Graph is load-bearing; the judge is the AI reasoning layer |
+| The Graph | Composable / Standardized | \$2,000 | Messari standardized schemas plus Uniswap v3 composition |
 
 **ENS is used, not selected.** The `.eth` input (3-RPC fallback resolver, ENS demo
 wallets) stays a product feature and a pitch line, but with the 3-partner cap it
@@ -58,7 +58,7 @@ Continuity tracks are for prior-event projects; we take the standard ones.
 
 ## 0G
 
-### Best AI Product ($3,000 / $2,000 / $1,000)
+### Best AI Product (\$3,000 / \$2,000 / \$1,000)
 
 - [x] End-user product on 0G Compute — sealed judge, per-response signature verify
 - [x] 0G Storage — encrypted scan history (AES-256-GCM, client-side)
@@ -73,7 +73,7 @@ Continuity tracks are for prior-event projects; we take the standard ones.
 - [ ] Demo video under 3 minutes — t17 plans 2:50; must show the 0G features
 - [ ] Team contacts (Telegram and X) in the submission
 
-### Best Infrastructure & Tooling ($1,500, up to 3 teams)
+### Best Infrastructure & Tooling (\$1,500, up to 3 teams)
 
 - [x] At least one working example agent using the framework — seal ships
       `examples/goldfish.ts` and `examples/desk-check.ts`
@@ -82,7 +82,7 @@ Continuity tracks are for prior-event projects; we take the standard ones.
 
 ## World
 
-### AgentKit New Use Cases ($4,000 / $2,500 / $1,500)
+### AgentKit New Use Cases (\$4,000 / \$2,500 / \$1,500)
 
 - [x] AgentKit used meaningfully — AgentBook verifier on World Chain, agent
       self-check, `/surgeon/status|authorize|probe` (commit 9493c6a)
@@ -93,7 +93,7 @@ Continuity tracks are for prior-event projects; we take the standard ones.
 - [ ] "Genuinely new workflow" pitch line ready: an agent whose *authority*
       (not identity) is human-backed and expires daily
 
-### Selfie Check Beta + Identity Check Beta ($1,000 / $750 each)
+### Selfie Check Beta + Identity Check Beta (\$1,000 / \$750 each)
 
 Only if t6/t15 land. Both tracks hard-require, verbatim: "Includes **testing
 documentation** with both **developer feedback** and **user feedback**".
