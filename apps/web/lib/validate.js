@@ -22,4 +22,9 @@ for (const l of report.surfaces.lending)
   console.log(`lending        ${l.source} · protocol TVL $${Math.round(l.protocolTvlUSD).toLocaleString("en-US")} · account positions ${l.positionCount}`);
 console.log(`dex            ${d.source} · LP positions ${d.lpPositions.length} · recent swaps ${d.recentSwaps.length}`);
 if (d.recentSwaps[0]) console.log(`latest swap    ${d.recentSwaps[0].pair} $${Math.round(d.recentSwaps[0].amountUSD)} @ ${new Date(d.recentSwaps[0].ts * 1000).toISOString()}`);
+const inc = report.surfaces.incidents;
+console.log(`incidents      ${inc.matches.length} hacked-protocol brushes (registry: ${inc.registrySize})`);
+for (const m of inc.matches.slice(0, 6))
+  console.log(`  ⚠ ${m.target} (${m.date}) · $${(m.lostUSD / 1e6).toFixed(1)}M lost · matched on "${m.matchedOn}" · ${m.recovered}`);
+console.log(`cooked         ${report.cooked.score} (${report.cooked.band}) · PARTIAL — pending: ${report.cooked.pendingFeeds.join(", ")}`);
 console.log(`elapsed        ${ms}ms · all data live from gateway (no mocks)`);

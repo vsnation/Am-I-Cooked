@@ -3,7 +3,10 @@
 // ONE query shape covers every conforming market — that is why a 10-second autopsy
 // is feasible. Designed for extraction as a standalone skill package.
 
+import { readFileSync } from "node:fs";
+
 const GATEWAY = "https://gateway.thegraph.com/api";
+const INCIDENTS = JSON.parse(readFileSync(new URL("../../../hacks/incidents.json", import.meta.url), "utf8"));
 
 /** Subgraph registry. `schema` names the query dialect a source conforms to —
  *  adding a lending protocol that follows the Messari standard is one line here. */
@@ -48,7 +51,7 @@ const UNI_ACCOUNT = `query($addr: Bytes!) {
     liquidity
     pool { token0 { symbol } token1 { symbol } totalValueLockedUSD }
   }
-  swaps(first: 10, orderBy: timestamp, orderDirection: desc, where: { origin: $addr }) {
+  swaps(first: 100, orderBy: timestamp, orderDirection: desc, where: { origin: $addr }) {
     timestamp amountUSD token0 { symbol } token1 { symbol }
   }
 }`;
@@ -89,21 +92,61 @@ export async function dexSurface(apiKey, address) {
   };
 }
 
-/** Full autopsy: the four risk surfaces. Approvals + incident cross-reference are
- *  separate feeds (approval-event indexing / curated incident metadata) — wired next. */
+/** Exploit-exposure surface: cross-reference the wallet's observed on-chain universe
+ *  (lending markets, LP pools, traded tokens) against the curated incident registry
+ *  (hacks/incidents.json). Name/symbol-level matching; address-level matching arrives
+ *  with the approvals feed. */
+export function incidentSurface(universe) {
+  const terms = [...new Set(universe.map(t => t.toLowerCase()).filter(Boolean))];
+  const matches = [];
+  for (const inc of INCIDENTS.incidents) {
+    const hit = terms.find(term =>
+      inc.matchKeys.some(k => k === term || (k.length >= 5 && term.includes(k)) || (term.length >= 5 && k.includes(term))));
+    if (hit) matches.push({ target: inc.target, date: inc.date, lostUSD: inc.lostUSD, type: inc.type, recovered: inc.recovered, matchedOn: hit });
+  }
+  return {
+    method: "name/symbol cross-reference vs curated registry (176 incidents, address-level matching pending approvals feed)",
+    registrySize: INCIDENTS.incidents.length,
+    matches,
+    incidentLossUSD: matches.reduce((a, m) => a + m.lostUSD, 0),
+  };
+}
+
+/** Partial cooked score. Transparent formula, final weights live in the sealed judge:
+ *  open wounds 40 (pending approvals feed) · exploit exposure 25 · ghost 20 (pending) ·
+ *  behavioral 15 (pending). Until the other feeds land, only exploit exposure scores —
+ *  reported as partial, never presented as the full verdict. */
+export function cookedScore(surfaces) {
+  const nHits = surfaces.incidents.matches.length;
+  const exploit = Math.min(100, nHits * 34);            // 3+ brushes with disaster = maxed component
+  const score = Math.round(exploit * 0.25);             // remaining 75% of weight awaits its feeds
+  const bands = [[20, "RARE"], [40, "MEDIUM RARE"], [60, "MEDIUM WELL"], [80, "COOKED"], [100, "CHARCOAL"]];
+  return {
+    partial: true,
+    pendingFeeds: ["approvals(40%)", "ghost(20%)", "behavioral(15%)"],
+    components: { exploitExposure: exploit },
+    score,
+    band: bands.find(([max]) => score <= max)[1],
+  };
+}
+
+/** Full autopsy: the four risk surfaces (two live, two pending their feeds). */
 export async function autopsy(apiKey, address) {
   const [lending, dex] = await Promise.all([
     lendingSurface(apiKey, address),
     dexSurface(apiKey, address),
   ]);
+  const universe = [
+    ...lending.flatMap(l => l.openPositions.flatMap(p => [p.market, p.token])),
+    ...dex.lpPositions.flatMap(p => p.pair.split("/")),
+    ...dex.recentSwaps.flatMap(s => s.pair.split("/")),
+  ];
+  const incidents = incidentSurface(universe);
+  const surfaces = { lending, dex, incidents, approvals: { status: "pending-feed" } };
   return {
     address,
     generatedAt: new Date().toISOString(),
-    surfaces: {
-      lending,
-      dex,
-      approvals: { status: "pending-feed" },
-      incidents: { status: "pending-feed" },
-    },
+    surfaces,
+    cooked: cookedScore(surfaces),
   };
 }

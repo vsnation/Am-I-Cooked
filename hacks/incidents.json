@@ -1,0 +1,2932 @@
+{
+ "generated": "hacks/parse.js",
+ "incidentCount": 176,
+ "addressCount": 39,
+ "incidents": [
+  {
+   "target": "Harvest Finance",
+   "date": "Oct 2020",
+   "year": 2020,
+   "month": 10,
+   "lostUSD": 24000000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Flash-loan manipulation of Curve stablecoin pool price to mint cheap vault shares",
+   "matchKeys": [
+    "harvest finance",
+    "farm",
+    "harvest"
+   ]
+  },
+  {
+   "target": "Pickle Finance",
+   "date": "Nov 2020",
+   "year": 2020,
+   "month": 11,
+   "lostUSD": 19700000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Malicious 'evil jar' with unchecked swap tricked controller into draining cDAI",
+   "matchKeys": [
+    "pickle finance",
+    "pickle"
+   ]
+  },
+  {
+   "target": "Compounder Finance",
+   "date": "Dec 2020",
+   "year": 2020,
+   "month": 12,
+   "lostUSD": 10800000,
+   "type": "Rug pull",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Hidden backdoor swapped strategy to malicious contract letting devs withdraw all funds",
+   "matchKeys": [
+    "compounder finance",
+    "compounder"
+   ]
+  },
+  {
+   "target": "Warp Finance",
+   "date": "Dec 2020",
+   "year": 2020,
+   "month": 12,
+   "lostUSD": 7700000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Flash-loan manipulation of LP-token collateral price enabled over-borrowing",
+   "matchKeys": [
+    "warp finance",
+    "warp"
+   ]
+  },
+  {
+   "target": "Origin Protocol",
+   "date": "Dec 2020",
+   "year": 2020,
+   "month": 12,
+   "lostUSD": 7000000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Reentrancy via flash loan and rebasing OUSD minted excess tokens",
+   "matchKeys": [
+    "origin protocol",
+    "origin"
+   ]
+  },
+  {
+   "target": "Value DeFi",
+   "date": "Dec 2020",
+   "year": 2020,
+   "month": 12,
+   "lostUSD": 6000000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Flash-loan manipulation of Curve pool oracle in MultiStables vault",
+   "matchKeys": [
+    "value defi",
+    "value",
+    "defi"
+   ]
+  },
+  {
+   "target": "Cover Protocol",
+   "date": "Dec 2020",
+   "year": 2020,
+   "month": 12,
+   "lostUSD": 4000000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "Blacksmith farming reward bug allowed near-infinite COVER token minting",
+   "matchKeys": [
+    "cover protocol",
+    "cover"
+   ]
+  },
+  {
+   "target": "Akropolis",
+   "date": "Nov 2020",
+   "year": 2020,
+   "month": 11,
+   "lostUSD": 2000000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Reentrancy in savings pool deposit combined with flash loan drained DAI",
+   "matchKeys": [
+    "akropolis",
+    "akropolis"
+   ]
+  },
+  {
+   "target": "Poly Network",
+   "date": "Aug 2021",
+   "year": 2021,
+   "month": 8,
+   "lostUSD": 611000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "returned",
+   "vector": "Spoofed the cross-chain manager to authorise withdrawals - then returned every cent.",
+   "matchKeys": [
+    "poly network",
+    "poly"
+   ]
+  },
+  {
+   "target": "Vulcan Forged",
+   "date": "Dec 2021",
+   "year": 2021,
+   "month": 12,
+   "lostUSD": 140000000,
+   "type": "Gaming/NFT",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "Compromised custodial keys of 96 users drained PYR from MyForge wallets",
+   "matchKeys": [
+    "vulcan forged",
+    "vulcan",
+    "forged"
+   ]
+  },
+  {
+   "target": "BXH",
+   "date": "Nov 2021",
+   "year": 2021,
+   "month": 11,
+   "lostUSD": 139000000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Leaked administrator key drained the cross-chain exchange's contracts",
+   "matchKeys": [
+    "bxh"
+   ]
+  },
+  {
+   "target": "Cream Finance II",
+   "date": "Nov 2021",
+   "year": 2021,
+   "month": 11,
+   "lostUSD": 130000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Price-oracle and flash-loan manipulation. Second time.",
+   "matchKeys": [
+    "cream finance ii",
+    "cream",
+    "cream"
+   ]
+  },
+  {
+   "target": "BadgerDAO",
+   "date": "Dec 2021",
+   "year": 2021,
+   "month": 12,
+   "lostUSD": 120000000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Compromised Cloudflare key injected malicious approvals into the front-end.",
+   "matchKeys": [
+    "badgerdao",
+    "badger",
+    "badgerdao"
+   ]
+  },
+  {
+   "target": "EasyFi",
+   "date": "Apr 2021",
+   "year": 2021,
+   "month": 4,
+   "lostUSD": 80000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Malicious MetaMask on admin machine stole seed phrase and drained EASY plus stablecoins",
+   "matchKeys": [
+    "easyfi",
+    "easyfi"
+   ]
+  },
+  {
+   "target": "AnubisDAO",
+   "date": "Nov 2021",
+   "year": 2021,
+   "month": 11,
+   "lostUSD": 60000000,
+   "type": "Rug pull",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Raised in ~20 hours, drained the same day.",
+   "matchKeys": [
+    "anubisdao",
+    "anubisdao"
+   ]
+  },
+  {
+   "target": "bZx",
+   "date": "Nov 2021",
+   "year": 2021,
+   "month": 11,
+   "lostUSD": 55000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Phishing macro stole a developer's mnemonic controlling Polygon and BSC deployments",
+   "matchKeys": [
+    "bzx"
+   ]
+  },
+  {
+   "target": "Uranium Finance",
+   "date": "May 2021",
+   "year": 2021,
+   "month": 5,
+   "lostUSD": 50000000,
+   "type": "Rug pull",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Migration contract 'bug' that drained the pool. Insider.",
+   "matchKeys": [
+    "uranium finance",
+    "uranium"
+   ]
+  },
+  {
+   "target": "PancakeBunny",
+   "date": "Jun 2021",
+   "year": 2021,
+   "month": 6,
+   "lostUSD": 45000000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flash-loan price manipulation of the BUNNY token.",
+   "matchKeys": [
+    "pancakebunny",
+    "bunny",
+    "pancakebunny"
+   ]
+  },
+  {
+   "target": "Alpha Homora",
+   "date": "Feb 2021",
+   "year": 2021,
+   "month": 2,
+   "lostUSD": 37500000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Rounding bug let attacker mint cyToken and repeatedly borrow from Iron Bank",
+   "matchKeys": [
+    "alpha homora",
+    "alpha",
+    "homora"
+   ]
+  },
+  {
+   "target": "Vee Finance",
+   "date": "Sep 2021",
+   "year": 2021,
+   "month": 9,
+   "lostUSD": 35000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Single Pangolin oracle price manipulated via crafted trading pairs on Avalanche",
+   "matchKeys": [
+    "vee finance"
+   ]
+  },
+  {
+   "target": "Cream Finance I",
+   "date": "Sep 2021",
+   "year": 2021,
+   "month": 9,
+   "lostUSD": 34000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flash-loan reentrancy through the AMP token.",
+   "matchKeys": [
+    "cream finance i",
+    "cream",
+    "cream"
+   ]
+  },
+  {
+   "target": "Meerkat Finance",
+   "date": "Mar 2021",
+   "year": 2021,
+   "month": 3,
+   "lostUSD": 31000000,
+   "type": "Rug pull",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "'Hacked' one day after launch. It was the team.",
+   "matchKeys": [
+    "meerkat finance",
+    "meerkat"
+   ]
+  },
+  {
+   "target": "MonoX Finance",
+   "date": "Dec 2021",
+   "year": 2021,
+   "month": 12,
+   "lostUSD": 31000000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Self-swap of MONO token inflated its price in the swap contract, then drained pools",
+   "matchKeys": [
+    "monox finance",
+    "monox"
+   ]
+  },
+  {
+   "target": "Spartan Protocol",
+   "date": "May 2021",
+   "year": 2021,
+   "month": 5,
+   "lostUSD": 30000000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flawed liquidity-share calculation let flash-loaned balance inflate burn redemption",
+   "matchKeys": [
+    "spartan protocol",
+    "spartan"
+   ]
+  },
+  {
+   "target": "Grim Finance",
+   "date": "Dec 2021",
+   "year": 2021,
+   "month": 12,
+   "lostUSD": 30000000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Reentrancy in the vault deposit path.",
+   "matchKeys": [
+    "grim finance",
+    "grim"
+   ]
+  },
+  {
+   "target": "Popsicle Finance",
+   "date": "Aug 2021",
+   "year": 2021,
+   "month": 8,
+   "lostUSD": 20700000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Sorbetto vault failed to update reward state on share transfer, enabling repeat claims",
+   "matchKeys": [
+    "popsicle finance",
+    "popsicle"
+   ]
+  },
+  {
+   "target": "Indexed Finance",
+   "date": "Oct 2021",
+   "year": 2021,
+   "month": 10,
+   "lostUSD": 16000000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flash loans skewed index-pool valuation to mint and redeem tokens cheaply",
+   "matchKeys": [
+    "indexed finance",
+    "indexed"
+   ]
+  },
+  {
+   "target": "Furucombo",
+   "date": "Feb 2021",
+   "year": 2021,
+   "month": 2,
+   "lostUSD": 14000000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "'Evil contract' impersonating Aave v2 proxy abused unvalidated user approvals",
+   "matchKeys": [
+    "furucombo",
+    "furucombo"
+   ]
+  },
+  {
+   "target": "pNetwork",
+   "date": "Sep 2021",
+   "year": 2021,
+   "month": 9,
+   "lostUSD": 12000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Improper peg-out event-log validation let forged requests release 277 BTC",
+   "matchKeys": [
+    "pnetwork",
+    "pnetwork"
+   ]
+  },
+  {
+   "target": "Rari Capital",
+   "date": "May 2021",
+   "year": 2021,
+   "month": 5,
+   "lostUSD": 11000000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Manipulated Alpha ibETH exchange rate to drain Fuse ETH pool via reentrancy",
+   "matchKeys": [
+    "rari capital",
+    "rari"
+   ]
+  },
+  {
+   "target": "Punk Protocol",
+   "date": "Aug 2021",
+   "year": 2021,
+   "month": 8,
+   "lostUSD": 8900000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Uninitialized contract let delegatecall reset forge address for arbitrary withdrawal",
+   "matchKeys": [
+    "punk protocol",
+    "punk"
+   ]
+  },
+  {
+   "target": "Visor Finance",
+   "date": "Dec 2021",
+   "year": 2021,
+   "month": 12,
+   "lostUSD": 8200000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Access-control flaw in staking contract allowed arbitrary VISR minting",
+   "matchKeys": [
+    "visor finance",
+    "visor"
+   ]
+  },
+  {
+   "target": "ChainSwap",
+   "date": "Jul 2021",
+   "year": 2021,
+   "month": 7,
+   "lostUSD": 8000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Cross-chain mint quota logic let non-whitelisted addresses mint and drain tokens",
+   "matchKeys": [
+    "chainswap",
+    "chainswap"
+   ]
+  },
+  {
+   "target": "THORChain",
+   "date": "Jul 2021",
+   "year": 2021,
+   "month": 7,
+   "lostUSD": 8000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "partial",
+   "vector": "Forged deposit spoofing the ETH Bifrost router tricked node into releasing funds",
+   "matchKeys": [
+    "thorchain",
+    "rune",
+    "thorchain"
+   ]
+  },
+  {
+   "target": "Anyswap",
+   "date": "Jul 2021",
+   "year": 2021,
+   "month": 7,
+   "lostUSD": 7900000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Reused ECDSA R-value across signatures exposed the MPC account private key",
+   "matchKeys": [
+    "anyswap",
+    "anyswap"
+   ]
+  },
+  {
+   "target": "Belt Finance",
+   "date": "May 2021",
+   "year": 2021,
+   "month": 5,
+   "lostUSD": 6300000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flash-loan imbalance of multi-strategy vault let attacker withdraw excess",
+   "matchKeys": [
+    "belt finance",
+    "belt"
+   ]
+  },
+  {
+   "target": "Roll",
+   "date": "Apr 2021",
+   "year": 2021,
+   "month": 4,
+   "lostUSD": 5700000,
+   "type": "Wallet/keys",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Hot wallet private key compromise drained social/creator token reserves",
+   "matchKeys": [
+    "roll",
+    "roll"
+   ]
+  },
+  {
+   "target": "DODO",
+   "date": "Mar 2021",
+   "year": 2021,
+   "month": 3,
+   "lostUSD": 3800000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Uninitialized pool init function reused to spoof tokens and drain via flash loan",
+   "matchKeys": [
+    "dodo",
+    "dodo"
+   ]
+  },
+  {
+   "target": "Squid Game token",
+   "date": "Nov 2021",
+   "year": 2021,
+   "month": 11,
+   "lostUSD": 3300000,
+   "type": "Rug pull",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Honeypot: buyers couldn't sell, devs cashed out.",
+   "matchKeys": [
+    "squid game token",
+    "squid",
+    "game"
+   ]
+  },
+  {
+   "target": "PAID Network",
+   "date": "Mar 2021",
+   "year": 2021,
+   "month": 3,
+   "lostUSD": 3000000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Leaked deployer key used to mint and dump PAID tokens in infinite-mint attack",
+   "matchKeys": [
+    "paid network",
+    "paid"
+   ]
+  },
+  {
+   "target": "Ronin",
+   "date": "Apr 2022",
+   "year": 2022,
+   "month": 4,
+   "lostUSD": 625000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "partial",
+   "vector": "Five of nine validator keys socially-engineered by Lazarus.",
+   "matchKeys": [
+    "ronin",
+    "ronin"
+   ]
+  },
+  {
+   "target": "Wormhole",
+   "date": "Feb 2022",
+   "year": 2022,
+   "month": 2,
+   "lostUSD": 325000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "returned",
+   "vector": "Signature-verification bypass spoofed a guardian. Jump Crypto refilled it.",
+   "matchKeys": [
+    "wormhole",
+    "w",
+    "wormhole"
+   ]
+  },
+  {
+   "target": "Nomad",
+   "date": "Aug 2022",
+   "year": 2022,
+   "month": 8,
+   "lostUSD": 190000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "partial",
+   "vector": "An init bug marked every message 'proven' - a free-for-all anyone could copy-paste.",
+   "matchKeys": [
+    "nomad",
+    "nomad"
+   ]
+  },
+  {
+   "target": "Beanstalk",
+   "date": "Apr 2022",
+   "year": 2022,
+   "month": 4,
+   "lostUSD": 182000000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flash-loan governance attack - passed its own malicious proposal.",
+   "matchKeys": [
+    "beanstalk",
+    "bean",
+    "beanstalk"
+   ]
+  },
+  {
+   "target": "Wintermute",
+   "date": "Sep 2022",
+   "year": 2022,
+   "month": 9,
+   "lostUSD": 160000000,
+   "type": "Wallet/keys",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Vanity address from the Profanity generator had guessable keys.",
+   "matchKeys": [
+    "wintermute",
+    "wintermute"
+   ]
+  },
+  {
+   "target": "Mango Markets",
+   "date": "Oct 2022",
+   "year": 2022,
+   "month": 10,
+   "lostUSD": 114000000,
+   "type": "Perps",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Pumped the MNGO oracle to borrow against inflated collateral.",
+   "matchKeys": [
+    "mango markets",
+    "mngo",
+    "mango"
+   ]
+  },
+  {
+   "target": "Maiar DEX (MultiversX)",
+   "date": "Jun 2022",
+   "year": 2022,
+   "month": 6,
+   "lostUSD": 113000000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "Smart contract bug let attacker mint and withdraw 1.65M EGLD from DEX pools",
+   "matchKeys": [
+    "maiar dex (multiversx)",
+    "egld",
+    "maiar",
+    "multiversx"
+   ]
+  },
+  {
+   "target": "Harmony Horizon",
+   "date": "Jul 2022",
+   "year": 2022,
+   "month": 7,
+   "lostUSD": 100000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Two of five multisig keys compromised.",
+   "matchKeys": [
+    "harmony horizon",
+    "harmony",
+    "horizon"
+   ]
+  },
+  {
+   "target": "BNB Chain Bridge",
+   "date": "Oct 2022",
+   "year": 2022,
+   "month": 10,
+   "lostUSD": 100000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "partial",
+   "vector": "Forged an IAVL merkle proof and minted 2M BNB; validators froze most.",
+   "matchKeys": [
+    "bnb chain bridge",
+    "chain"
+   ]
+  },
+  {
+   "target": "Qubit (QBridge)",
+   "date": "Feb 2022",
+   "year": 2022,
+   "month": 2,
+   "lostUSD": 80000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Deposit logic minted wrapped ETH with no deposit.",
+   "matchKeys": [
+    "qubit (qbridge)",
+    "qubit",
+    "qbridge"
+   ]
+  },
+  {
+   "target": "Rari / Fei (Fuse)",
+   "date": "May 2022",
+   "year": 2022,
+   "month": 5,
+   "lostUSD": 80000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Reentrancy in the Fuse lending pools.",
+   "matchKeys": [
+    "rari / fei (fuse)",
+    "rari",
+    "fuse"
+   ]
+  },
+  {
+   "target": "Cashio",
+   "date": "Mar 2022",
+   "year": 2022,
+   "month": 3,
+   "lostUSD": 52800000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Missing collateral validation enabled infinite mint of CASH from valueless tokens",
+   "matchKeys": [
+    "cashio",
+    "cashio"
+   ]
+  },
+  {
+   "target": "Transit Swap",
+   "date": "Oct 2022",
+   "year": 2022,
+   "month": 10,
+   "lostUSD": 23000000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Missing input validation in claimTokens let attacker drain user-approved tokens",
+   "matchKeys": [
+    "transit swap",
+    "transit",
+    "swap"
+   ]
+  },
+  {
+   "target": "Inverse Finance",
+   "date": "Apr 2022",
+   "year": 2022,
+   "month": 4,
+   "lostUSD": 15600000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flash-loan manipulated INV price oracle to borrow DOLA against inflated collateral",
+   "matchKeys": [
+    "inverse finance",
+    "inverse"
+   ]
+  },
+  {
+   "target": "Helio Protocol",
+   "date": "Dec 2022",
+   "year": 2022,
+   "month": 12,
+   "lostUSD": 15000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Borrowed HAY against aBNBc priced by stale oracle after Ankr mint exploit",
+   "matchKeys": [
+    "helio protocol",
+    "helio"
+   ]
+  },
+  {
+   "target": "Team Finance",
+   "date": "Oct 2022",
+   "year": 2022,
+   "month": 10,
+   "lostUSD": 14500000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Flawed v2-to-v3 migration function let attacker drain locked liquidity",
+   "matchKeys": [
+    "team finance",
+    "team"
+   ]
+  },
+  {
+   "target": "Deus DAO",
+   "date": "May 2022",
+   "year": 2022,
+   "month": 5,
+   "lostUSD": 13400000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flash-loan manipulated DEI/USDC oracle to over-borrow against inflated collateral",
+   "matchKeys": [
+    "deus dao",
+    "deus"
+   ]
+  },
+  {
+   "target": "Saddle Finance",
+   "date": "May 2022",
+   "year": 2022,
+   "month": 5,
+   "lostUSD": 11900000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Wrong swap library math let flash-loan attacker drain sUSDv2 metapool",
+   "matchKeys": [
+    "saddle finance",
+    "saddle"
+   ]
+  },
+  {
+   "target": "Elephant Money",
+   "date": "Apr 2022",
+   "year": 2022,
+   "month": 4,
+   "lostUSD": 11200000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flash-loan pumped ELEPHANT price to repeatedly mint and redeem TRUNK",
+   "matchKeys": [
+    "elephant money",
+    "elephant"
+   ]
+  },
+  {
+   "target": "Moola Market",
+   "date": "Oct 2022",
+   "year": 2022,
+   "month": 10,
+   "lostUSD": 9100000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Manipulated low-liquidity MOO price to over-borrow against inflated collateral",
+   "matchKeys": [
+    "moola market",
+    "moola",
+    "market"
+   ]
+  },
+  {
+   "target": "Crema Finance",
+   "date": "Jul 2022",
+   "year": 2022,
+   "month": 7,
+   "lostUSD": 8800000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Fake tick account bypassed checks to drain concentrated liquidity via flash loan",
+   "matchKeys": [
+    "crema finance",
+    "crema"
+   ]
+  },
+  {
+   "target": "BitKeep",
+   "date": "Dec 2022",
+   "year": 2022,
+   "month": 12,
+   "lostUSD": 8000000,
+   "type": "Wallet/keys",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "Hijacked malicious Android APK stole users' private keys",
+   "matchKeys": [
+    "bitkeep",
+    "bitkeep"
+   ]
+  },
+  {
+   "target": "Audius",
+   "date": "Aug 2022",
+   "year": 2022,
+   "month": 8,
+   "lostUSD": 6000000,
+   "type": "Governance",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Malformed governance proposal initialisation.",
+   "matchKeys": [
+    "audius",
+    "audius"
+   ]
+  },
+  {
+   "target": "Osmosis",
+   "date": "Jun 2022",
+   "year": 2022,
+   "month": 6,
+   "lostUSD": 5000000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "JoinPool logic bug paid liquidity providers 50% extra on withdrawal",
+   "matchKeys": [
+    "osmosis",
+    "osmosis"
+   ]
+  },
+  {
+   "target": "Ankr",
+   "date": "Dec 2022",
+   "year": 2022,
+   "month": 12,
+   "lostUSD": 5000000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Compromised deployer key let attacker infinite-mint aBNBc staking token",
+   "matchKeys": [
+    "ankr",
+    "ankr",
+    "abnbc",
+    "ankr"
+   ]
+  },
+  {
+   "target": "Voltage Finance",
+   "date": "Apr 2022",
+   "year": 2022,
+   "month": 4,
+   "lostUSD": 4700000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "ERC677 callback reentrancy drained lending pool via flash loan",
+   "matchKeys": [
+    "voltage finance",
+    "voltage"
+   ]
+  },
+  {
+   "target": "pGALA",
+   "date": "Nov 2022",
+   "year": 2022,
+   "month": 11,
+   "lostUSD": 4500000,
+   "type": "Gaming/NFT",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "pGALA contract ownership takeover from leaked key allowed unlimited mint and dump",
+   "matchKeys": [
+    "pgala",
+    "gala",
+    "pgala"
+   ]
+  },
+  {
+   "target": "Meter.io",
+   "date": "Mar 2022",
+   "year": 2022,
+   "month": 3,
+   "lostUSD": 4400000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "partial",
+   "vector": "Flawed mint in the deposit wrapper.",
+   "matchKeys": [
+    "meter.io",
+    "meter"
+   ]
+  },
+  {
+   "target": "Slope Wallet",
+   "date": "Aug 2022",
+   "year": 2022,
+   "month": 8,
+   "lostUSD": 4100000,
+   "type": "Wallet/keys",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Mobile wallet leaked users' private keys to a third-party logging service",
+   "matchKeys": [
+    "slope wallet",
+    "slope"
+   ]
+  },
+  {
+   "target": "XCarnival",
+   "date": "Jun 2022",
+   "year": 2022,
+   "month": 6,
+   "lostUSD": 3800000,
+   "type": "NFT",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Reused a withdrawn BAYC NFT as collateral to take multiple loans",
+   "matchKeys": [
+    "xcarnival",
+    "xcarnival"
+   ]
+  },
+  {
+   "target": "Nirvana Finance",
+   "date": "Jul 2022",
+   "year": 2022,
+   "month": 7,
+   "lostUSD": 3500000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flash loan manipulated ANA price to mint and redeem against protocol reserves",
+   "matchKeys": [
+    "nirvana finance",
+    "nirvana"
+   ]
+  },
+  {
+   "target": "Fortress Protocol",
+   "date": "May 2022",
+   "year": 2022,
+   "month": 5,
+   "lostUSD": 3000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Oracle and governance manipulation inflated FTS collateral to drain lending pools",
+   "matchKeys": [
+    "fortress protocol",
+    "fortress"
+   ]
+  },
+  {
+   "target": "GYM Network",
+   "date": "Jun 2022",
+   "year": 2022,
+   "month": 6,
+   "lostUSD": 2100000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Unauthenticated depositFromOtherContract let attacker fake deposits and withdraw",
+   "matchKeys": [
+    "gym network"
+   ]
+  },
+  {
+   "target": "Revest Finance",
+   "date": "Apr 2022",
+   "year": 2022,
+   "month": 4,
+   "lostUSD": 2000000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "ERC1155 reentrancy during FNFT minting drained token reserves",
+   "matchKeys": [
+    "revest finance",
+    "revest"
+   ]
+  },
+  {
+   "target": "QANplatform Bridge",
+   "date": "Oct 2022",
+   "year": 2022,
+   "month": 10,
+   "lostUSD": 2000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Profanity vanity-address flaw exposed deployer key, draining the bridge",
+   "matchKeys": [
+    "qanplatform bridge",
+    "qanplatform"
+   ]
+  },
+  {
+   "target": "Rubic",
+   "date": "Dec 2022",
+   "year": 2022,
+   "month": 12,
+   "lostUSD": 1400000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Misconfigured router address let attacker withdraw users' approved USDC",
+   "matchKeys": [
+    "rubic",
+    "rubic"
+   ]
+  },
+  {
+   "target": "Solend",
+   "date": "Nov 2022",
+   "year": 2022,
+   "month": 11,
+   "lostUSD": 1300000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Manipulated USDH oracle price to borrow and drain isolated lending pools",
+   "matchKeys": [
+    "solend",
+    "solend"
+   ]
+  },
+  {
+   "target": "Nereus Finance",
+   "date": "Sep 2022",
+   "year": 2022,
+   "month": 9,
+   "lostUSD": 370000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flash-loan manipulated Trader Joe AVAX/USDC LP price to mint NXUSD",
+   "matchKeys": [
+    "nereus finance",
+    "nereus"
+   ]
+  },
+  {
+   "target": "Olympus DAO",
+   "date": "Oct 2022",
+   "year": 2022,
+   "month": 10,
+   "lostUSD": 300000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "Bond teller redeem function lacked input validation, allowing token drain",
+   "matchKeys": [
+    "olympus dao",
+    "ohm",
+    "olympus"
+   ]
+  },
+  {
+   "target": "Mixin Network",
+   "date": "Oct 2023",
+   "year": 2023,
+   "month": 10,
+   "lostUSD": 200000000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Cloud database compromise.",
+   "matchKeys": [
+    "mixin network",
+    "mixin"
+   ]
+  },
+  {
+   "target": "Euler Finance",
+   "date": "Mar 2023",
+   "year": 2023,
+   "month": 3,
+   "lostUSD": 197000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "donateToReserve imbalance enabled self-liquidation - attacker returned it all with an apology.",
+   "matchKeys": [
+    "euler finance",
+    "eul",
+    "euler"
+   ]
+  },
+  {
+   "target": "Multichain",
+   "date": "Jul 2023",
+   "year": 2023,
+   "month": 7,
+   "lostUSD": 130000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Keys lost with the arrested CEO. Funds vanished.",
+   "matchKeys": [
+    "multichain",
+    "multi",
+    "multichain"
+   ]
+  },
+  {
+   "target": "BonqDAO",
+   "date": "Feb 2023",
+   "year": 2023,
+   "month": 2,
+   "lostUSD": 120000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Tellor oracle manipulated to inflate WALBT collateral and mint excess BEUR",
+   "matchKeys": [
+    "bonqdao",
+    "bonqdao"
+   ]
+  },
+  {
+   "target": "Atomic Wallet",
+   "date": "Jun 2023",
+   "year": 2023,
+   "month": 6,
+   "lostUSD": 100000000,
+   "type": "Wallet/keys",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Mass drain of 4,100+ user wallets; suspected key/seed compromise, linked to Lazarus",
+   "matchKeys": [
+    "atomic wallet",
+    "atomic"
+   ]
+  },
+  {
+   "target": "HTX / Heco Bridge",
+   "date": "Nov 2023",
+   "year": 2023,
+   "month": 11,
+   "lostUSD": 87000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Operator keys compromised in the Justin Sun ecosystem.",
+   "matchKeys": [
+    "htx / heco bridge",
+    "heco"
+   ]
+  },
+  {
+   "target": "Curve (Vyper)",
+   "date": "Aug 2023",
+   "year": 2023,
+   "month": 8,
+   "lostUSD": 73000000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "A broken reentrancy lock in three Vyper compiler versions.",
+   "matchKeys": [
+    "curve (vyper)",
+    "crv",
+    "curve",
+    "vyper"
+   ]
+  },
+  {
+   "target": "Alphapo",
+   "date": "Jul 2023",
+   "year": 2023,
+   "month": 7,
+   "lostUSD": 60000000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Payment-processor hot wallets on ETH, BTC and TRON drained via key compromise (Lazarus)",
+   "matchKeys": [
+    "alphapo",
+    "alphapo"
+   ]
+  },
+  {
+   "target": "KyberSwap",
+   "date": "Dec 2023",
+   "year": 2023,
+   "month": 12,
+   "lostUSD": 47000000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Tick/precision math in concentrated liquidity.",
+   "matchKeys": [
+    "kyberswap",
+    "knc",
+    "kyberswap"
+   ]
+  },
+  {
+   "target": "Stake.com",
+   "date": "Sep 2023",
+   "year": 2023,
+   "month": 9,
+   "lostUSD": 41000000,
+   "type": "Gaming/NFT",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Unauthorized hot-wallet withdrawals on ETH, BSC and Polygon via key compromise (Lazarus)",
+   "matchKeys": [
+    "stake.com",
+    "stake"
+   ]
+  },
+  {
+   "target": "CoinsPaid",
+   "date": "Jul 2023",
+   "year": 2023,
+   "month": 7,
+   "lostUSD": 37300000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Employee lured by fake job offer installed malware enabling hot-wallet theft (Lazarus)",
+   "matchKeys": [
+    "coinspaid",
+    "coinspaid"
+   ]
+  },
+  {
+   "target": "Kronos Research",
+   "date": "Nov 2023",
+   "year": 2023,
+   "month": 11,
+   "lostUSD": 26000000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Compromised API keys used to drain roughly 13,000 ETH from trading accounts",
+   "matchKeys": [
+    "kronos research",
+    "kronos",
+    "research"
+   ]
+  },
+  {
+   "target": "MEV Bots (0xbad)",
+   "date": "Apr 2023",
+   "year": 2023,
+   "month": 4,
+   "lostUSD": 25000000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Rogue Ethereum validator reordered a bait block to seize sandwich-bot transactions",
+   "matchKeys": [
+    "mev bots (0xbad)",
+    "bots",
+    "0xbad"
+   ]
+  },
+  {
+   "target": "Exactly Protocol",
+   "date": "Sep 2023",
+   "year": 2023,
+   "month": 9,
+   "lostUSD": 12000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Missing market-address validation on Optimism.",
+   "matchKeys": [
+    "exactly protocol",
+    "exactly"
+   ]
+  },
+  {
+   "target": "Yearn Finance",
+   "date": "Apr 2023",
+   "year": 2023,
+   "month": 4,
+   "lostUSD": 11500000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Misconfigured legacy yUSDT vault (wrong iToken) let attacker mint and drain stablecoins",
+   "matchKeys": [
+    "yearn finance",
+    "yearn"
+   ]
+  },
+  {
+   "target": "SafeMoon",
+   "date": "Mar 2023",
+   "year": 2023,
+   "month": 3,
+   "lostUSD": 8900000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Public burn function bug let attacker inflate SFM price and drain WBNB from the pool",
+   "matchKeys": [
+    "safemoon",
+    "sfm",
+    "safemoon"
+   ]
+  },
+  {
+   "target": "Platypus I",
+   "date": "Feb 2023",
+   "year": 2023,
+   "month": 2,
+   "lostUSD": 8500000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Logic error in the solvency check.",
+   "matchKeys": [
+    "platypus i",
+    "platypus"
+   ]
+  },
+  {
+   "target": "Jimbos Protocol",
+   "date": "May 2023",
+   "year": 2023,
+   "month": 5,
+   "lostUSD": 7500000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Missing slippage control let attacker imbalance pool and extract ETH via shift/swap",
+   "matchKeys": [
+    "jimbos protocol",
+    "jimbos"
+   ]
+  },
+  {
+   "target": "Hundred Finance",
+   "date": "Apr 2023",
+   "year": 2023,
+   "month": 4,
+   "lostUSD": 7000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Compound-v2-fork rounding on an empty market.",
+   "matchKeys": [
+    "hundred finance",
+    "hundred"
+   ]
+  },
+  {
+   "target": "Deus DAO (2023)",
+   "date": "May 2023",
+   "year": 2023,
+   "month": 5,
+   "lostUSD": 6500000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "burnFrom parameter-order bug exposed user approvals, enabling DEI theft",
+   "matchKeys": [
+    "deus dao (2023)",
+    "deus",
+    "2023"
+   ]
+  },
+  {
+   "target": "dForce",
+   "date": "Feb 2023",
+   "year": 2023,
+   "month": 2,
+   "lostUSD": 3600000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "Read-only reentrancy via Curve oracle integration on Arbitrum and Optimism",
+   "matchKeys": [
+    "dforce",
+    "dforce"
+   ]
+  },
+  {
+   "target": "EraLend",
+   "date": "Jul 2023",
+   "year": 2023,
+   "month": 7,
+   "lostUSD": 3400000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Read-only reentrancy in SyncSwap-derived code manipulated internal oracle to over-borrow",
+   "matchKeys": [
+    "eralend",
+    "eralend"
+   ]
+  },
+  {
+   "target": "Conic Finance",
+   "date": "Aug 2023",
+   "year": 2023,
+   "month": 8,
+   "lostUSD": 3300000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Read-only reentrancy on a Curve LP. Shut down a year later.",
+   "matchKeys": [
+    "conic finance",
+    "conic"
+   ]
+  },
+  {
+   "target": "Raft",
+   "date": "Nov 2023",
+   "year": 2023,
+   "month": 11,
+   "lostUSD": 3300000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Rounding on liquidation - the hacker lost money on it.",
+   "matchKeys": [
+    "raft",
+    "raft"
+   ]
+  },
+  {
+   "target": "Swaprum",
+   "date": "May 2023",
+   "year": 2023,
+   "month": 5,
+   "lostUSD": 3000000,
+   "type": "Rug pull",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Developers used hidden add() backdoor to drain staked LP tokens; exit scam",
+   "matchKeys": [
+    "swaprum",
+    "swaprum"
+   ]
+  },
+  {
+   "target": "Platypus II",
+   "date": "Oct 2023",
+   "year": 2023,
+   "month": 10,
+   "lostUSD": 2200000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Same bug class, third time in one year.",
+   "matchKeys": [
+    "platypus ii",
+    "platypus"
+   ]
+  },
+  {
+   "target": "Onyx Protocol",
+   "date": "Nov 2023",
+   "year": 2023,
+   "month": 11,
+   "lostUSD": 2100000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Empty-market rounding bug in a Compound V2 fork exploited via donation on oPEPE",
+   "matchKeys": [
+    "onyx protocol",
+    "onyx"
+   ]
+  },
+  {
+   "target": "Hope Finance",
+   "date": "Feb 2023",
+   "year": 2023,
+   "month": 2,
+   "lostUSD": 2000000,
+   "type": "Rug pull",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Attacker altered TradingHelper contract to redirect and drain genesis funds; exit scam",
+   "matchKeys": [
+    "hope finance",
+    "hope"
+   ]
+  },
+  {
+   "target": "Merlin DEX",
+   "date": "Apr 2023",
+   "year": 2023,
+   "month": 4,
+   "lostUSD": 1800000,
+   "type": "Rug pull",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Insider used privileged access to drain liquidity pools during token sale; rug pull",
+   "matchKeys": [
+    "merlin dex",
+    "merlin"
+   ]
+  },
+  {
+   "target": "Tender.fi",
+   "date": "Mar 2023",
+   "year": 2023,
+   "month": 3,
+   "lostUSD": 1600000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Misconfigured oracle let attacker borrow against 1 GMX; white hat returned most",
+   "matchKeys": [
+    "tender.fi",
+    "tender"
+   ]
+  },
+  {
+   "target": "Level Finance",
+   "date": "May 2023",
+   "year": 2023,
+   "month": 5,
+   "lostUSD": 1100000,
+   "type": "Perps",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Referral contract bug allowed repeated claims in one epoch to mint excess LVL",
+   "matchKeys": [
+    "level finance",
+    "level"
+   ]
+  },
+  {
+   "target": "Steadefi",
+   "date": "Aug 2023",
+   "year": 2023,
+   "month": 8,
+   "lostUSD": 1100000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Compromised deployer key.",
+   "matchKeys": [
+    "steadefi",
+    "steadefi"
+   ]
+  },
+  {
+   "target": "Sentiment",
+   "date": "Apr 2023",
+   "year": 2023,
+   "month": 4,
+   "lostUSD": 1000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Read-only reentrancy via Balancer integration used to over-borrow and drain funds",
+   "matchKeys": [
+    "sentiment",
+    "sentiment"
+   ]
+  },
+  {
+   "target": "Palmswap",
+   "date": "Jul 2023",
+   "year": 2023,
+   "month": 7,
+   "lostUSD": 900000,
+   "type": "Perps",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Flash-loan price manipulation of PLP mint/redeem rate in PlpManager",
+   "matchKeys": [
+    "palmswap",
+    "palmswap"
+   ]
+  },
+  {
+   "target": "Sturdy Finance",
+   "date": "Jun 2023",
+   "year": 2023,
+   "month": 6,
+   "lostUSD": 800000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "Read-only reentrancy via a stale oracle read.",
+   "matchKeys": [
+    "sturdy finance",
+    "sturdy"
+   ]
+  },
+  {
+   "target": "Themis Protocol",
+   "date": "Jun 2023",
+   "year": 2023,
+   "month": 6,
+   "lostUSD": 370000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Balancer LP-token oracle manipulated via flash loan to over-borrow on Arbitrum",
+   "matchKeys": [
+    "themis protocol",
+    "themis"
+   ]
+  },
+  {
+   "target": "Cellframe Network",
+   "date": "Jun 2023",
+   "year": 2023,
+   "month": 6,
+   "lostUSD": 76000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flash-loan token-quantity miscalculation during liquidity migration drained the pool",
+   "matchKeys": [
+    "cellframe network",
+    "cellframe"
+   ]
+  },
+  {
+   "target": "PlayDapp",
+   "date": "Feb 2024",
+   "year": 2024,
+   "month": 2,
+   "lostUSD": 290000000,
+   "type": "Gaming/NFT",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Private key gave 1.6B unauthorised PLA tokens minted.",
+   "matchKeys": [
+    "playdapp",
+    "pla",
+    "playdapp"
+   ]
+  },
+  {
+   "target": "Orbit Bridge",
+   "date": "Jan 2024",
+   "year": 2024,
+   "month": 1,
+   "lostUSD": 81500000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Multisig signers compromised on New Year's Eve.",
+   "matchKeys": [
+    "orbit bridge",
+    "orbit"
+   ]
+  },
+  {
+   "target": "Munchables",
+   "date": "Apr 2024",
+   "year": 2024,
+   "month": 4,
+   "lostUSD": 62500000,
+   "type": "Gaming/NFT",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "Rogue insider developer - returned the keys.",
+   "matchKeys": [
+    "munchables",
+    "munchables"
+   ]
+  },
+  {
+   "target": "Radiant Capital",
+   "date": "Oct 2024",
+   "year": 2024,
+   "month": 10,
+   "lostUSD": 50000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Malware on multisig signers' devices.",
+   "matchKeys": [
+    "radiant capital",
+    "rdnt",
+    "radiant"
+   ]
+  },
+  {
+   "target": "Penpie",
+   "date": "Oct 2024",
+   "year": 2024,
+   "month": 10,
+   "lostUSD": 27000000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Reentrancy in reward accounting.",
+   "matchKeys": [
+    "penpie",
+    "penpie"
+   ]
+  },
+  {
+   "target": "Thala",
+   "date": "Nov 2024",
+   "year": 2024,
+   "month": 11,
+   "lostUSD": 25500000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "Missing withdrawal validation in a v1 farming update let attacker pull LP tokens",
+   "matchKeys": [
+    "thala",
+    "thala"
+   ]
+  },
+  {
+   "target": "Gala Games",
+   "date": "May 2024",
+   "year": 2024,
+   "month": 5,
+   "lostUSD": 21800000,
+   "type": "Gaming/NFT",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "Compromised minter key minted 5B GALA; attacker sold 592M for ~$21.8M in ETH",
+   "matchKeys": [
+    "gala games",
+    "gala",
+    "gala"
+   ]
+  },
+  {
+   "target": "Sonne Finance",
+   "date": "Jun 2024",
+   "year": 2024,
+   "month": 6,
+   "lostUSD": 20000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Compound-v2-fork empty-market donation attack.",
+   "matchKeys": [
+    "sonne finance",
+    "sonne"
+   ]
+  },
+  {
+   "target": "UwU Lend",
+   "date": "Jun 2024",
+   "year": 2024,
+   "month": 6,
+   "lostUSD": 19400000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Oracle manipulation via Curve pools distorted sUSDe price to drain lending pools",
+   "matchKeys": [
+    "uwu lend"
+   ]
+  },
+  {
+   "target": "Curio",
+   "date": "Mar 2024",
+   "year": 2024,
+   "month": 3,
+   "lostUSD": 16000000,
+   "type": "Governance",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Voting-power flaw let attacker delegatecall-mint ~1B CGT governance tokens",
+   "matchKeys": [
+    "curio",
+    "curio"
+   ]
+  },
+  {
+   "target": "Holograph",
+   "date": "Jun 2024",
+   "year": 2024,
+   "month": 6,
+   "lostUSD": 14400000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Former contractor exploited a mint flaw to issue 1B HLG tokens in nine transactions",
+   "matchKeys": [
+    "holograph",
+    "holograph"
+   ]
+  },
+  {
+   "target": "Ronin Bridge (2024)",
+   "date": "Aug 2024",
+   "year": 2024,
+   "month": 8,
+   "lostUSD": 12000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "returned",
+   "vector": "Unset withdrawal threshold after an upgrade let an MEV bot pull 3,996 ETH and 2M USDC",
+   "matchKeys": [
+    "ronin bridge (2024)",
+    "ronin",
+    "2024"
+   ]
+  },
+  {
+   "target": "Prisma Finance",
+   "date": "Mar 2024",
+   "year": 2024,
+   "month": 3,
+   "lostUSD": 11600000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "MigrateTroveZap lacked input validation, letting attacker drain trove collateral",
+   "matchKeys": [
+    "prisma finance",
+    "prisma"
+   ]
+  },
+  {
+   "target": "LI.FI",
+   "date": "Jul 2024",
+   "year": 2024,
+   "month": 7,
+   "lostUSD": 11600000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Malicious call in a new GasZip facet drained wallets holding infinite token approvals",
+   "matchKeys": [
+    "li.fi",
+    "lifi"
+   ]
+  },
+  {
+   "target": "WOOFi",
+   "date": "Mar 2024",
+   "year": 2024,
+   "month": 3,
+   "lostUSD": 8800000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flash-loan manipulation of sPMM oracle crashed WOO price, enabling cheap swaps",
+   "matchKeys": [
+    "woofi",
+    "woofi"
+   ]
+  },
+  {
+   "target": "Bittensor",
+   "date": "Jul 2024",
+   "year": 2024,
+   "month": 7,
+   "lostUSD": 8000000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Malicious PyPI package stole unencrypted coldkeys, draining ~32,000 TAO",
+   "matchKeys": [
+    "bittensor",
+    "tao",
+    "bittensor"
+   ]
+  },
+  {
+   "target": "Rho Markets",
+   "date": "Jul 2024",
+   "year": 2024,
+   "month": 7,
+   "lostUSD": 7600000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "Oracle misconfiguration on Scroll let a whitehat drain USDC/USDT pools; returned",
+   "matchKeys": [
+    "rho markets"
+   ]
+  },
+  {
+   "target": "Velocore",
+   "date": "Jun 2024",
+   "year": 2024,
+   "month": 6,
+   "lostUSD": 6800000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Faulty fee-multiplier logic drained pools via simulated large withdrawals",
+   "matchKeys": [
+    "velocore",
+    "velocore"
+   ]
+  },
+  {
+   "target": "Abracadabra",
+   "date": "Feb 2024",
+   "year": 2024,
+   "month": 2,
+   "lostUSD": 6500000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Cauldron interest/rounding manipulation let attacker mint MIM without collateral",
+   "matchKeys": [
+    "abracadabra",
+    "mim",
+    "spell",
+    "abracadabra"
+   ]
+  },
+  {
+   "target": "Seneca",
+   "date": "Feb 2024",
+   "year": 2024,
+   "month": 2,
+   "lostUSD": 6400000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Arbitrary external call in Chamber let attacker transferFrom approved user funds",
+   "matchKeys": [
+    "seneca",
+    "seneca"
+   ]
+  },
+  {
+   "target": "DeltaPrime (Arbitrum)",
+   "date": "Sep 2024",
+   "year": 2024,
+   "month": 9,
+   "lostUSD": 6000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Stolen admin key used to upgrade Arbitrum pool contracts and drain stablecoins",
+   "matchKeys": [
+    "deltaprime (arbitrum)",
+    "deltaprime",
+    "arbitrum"
+   ]
+  },
+  {
+   "target": "Shezmu",
+   "date": "Sep 2024",
+   "year": 2024,
+   "month": 9,
+   "lostUSD": 4900000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Vault flaw allowed unauthorized ShezUSD minting without collateral",
+   "matchKeys": [
+    "shezmu",
+    "shezmu"
+   ]
+  },
+  {
+   "target": "DeltaPrime (reward)",
+   "date": "Nov 2024",
+   "year": 2024,
+   "month": 11,
+   "lostUSD": 4800000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Missing validation in reward-claim let attacker use a malicious pair on two chains",
+   "matchKeys": [
+    "deltaprime (reward)",
+    "deltaprime",
+    "reward"
+   ]
+  },
+  {
+   "target": "Tapioca DAO",
+   "date": "Oct 2024",
+   "year": 2024,
+   "month": 10,
+   "lostUSD": 4400000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Compromised key took over vesting and USDO contracts; USDO/USDC pool drained",
+   "matchKeys": [
+    "tapioca dao",
+    "tapioca"
+   ]
+  },
+  {
+   "target": "Alex Lab",
+   "date": "May 2024",
+   "year": 2024,
+   "month": 5,
+   "lostUSD": 4300000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Private-key compromise of the XLink bridge drained stablecoins; tied to Lazarus",
+   "matchKeys": [
+    "alex lab",
+    "alex"
+   ]
+  },
+  {
+   "target": "Onyx Protocol (2024)",
+   "date": "Sep 2024",
+   "year": 2024,
+   "month": 9,
+   "lostUSD": 3800000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Compound v2 fork precision bug plus NFTLiquidation flaw exploited via flash loan",
+   "matchKeys": [
+    "onyx protocol (2024)",
+    "onyx",
+    "2024"
+   ]
+  },
+  {
+   "target": "Banana Gun",
+   "date": "Sep 2024",
+   "year": 2024,
+   "month": 9,
+   "lostUSD": 3000000,
+   "type": "Wallet/keys",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "Telegram message-oracle bug let attackers transfer ETH from bot users' wallets",
+   "matchKeys": [
+    "banana gun",
+    "banana"
+   ]
+  },
+  {
+   "target": "Unizen",
+   "date": "Mar 2024",
+   "year": 2024,
+   "month": 3,
+   "lostUSD": 2100000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Insecure external call in the aggregation contract after a gas-optimization upgrade",
+   "matchKeys": [
+    "unizen",
+    "unizen"
+   ]
+  },
+  {
+   "target": "Grand Base",
+   "date": "Apr 2024",
+   "year": 2024,
+   "month": 4,
+   "lostUSD": 2000000,
+   "type": "Rug pull",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Deployer wallet compromised, draining ~615 ETH of liquidity from the RWA platform",
+   "matchKeys": [
+    "grand base",
+    "grand",
+    "base"
+   ]
+  },
+  {
+   "target": "Pike Finance",
+   "date": "Apr 2024",
+   "year": 2024,
+   "month": 4,
+   "lostUSD": 2000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Access-control flaw and broken memory mapping after an upgrade drained three chains",
+   "matchKeys": [
+    "pike finance",
+    "pike"
+   ]
+  },
+  {
+   "target": "Pump.fun",
+   "date": "May 2024",
+   "year": 2024,
+   "month": 5,
+   "lostUSD": 1900000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Former employee used privileged access and flash loans to exploit the bonding curve",
+   "matchKeys": [
+    "pump.fun",
+    "pump"
+   ]
+  },
+  {
+   "target": "Cetus Protocol",
+   "date": "May 2025",
+   "year": 2025,
+   "month": 5,
+   "lostUSD": 223000000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Spoof-token deposits plus integer overflow in liquidity math manipulated pool pricing on Sui",
+   "matchKeys": [
+    "cetus protocol",
+    "cetus"
+   ]
+  },
+  {
+   "target": "Balancer V2",
+   "date": "Nov 2025",
+   "year": 2025,
+   "month": 11,
+   "lostUSD": 128000000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Rounding error in ComposableStablePool invariant math enabled value extraction",
+   "matchKeys": [
+    "balancer v2",
+    "bal",
+    "balancer"
+   ]
+  },
+  {
+   "target": "UPCX",
+   "date": "Apr 2025",
+   "year": 2025,
+   "month": 4,
+   "lostUSD": 70000000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Malicious smart-contract upgrade pushed from a compromised admin private key",
+   "matchKeys": [
+    "upcx",
+    "upcx"
+   ]
+  },
+  {
+   "target": "Infini",
+   "date": "Feb 2025",
+   "year": 2025,
+   "month": 2,
+   "lostUSD": 49500000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Overlooked developer admin privilege allowed unauthorized fund drainage",
+   "matchKeys": [
+    "infini",
+    "infini"
+   ]
+  },
+  {
+   "target": "GMX",
+   "date": "Jul 2025",
+   "year": 2025,
+   "month": 7,
+   "lostUSD": 42000000,
+   "type": "Perps",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Reentrancy in GMX V1 GLP pool allowed repeated withdrawals; most returned for bounty",
+   "matchKeys": [
+    "gmx",
+    "gmx",
+    "glp"
+   ]
+  },
+  {
+   "target": "Abracadabra Money",
+   "date": "Mar 2025",
+   "year": 2025,
+   "month": 3,
+   "lostUSD": 13000000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Cauldron vulnerability let attacker drain 6,260 ETH from the protocol",
+   "matchKeys": [
+    "abracadabra money",
+    "mim",
+    "spell",
+    "abracadabra"
+   ]
+  },
+  {
+   "target": "Cork Protocol",
+   "date": "May 2025",
+   "year": 2025,
+   "month": 5,
+   "lostUSD": 12000000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Access-control flaw in a Uniswap V4 hook let attacker split and seize market assets",
+   "matchKeys": [
+    "cork protocol",
+    "cork"
+   ]
+  },
+  {
+   "target": "zkLend",
+   "date": "Feb 2025",
+   "year": 2025,
+   "month": 2,
+   "lostUSD": 9600000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Decimal-precision rounding flaw in the Starknet lending contract drained funds",
+   "matchKeys": [
+    "zklend",
+    "zklend"
+   ]
+  },
+  {
+   "target": "Ionic Money",
+   "date": "Feb 2025",
+   "year": 2025,
+   "month": 2,
+   "lostUSD": 8600000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Social engineering listed a fake LBTC token as collateral to borrow and drain vaults",
+   "matchKeys": [
+    "ionic money",
+    "ionic"
+   ]
+  },
+  {
+   "target": "Zoth",
+   "date": "Mar 2025",
+   "year": 2025,
+   "month": 3,
+   "lostUSD": 8400000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Compromised deployer key allowed a malicious proxy upgrade on the RWA restaking layer",
+   "matchKeys": [
+    "zoth",
+    "zoth"
+   ]
+  },
+  {
+   "target": "Bunni",
+   "date": "Sep 2025",
+   "year": 2025,
+   "month": 9,
+   "lostUSD": 8400000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Flash-loan attack on a rounding bug in withdrawal/rebalancing on Ethereum and Unichain",
+   "matchKeys": [
+    "bunni",
+    "bunni"
+   ]
+  },
+  {
+   "target": "KiloEx",
+   "date": "Apr 2025",
+   "year": 2025,
+   "month": 4,
+   "lostUSD": 7500000,
+   "type": "Perps",
+   "bridge": false,
+   "recovered": "partial",
+   "vector": "Price oracle manipulation drained the vault; ~90% later returned via bounty",
+   "matchKeys": [
+    "kiloex",
+    "kiloex"
+   ]
+  },
+  {
+   "target": "Loopscale",
+   "date": "Apr 2025",
+   "year": 2025,
+   "month": 4,
+   "lostUSD": 5800000,
+   "type": "Lending",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "RateX PT token pricing manipulated to drain USDC and SOL vaults; returned for bounty",
+   "matchKeys": [
+    "loopscale",
+    "loopscale"
+   ]
+  },
+  {
+   "target": "1inch (Fusion)",
+   "date": "Mar 2025",
+   "year": 2025,
+   "month": 3,
+   "lostUSD": 5000000,
+   "type": "DEX",
+   "bridge": false,
+   "recovered": "returned",
+   "vector": "Fusion v1 calldata-corruption bug in resolver contracts exploited; funds returned",
+   "matchKeys": [
+    "1inch (fusion)",
+    "1inch",
+    "1inch",
+    "fusion"
+   ]
+  },
+  {
+   "target": "Force Bridge",
+   "date": "Jun 2025",
+   "year": 2025,
+   "month": 6,
+   "lostUSD": 3800000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Access-control issue let attacker drain assets on ETH and BSC",
+   "matchKeys": [
+    "force bridge",
+    "force"
+   ]
+  },
+  {
+   "target": "Nemo Protocol",
+   "date": "Sep 2025",
+   "year": 2025,
+   "month": 9,
+   "lostUSD": 2400000,
+   "type": "Yield",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Contract vulnerability drained USDC on Sui, bridged to Ethereum via Circle",
+   "matchKeys": [
+    "nemo protocol",
+    "nemo"
+   ]
+  },
+  {
+   "target": "Shibarium bridge",
+   "date": "Sep 2025",
+   "year": 2025,
+   "month": 9,
+   "lostUSD": 2400000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "partial",
+   "vector": "Flash loan seized 10/12 validator signing keys to move ETH and SHIB off the bridge",
+   "matchKeys": [
+    "shibarium bridge",
+    "shibarium"
+   ]
+  },
+  {
+   "target": "KelpDAO",
+   "date": "Apr 2026",
+   "year": 2026,
+   "month": 4,
+   "lostUSD": 290000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "LayerZero 1-of-1 DVN compromised via RPC attack; phantom burn minted 116.5k rsETH",
+   "matchKeys": [
+    "kelpdao",
+    "kelpdao"
+   ]
+  },
+  {
+   "target": "Drift Protocol",
+   "date": "Apr 2026",
+   "year": 2026,
+   "month": 4,
+   "lostUSD": 285000000,
+   "type": "Perps",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Durable-nonce pre-signing tricked council into admin handover; fake CVT drained vaults",
+   "matchKeys": [
+    "drift protocol",
+    "drift"
+   ]
+  },
+  {
+   "target": "Humanity Protocol",
+   "date": "Jun 2026",
+   "year": 2026,
+   "month": 6,
+   "lostUSD": 34000000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Foundation key theft; ZachXBT flagged the incident as possibly staged",
+   "matchKeys": [
+    "humanity protocol",
+    "humanity"
+   ]
+  },
+  {
+   "target": "Truebit",
+   "date": "Jan 2026",
+   "year": 2026,
+   "month": 1,
+   "lostUSD": 26200000,
+   "type": "Infra",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Integer overflow in legacy token-purchase math wrapped TRU mint price to near zero",
+   "matchKeys": [
+    "truebit",
+    "tru",
+    "truebit"
+   ]
+  },
+  {
+   "target": "Resolv",
+   "date": "Mar 2026",
+   "year": 2026,
+   "month": 3,
+   "lostUSD": 25000000,
+   "type": "Stablecoin",
+   "bridge": false,
+   "recovered": "gone",
+   "vector": "Logic/oracle flaw exploited to extract value from the protocol",
+   "matchKeys": [
+    "resolv",
+    "resolv"
+   ]
+  },
+  {
+   "target": "AFX Trade",
+   "date": "Aug 2026",
+   "year": 2026,
+   "month": 8,
+   "lostUSD": 24000000,
+   "type": "Perps",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Validator signing keys compromised; USDC bridged out to ETH.",
+   "matchKeys": [
+    "afx trade",
+    "trade"
+   ]
+  },
+  {
+   "target": "Wanchain (NIGHT)",
+   "date": "Aug 2026",
+   "year": 2026,
+   "month": 8,
+   "lostUSD": 10000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Non-injective signed-message encoding flaw in the TreasuryCheck validator.",
+   "matchKeys": [
+    "wanchain (night)",
+    "wanchain",
+    "night"
+   ]
+  },
+  {
+   "target": "Verus - Ethereum",
+   "date": "Aug 2026",
+   "year": 2026,
+   "month": 8,
+   "lostUSD": 7500000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Missing validation minted more on Ethereum than was backed - a repeat of May.",
+   "matchKeys": [
+    "verus - ethereum",
+    "verus",
+    "ethereum"
+   ]
+  },
+  {
+   "target": "IoTeX ioTube",
+   "date": "Feb 2026",
+   "year": 2026,
+   "month": 2,
+   "lostUSD": 4400000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Compromised private key drained the TokenSafe contract on the Ethereum side",
+   "matchKeys": [
+    "iotex iotube",
+    "iotex",
+    "iotube"
+   ]
+  },
+  {
+   "target": "BSquared Network",
+   "date": "Aug 2026",
+   "year": 2026,
+   "month": 8,
+   "lostUSD": 3900000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "8.59M B2 tokens drained.",
+   "matchKeys": [
+    "bsquared network",
+    "bsquared"
+   ]
+  },
+  {
+   "target": "CrossCurve",
+   "date": "Feb 2026",
+   "year": 2026,
+   "month": 2,
+   "lostUSD": 3000000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "gone",
+   "vector": "Weak access controls allowed spoofed Axelar messages to release tokens",
+   "matchKeys": [
+    "crosscurve",
+    "crosscurve"
+   ]
+  },
+  {
+   "target": "Allbridge Core",
+   "date": "Aug 2026",
+   "year": 2026,
+   "month": 8,
+   "lostUSD": 1600000,
+   "type": "Bridge",
+   "bridge": true,
+   "recovered": "partial",
+   "vector": "Flash-loan on a single pool the Solana fix missed.",
+   "matchKeys": [
+    "allbridge core",
+    "allbridge",
+    "core"
+   ]
+  }
+ ],
+ "addresses": [
+  {
+   "target": "Harvest Finance",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0xf224ab004461540778a914ea397c589b677e27bb"
+  },
+  {
+   "target": "ChainSwap",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0xeda5066780de29d00dfb54581a707ef6f52d8113"
+  },
+  {
+   "target": "Anyswap",
+   "chain": "bsc",
+   "kind": "attacker",
+   "address": "0x0ae1554860e51844b61ae20823ef1268c3949f7c"
+  },
+  {
+   "target": "THORChain",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0xace2d948fc7ea3bc49eee5526786d66d19bc470e"
+  },
+  {
+   "target": "Poly Network",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0xc8a65fadf0e0ddaf421f28feab69bf6e2e589963"
+  },
+  {
+   "target": "pNetwork",
+   "chain": "bsc",
+   "kind": "attacker",
+   "address": "0x2bf5693dd3a5cea1139c4510fdce120cf042c934"
+  },
+  {
+   "target": "Cream Finance II",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0x24354d31bc9d90f62fe5f2454709c32049cf866b"
+  },
+  {
+   "target": "bZx",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0x74487eed1e67f4787e8c0570e8d5d168a05254d4"
+  },
+  {
+   "target": "BadgerDAO",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0x1fcdb04d0c5364fbd92c73ca8af9baa72c269107"
+  },
+  {
+   "target": "Qubit (QBridge)",
+   "chain": "bsc",
+   "kind": "attacker",
+   "address": "0xd01ae1a708614948b2b5e0b7ab5be6afa01325c7"
+  },
+  {
+   "target": "Wormhole",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0x629e7da20197a5429d30da36e77d06cdf796b71a"
+  },
+  {
+   "target": "Meter.io",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0x8d3d13cac607b7297ff61a5e1e71072758af4d01"
+  },
+  {
+   "target": "Ronin",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0x098b716b8aaf21512996dc57eb0615e2383e2f96"
+  },
+  {
+   "target": "Beanstalk",
+   "chain": "ethereum",
+   "kind": "contract",
+   "address": "0x1c5dcdd006ea78a7e4783f9e6021c32935a10fb4"
+  },
+  {
+   "target": "Harmony Horizon",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0x0d043128146654c7683fbf30ac98d7b2285ded00"
+  },
+  {
+   "target": "Nomad",
+   "chain": "ethereum",
+   "kind": "contract",
+   "address": "0x88a69b4e698a4b090df6cf5bd7b2d47325ad30a3"
+  },
+  {
+   "target": "Wintermute",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0xe74b28c2eae8679e3ccc3a94d5d0de83ccb84705"
+  },
+  {
+   "target": "BNB Chain Bridge",
+   "chain": "bsc",
+   "kind": "attacker",
+   "address": "0x489a8756c18c0b8b24ec2a2b9ff3d4d447f79bec"
+  },
+  {
+   "target": "Mango Markets",
+   "chain": "solana",
+   "kind": "attacker",
+   "address": "yujw9a2pyoqkkh47i4yegf4wxomshmik7lp29xs2nqm"
+  },
+  {
+   "target": "Platypus I",
+   "chain": "avalanche",
+   "kind": "attacker",
+   "address": "0xeff003d64046a6f521ba31f39405cb720e953958"
+  },
+  {
+   "target": "Euler Finance",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0xb2698c2d99ad2c302a95a8db26b08d17a77cedd4"
+  },
+  {
+   "target": "Multichain",
+   "chain": "ethereum",
+   "kind": "contract",
+   "address": "0x5cbe98480a790554403694b98bff71a525907f5d"
+  },
+  {
+   "target": "Curve (Vyper)",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0xdce5d6b41c32f578f875efffc0d422c57a75d7d8"
+  },
+  {
+   "target": "HTX / Heco Bridge",
+   "chain": "ethereum",
+   "kind": "contract",
+   "address": "0xa929022c9107643515f5c777ce9a910f0d1e490c"
+  },
+  {
+   "target": "KyberSwap",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0x50275e0b7261559ce1644014d4b78d4aa63be836"
+  },
+  {
+   "target": "Orbit Bridge",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0x27e2cc59a64d705a6c3d3d306186c2a55dcd5710"
+  },
+  {
+   "target": "WOOFi",
+   "chain": "arbitrum",
+   "kind": "attacker",
+   "address": "0x9961190b258897bca7a12b8f37f415e689d281c4"
+  },
+  {
+   "target": "Alex Lab",
+   "chain": "bsc",
+   "kind": "attacker",
+   "address": "0x27055ae433e9dcb30f6ebcc1a374cf5cc03c484e"
+  },
+  {
+   "target": "UwU Lend",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0x841ddf093f5188989fa1524e7b893de64b421f47"
+  },
+  {
+   "target": "LI.FI",
+   "chain": "ethereum",
+   "kind": "contract",
+   "address": "0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae"
+  },
+  {
+   "target": "Ronin Bridge (2024)",
+   "chain": "ethereum",
+   "kind": "contract",
+   "address": "0x64192819ac13ef72bf6b5ae239ac672b43a9af08"
+  },
+  {
+   "target": "Radiant Capital",
+   "chain": "arbitrum",
+   "kind": "contract",
+   "address": "0x57ba8957ed2ff2e7ae38f4935451e81ce1eefbf5"
+  },
+  {
+   "target": "zkLend",
+   "chain": "starknet",
+   "kind": "attacker",
+   "address": "0x04d7191dc8eac499bac710dd368706e3ce76c9945da52535de770d06ce7d3b26"
+  },
+  {
+   "target": "Cetus Protocol",
+   "chain": "sui",
+   "kind": "attacker",
+   "address": "0xe28b50cef1d633ea43d3296a3f6b67ff0312a5f1a99f0af753c85b8b5de8ff06"
+  },
+  {
+   "target": "Shibarium bridge",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0x999e025a2a0558c07dbf7f021b2c9852b367e80a"
+  },
+  {
+   "target": "Balancer V2",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0xaa760d53541d8390074c61defeaba314675b8e3f"
+  },
+  {
+   "target": "IoTeX ioTube",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0x6487b5006904f3db3c4a3654409ae92b87ed442f"
+  },
+  {
+   "target": "CrossCurve",
+   "chain": "ethereum",
+   "kind": "contract",
+   "address": "0xb2185950f5a0a46687ac331916508aada202e063"
+  },
+  {
+   "target": "Allbridge Core",
+   "chain": "ethereum",
+   "kind": "attacker",
+   "address": "0x651591b68a9c9650fb23f642162353306281ffde"
+  }
+ ]
+}
