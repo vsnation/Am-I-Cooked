@@ -2,36 +2,43 @@
 
 ## Short description (≤100 chars)
 
-> Spotify Wrapped for your worst DeFi decisions — TEE-scored on 0G, fixed by a human-backed agent.
+> Wallet autopsy: the money you forgot, the approvals draining you, a siren before the hack lands.
 
-(96 chars)
+(96 chars — alt: "Spotify Wrapped for your worst DeFi decisions — TEE-scored on 0G, fixed by a human-backed agent.")
 
 ## Description (min 280 chars)
 
 > Everyone got cooked this year. The only question is how much.
 >
-> Paste any wallet address — no connect, no signature — and AM I COOKED runs a
-> cross-protocol autopsy: your exploit exposure matched against a curated incident
-> registry, every dangerous token approval still open right now, dead-protocol bags,
-> and your single worst day. The verdict is a cooked score from 0 to 100, stamped by
-> a sealed judge running inside a 0G Compute TEE — with a real attestation you can
-> tap open, and the scoring rubric hash-committed on-chain in the CookedRegistry, so
-> nobody (including us) can quietly change the rules after the fact. No connect, no
-> signature, no account — cached scans are keyed by a hash of the address, so we never
-> build a ledger of who looked up what, and history lives encrypted in 0G Storage.
+> You know the feeling of finding €20 in last year's jacket? Your wallet has
+> jackets. AM I COOKED? goes through all of them: LP positions still sitting in
+> pools everyone abandoned, bags parked in protocols that quietly died in 2023 —
+> money you forgot exists, surfaced in one scan. That's the fun part.
 >
-> Then comes the part Wrapped can't do: fix it. The Surgeon is an agent with a 0G
-> Agentic ID that diagnoses every open wound and prepares the exact revocation
-> transactions to close them — but it operates under two hard rules: it never holds
-> your keys (you sign every transaction yourself), and no face, no scalpel — it may
-> only act with verified human backing via World's Selfie Check, renewed daily. An
-> anonymous agent asking to touch your money gets a big red BLOCKED.
+> Here's the unfun part: the same jacket has a hole in it. Eight months ago you
+> used a protocol, approved unlimited spending "just once", and moved on. Then the
+> protocol got hacked. You forgot the approval; the attacker didn't — it can move
+> your tokens TODAY, no signature needed, while your balance looks fine. We trace
+> every live approval across 21 EVM chains, re-verify each against the chain, match
+> spenders against 177 documented hacks, and hand you the exact revoke transaction
+> for each wound. Paste an address or ENS — no connect, no signatures, ever.
 >
-> A guardian alarm layer watches DeFi liquidity for large outflows, so if a protocol
-> you're exposed to starts draining, you get the knives out before you're hit.
-> Misery goes viral (68% cooked 💀); the recovery card brings you back (68 → 31,
-> €4,120 of live exposure defused). That's the card people actually share — not the
-> shame, the comeback.
+> And because getting robbed is a live event, not a history lesson: the GUARDIAN.
+> Most wallet checkers are coroners — they tell you how you died. Ours is a smoke
+> detector. It watches DeFi liquidity in real time, and when a pool you're exposed
+> to starts draining (the real ones go 90% in minutes — we replay one on demand,
+> clearly labeled), a siren literally goes off in the app, pointing at the exact
+> approvals to cut before the drainer's queue reaches you. Scan → verdict →
+> alarm → revoke: protection, not a postmortem.
+>
+> The verdict itself is a cooked score 0–100, judged inside a 0G Compute TEE
+> against a rubric whose hash is committed on-chain — tap the wax seal and the real
+> attestation transaction opens on the explorer. The fixing is done by the Surgeon,
+> an agent with an on-chain Agentic ID that may only PROPOSE revocations: a
+> verified human must back it (World AgentBook), and you sign every transaction in
+> your own wallet. Anonymous agent asking to touch money → big red BLOCKED.
+>
+> Then you post your 100% CHARCOAL card to X and ruin your friends' evening.
 
 ## Ethereum developer tools (multiselect)
 
@@ -179,35 +186,48 @@
 
 ## How it's made (min 280 chars)
 
-> Monorepo, three deliberate layers.
+> Monorepo, three deliberate layers, zero frameworks.
 >
-> **The autopsy (The Graph).** A dependency-free, isomorphic JS library that queries
-> The Graph gateway using Messari standardized subgraph schemas — one query shape
-> covers Aave v3, Compound v3 and Spark; adding a conforming lending market is one
-> registry line. Uniswap v3 rides the same registry with its own dialect. Live
-> approvals don't come from an indexer at all: we scan raw ERC-20 Approval logs via
-> eth_getLogs (chunked fallback for stingy RPCs), then re-verify every surviving
-> (token, spender) pair with a live allowance() call — the call is the source of
-> truth, and failed re-checks fail closed rather than reading as "revoked". A
-> guardian AlarmEngine polls top-pool TVL through the gateway and fires on ≥25%
-> outflow in 12 minutes, matched against your personal exposure.
+> **The autopsy (The Graph).** A dependency-free isomorphic JS library queries the
+> Graph gateway using Messari standardized subgraph schemas — ONE query shape covers
+> Aave v3, Compound v3 and Spark; adding a conforming market is one registry line
+> (`apps/api/autopsy.js`). Uniswap v3 rides the same registry with its own dialect.
+> Live approvals come from raw ERC-20 Approval logs over eth_getLogs on 21 chains
+> (every keyless Tenderly gateway that survived our wide-range probe), and every
+> surviving (token, spender) pair is re-verified with a live allowance() call —
+> failed re-checks fail CLOSED, flagged unverified, never silently "revoked". War
+> story: providers now 429 fat JSON-RPC batches, which silently amputated heavy
+> wallets' mainnet data — so allowance re-checks ride Multicall3 with hand-encoded
+> tryAggregate calldata (~300 checks per eth_call) and quota-aware backoff. That
+> one change took vitalik.eth from "0 wounds" to the true 2,166. The guardian
+> AlarmEngine polls top-pool TVL through the gateway (source-agnostic by design —
+> a composed Substreams sink drops in without touching detection) and fires on
+> sharp outflows, cross-referenced against your own scan.
 >
-> **The seal (0G).** Hard rule we set day one: the app contains zero 0G SDK imports.
-> Everything 0G goes through SEAL, our standalone MCP server (Bun + TypeScript,
-> 0G Compute/Storage SDKs, ethers) exposing 8 tools: sealed TEE inference with
-> per-response signature verification on Galileo, encrypted Storage memory, chain
-> calls, and Agentic ID mint/load (ERC-7857 draft surface, contract + deploy
-> script). The hacky bit we're proud of: stub mode emits self-consistent *fake*
-> attestations that seal_verify genuinely validates and rejects when tampered — so
-> we built the whole product against the stub and flipped to live 0G without
-> changing agent code. CookedRegistry.sol anchors verdicts first-write-wins, with
-> the scoring rubric's hash committed at deploy; the judge mirrors that rubric's
-> wounds formula byte-for-byte, so a verifier can recompute the score.
+> **The seal (0G).** Hard rule from day one: the app imports zero 0G SDKs — all 0G
+> traffic goes through SEAL, our standalone MCP server (8 tools: TEE inference with
+> per-response signature verification, encrypted Storage memory, chain calls,
+> Agentic ID mint). The judge pipeline is live in production: report → slimmed
+> surfaces + deterministic reference → TEE (qwen2.5-omni-7b) → parseVerdict, which
+> recomputes the rubric math and REJECTS off-rubric output → scoreHash attested in
+> CookedRegistry on Galileo. Sealing refuses to run if the on-chain rubricHash
+> differs from local rubric.md, and an identical verdict recovers its original tx
+> from the Attested event log (idempotence via logs — no double-attest). Hacky brag:
+> stub mode emits self-consistent fake attestations that seal_verify genuinely
+> validates and rejects when tampered, so we built everything against the stub and
+> flipped to live 0G without changing agent code.
 >
-> **The face (World).** The Surgeon's interlock follows World's human-backing model:
-> Selfie Check flips it ON DUTY for 24h, it only ever *proposes* defensive
-> revocations, and the human signs each one in World App (flow currently staged in
-> the UI, MiniKit wiring next). Frontend is a framework-free vanilla-JS PWA
-> (installable, service worker), backed by a small Node API (viem) that keeps the
-> Graph key server-side and caches scans. The autopsy is also packaged as
-> cooked-skill, an MCP tool, so any agent can borrow our coroner.
+> **The leash (World).** The Surgeon's authority is real, not UI: the server checks
+> its wallet against AgentBook on World Chain (@worldcoin/agentkit) and 402s until
+> a human backs it; the frontend re-asserts the check at OPERATE-click time. It
+> never holds keys — it prepares approve(spender, 0) transactions and the human
+> signs each one. Selfie Check keeps the backing fresh daily; Identity Check gates
+> recourse on exactly two booleans, stores nothing.
+>
+> Other bits we like: demo wallets (real drain victims — jaredfromsubway.eth,
+> 0xSifu) pre-scanned into a pinned cache so live demos answer in <1s and
+> pre-sealed on-chain; share links (/r/<addr>) with server-rendered 1200×630
+> verdict cards (SVG → sharp) so X previews your CHARCOAL; a 41s in-app guided
+> tour recorded from the live product; 27-assertion Playwright suite that runs
+> against production after every deploy.
+
