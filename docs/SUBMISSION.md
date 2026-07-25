@@ -186,48 +186,55 @@
 
 ## How it's made (min 280 chars)
 
-> Monorepo, three deliberate layers, zero frameworks.
+> **Monorepo, three deliberate layers, zero frameworks — a vanilla-JS PWA, a Node
+> scan service, and two tiny Solidity contracts.** Deployed under tracely.live — our
+> free AML & compliance tool — so the wallet-risk engine here plugs straight into an
+> existing compliance surface after the event.
 >
-> **The autopsy (The Graph).** A dependency-free isomorphic JS library queries the
-> Graph gateway using Messari standardized subgraph schemas — ONE query shape covers
-> Aave v3, Compound v3 and Spark; adding a conforming market is one registry line
-> (`apps/api/autopsy.js`). Uniswap v3 rides the same registry with its own dialect.
-> Live approvals come from raw ERC-20 Approval logs over eth_getLogs on 21 chains
-> (every keyless Tenderly gateway that survived our wide-range probe), and every
-> surviving (token, spender) pair is re-verified with a live allowance() call —
-> failed re-checks fail CLOSED, flagged unverified, never silently "revoked". War
-> story: providers now 429 fat JSON-RPC batches, which silently amputated heavy
-> wallets' mainnet data — so allowance re-checks ride Multicall3 with hand-encoded
-> tryAggregate calldata (~300 checks per eth_call) and quota-aware backoff. That
-> one change took vitalik.eth from "0 wounds" to the true 2,166. The guardian
-> AlarmEngine polls top-pool TVL through the gateway (source-agnostic by design —
-> a composed Substreams sink drops in without touching detection) and fires on
-> sharp outflows, cross-referenced against your own scan.
+> **Layer 1 — the autopsy (The Graph).** A dependency-free isomorphic JS library
+> queries the Graph gateway using Messari STANDARDIZED subgraph schemas: one query
+> shape covers Aave v3, Compound v3 and Spark — adding a conforming market is
+> literally one registry line. Uniswap v3 rides the same registry as a second
+> dialect. Live approvals come from raw ERC-20 Approval logs via eth_getLogs across
+> 21 EVM chains (every keyless Tenderly gateway that survived our wide-range probe),
+> and every surviving (token, spender) pair is re-verified with a live allowance()
+> call — failed re-checks fail CLOSED, flagged unverified, never silently "revoked".
+> The war story: providers now 429 fat JSON-RPC batches, which silently amputated
+> heavy wallets' mainnet data. Fix: allowance re-checks ride Multicall3 with
+> hand-encoded tryAggregate calldata (~300 checks per single eth_call) plus
+> quota-aware backoff. That one change took vitalik.eth from "0 wounds" to the true
+> 2,166. The guardian AlarmEngine polls top-pool TVL through the gateway and fires
+> on sharp outflows — source-agnostic by design, so a composed Substreams sink
+> drops in without touching detection. The whole intelligence is also packaged as
+> cooked-skill, an MCP server (5 tools) any agent can mount with one config block.
 >
-> **The seal (0G).** Hard rule from day one: the app imports zero 0G SDKs — all 0G
-> traffic goes through SEAL, our standalone MCP server (8 tools: TEE inference with
-> per-response signature verification, encrypted Storage memory, chain calls,
-> Agentic ID mint). The judge pipeline is live in production: report → slimmed
-> surfaces + deterministic reference → TEE (qwen2.5-omni-7b) → parseVerdict, which
-> recomputes the rubric math and REJECTS off-rubric output → scoreHash attested in
-> CookedRegistry on Galileo. Sealing refuses to run if the on-chain rubricHash
-> differs from local rubric.md, and an identical verdict recovers its original tx
-> from the Attested event log (idempotence via logs — no double-attest). Hacky brag:
-> stub mode emits self-consistent fake attestations that seal_verify genuinely
-> validates and rejects when tampered, so we built everything against the stub and
-> flipped to live 0G without changing agent code.
+> **Layer 2 — the seal (0G).** Hard rule from day one: the app imports ZERO 0G
+> SDKs — all 0G traffic goes through SEAL, our standalone MCP server (8 tools: TEE
+> inference with per-response signature verification, encrypted Storage memory,
+> chain calls, Agentic ID mint). The judge pipeline runs live in production:
+> report → slimmed surfaces + deterministic reference → 0G Compute TEE
+> (qwen2.5-omni-7b) → parseVerdict, which recomputes the rubric math and REJECTS
+> off-rubric output → scoreHash attested in CookedRegistry on Galileo. Sealing
+> refuses to run if the on-chain rubricHash differs from local rubric.md, and an
+> identical verdict recovers its original attest tx from the event log — idempotence
+> via logs, no double-attest. Favorite hack: stub mode emits self-consistent FAKE
+> attestations that seal_verify genuinely validates and rejects when tampered — we
+> built the entire product against the stub, then flipped to live 0G without
+> changing a line of agent code.
 >
-> **The leash (World).** The Surgeon's authority is real, not UI: the server checks
-> its wallet against AgentBook on World Chain (@worldcoin/agentkit) and 402s until
-> a human backs it; the frontend re-asserts the check at OPERATE-click time. It
-> never holds keys — it prepares approve(spender, 0) transactions and the human
-> signs each one. Selfie Check keeps the backing fresh daily; Identity Check gates
-> recourse on exactly two booleans, stores nothing.
+> **Layer 3 — the leash (World).** The Surgeon's authority is enforced server-side,
+> not in CSS: its wallet is checked against AgentBook on World Chain
+> (@worldcoin/agentkit) and the API answers 402 until a verified human backs it;
+> the frontend re-asserts the check at OPERATE-click time. The agent never holds
+> keys — it prepares approve(spender, 0) transactions and the human signs each one.
+> Selfie Check keeps the backing fresh daily; Identity Check gates recourse on
+> exactly two booleans and stores nothing.
 >
-> Other bits we like: demo wallets (real drain victims — jaredfromsubway.eth,
-> 0xSifu) pre-scanned into a pinned cache so live demos answer in <1s and
-> pre-sealed on-chain; share links (/r/<addr>) with server-rendered 1200×630
-> verdict cards (SVG → sharp) so X previews your CHARCOAL; a 41s in-app guided
-> tour recorded from the live product; 27-assertion Playwright suite that runs
-> against production after every deploy.
-
+> **Other bits we're fond of:** real drain victims as demo wallets
+> (jaredfromsubway.eth, 0xSifu) pre-scanned into a pinned cache (<1s answers) and
+> pre-sealed on-chain; shareable /r/<address> links with server-rendered 1200×630
+> verdict cards (SVG rasterized by sharp) so X previews your CHARCOAL; viem for
+> ENS/revokes, ethers inside SEAL; a 27-assertion Playwright suite that runs
+> against PRODUCTION after every deploy; and a scan cache keyed by address hash
+> only — no plaintext ledger of who looked up whom, which is exactly the privacy
+> posture a compliance tool should ship with.
