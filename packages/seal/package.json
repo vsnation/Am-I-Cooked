@@ -3,15 +3,23 @@
   "version": "0.1.0",
   "description": "One config line gives your AI client private TEE inference, permanent encrypted memory, and proof of every answer — 0G Compute / Storage / Chain / Agentic ID as MCP tools.",
   "type": "module",
-  "bin": { "seal-mcp": "src/index.ts" },
+  "bin": {
+    "seal-mcp": "src/index.ts"
+  },
   "scripts": {
     "start": "bun src/index.ts",
     "test": "bun test",
     "goldfish": "bun examples/goldfish.ts"
   },
   "dependencies": {
+    "@0gfoundation/0g-compute-ts-sdk": "^0.9.0",
+    "@0gfoundation/0g-storage-ts-sdk": "^1.2.10",
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "ethers": "^6.17.0",
     "zod": "^3.23.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "solc": "^0.8.36"
+  }
 }

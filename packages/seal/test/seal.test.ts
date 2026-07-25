@@ -53,9 +53,12 @@ describe("SEAL core (stub backend — same interface live mode must satisfy)", (
 
   test("live mode fails loudly with the exact requirements", async () => {
     process.env.SEAL_MODE = "live";
+    const pk = process.env.OG_PRIVATE_KEY;
+    delete process.env.OG_PRIVATE_KEY;
     const { makeBackend } = await import("../src/core.js");
     const live = makeBackend();
-    await expect(live.infer("x")).rejects.toThrow(/OG_RPC_URL/);
+    await expect(live.infer("x")).rejects.toThrow(/OG_PRIVATE_KEY/);
+    if (pk) process.env.OG_PRIVATE_KEY = pk;
     process.env.SEAL_MODE = "stub";
   });
 });
