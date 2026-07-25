@@ -61,6 +61,9 @@ async function pollAlarms() {
 setInterval(pollAlarms, 15000);
 pollAlarms();
 
+const seals = new Map();     // key -> seal record (verdict, hashes, txHash, …)
+const sealing = new Map();   // key -> Promise: one TEE run per address at a time
+let sealCol = null;          // mongo persistence for seals (they're anchored on-chain anyway)
 const mem = new Map(); // addr -> { at, report }
 let col = null;
 if (MONGO_URL) {
@@ -84,9 +87,6 @@ if (MONGO_URL) {
 let scans = 0, hits = 0;
 const inflight = new Map(); // key -> Promise: coalesce concurrent scans of one address
 const cardCache = new Map(); // key -> {at, buf, type}: rendered share banners
-const seals = new Map();     // key -> seal record (verdict, hashes, txHash, …)
-const sealing = new Map();   // key -> Promise: one TEE run per address at a time
-let sealCol = null;          // mongo persistence for seals (they're anchored on-chain anyway)
 // Cache by a hash of the address, not the address itself — no plaintext ledger of who
 // looked up what (public data either way, but nothing links a person to a lookup).
 const keyOf = addr => createHash("sha256").update(addr).digest("hex");
