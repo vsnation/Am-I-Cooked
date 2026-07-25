@@ -24,7 +24,18 @@ const report = {
     incidents: { matches: [{ target: "Harvest Finance", lostUSD: 24000000 }] },
     ghost: { items: [{ where: "LP FARM/WETH", why: "pool TVL $812 — effectively dead" }], score: 45 },
     behavioral: { score: 0, note: "not enough swap history" },
-    approvals: { status: "pending-feed" },
+    approvals: {
+      // Live multichain shape (apps/api/onchain.js): one wound matching an incident
+      // address, one surviving unlimited allowance to an unrecognized contract.
+      items: [
+        { chain: "Ethereum", token: "0xa0b8…", tokenSymbol: "FARM", spender: "0xc6028a9fa486f52efd2b95b949ac630d287ce0af",
+          incident: { target: "Harvest Finance", kind: "exploiter" }, unlimited: true, risk: "critical" },
+        { chain: "Base", token: "0x8335…", tokenSymbol: "USDC", spender: "0x1111111254eeb25477b68fb85ed929f73a960582",
+          incident: null, unlimited: true, risk: "high" },
+      ],
+      score: 73,
+      counts: { total: 2, critical: 1, unlimited: 2 },
+    },
   },
 };
 
@@ -37,6 +48,7 @@ function referenceInfer(prompt) {
     rubricVersion: RUBRIC_VERSION, address: report.address, score, band: band(score),
     partial: pendingFeeds.length > 0, pendingFeeds, components,
     evidence: [
+      "1 approval to a Harvest Finance exploiter address + 1 surviving unlimited allowance",
       "1 incident-registry match: Harvest Finance ($24M lost)",
       "1 ghost item: LP FARM/WETH in a $812 pool",
     ],

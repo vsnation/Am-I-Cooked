@@ -35,11 +35,20 @@ export function buildJudgePrompt(rubricText, report) {
 export function computeComponents(surfaces) {
   const pending = [];
   let wounds = 0;
-  if (surfaces.approvals?.status === "pending-feed" || !surfaces.approvals) {
+  const a = surfaces.approvals;
+  // A feed that is absent, not yet wired, down, or that scanned zero chains scores 0
+  // and marks the verdict partial (rubric §Missing-surface rule) — never a silent
+  // full-confidence 0.
+  if (!a || a.status === "pending-feed" || a.status === "unavailable" || a.chainsScanned === 0) {
     pending.push("approvals(40%)");
   } else {
-    const a = surfaces.approvals;
-    wounds = Math.min(100, (a.incidentMatches ?? 0) * 50 + (a.unlimited ?? 0) * 20);
+    // Live shapes: multichain surface carries `items`, single-chain carries `wounds`.
+    // Rubric: 50 per address-level incident match, 20 per REMAINING unlimited
+    // approval — an incident-matched wound never double-counts its unlimited flag.
+    const woundsList = a.items ?? a.wounds ?? [];
+    const incidentMatches = woundsList.filter(w => w?.incident).length;
+    const unlimitedRemaining = woundsList.filter(w => w?.unlimited && !w?.incident).length;
+    wounds = Math.min(100, incidentMatches * 50 + unlimitedRemaining * 20);
   }
   const exploitExposure = Math.min(100, (surfaces.incidents?.matches?.length ?? 0) * 34);
   const ghostPortfolio = Math.min(100, (surfaces.ghost?.items?.length ?? 0) * 45);

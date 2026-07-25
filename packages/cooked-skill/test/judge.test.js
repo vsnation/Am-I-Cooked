@@ -33,10 +33,49 @@ test("component math mirrors the rubric formulas", () => {
   assert.deepEqual(components, { wounds: 0, exploitExposure: 68, ghostPortfolio: 45, behavioral: 12 });
   assert.deepEqual(pendingFeeds, ["approvals(40%)"]);
   assert.equal(computeScore(components), Math.round(68 * 0.25 + 45 * 0.20 + 12 * 0.15)); // 28
-  // approvals feed present → wounds scores, nothing pending
-  const live = computeComponents({ ...SURFACES, approvals: { incidentMatches: 1, unlimited: 2 } });
+});
+
+test("wounds reads the live multichain approvals shape (items + incident/unlimited flags)", () => {
+  // Shape emitted by apps/api/onchain.js multichainApprovals(): items[], score, counts{}.
+  const live = computeComponents({ ...SURFACES, approvals: {
+    items: [
+      { spender: "0x1", incident: { target: "Harvest Finance", kind: "exploiter" }, unlimited: true, risk: "critical" },
+      { spender: "0x2", incident: null, unlimited: true, risk: "high" },
+      { spender: "0x3", incident: null, unlimited: true, risk: "medium" },
+      { spender: "0x4", incident: null, unlimited: false, risk: "low" },
+    ],
+    score: 91,
+    counts: { total: 4, critical: 1, unlimited: 3 },
+  } });
+  // 1 incident match ×50 + 2 REMAINING unlimited ×20 — the matched wound's
+  // unlimited flag does not double-count.
   assert.equal(live.components.wounds, 90);
   assert.deepEqual(live.pendingFeeds, []);
+});
+
+test("wounds reads the single-chain approvalsSurface shape (wounds[])", () => {
+  const live = computeComponents({ ...SURFACES, approvals: {
+    wounds: [
+      { spender: "0xa", incident: null, unlimited: true },
+      { spender: "0xb", incident: null, unlimited: true },
+    ],
+    openCount: 2, unlimitedCount: 2,
+  } });
+  assert.equal(live.components.wounds, 40);
+  assert.deepEqual(live.pendingFeeds, []);
+});
+
+test("unavailable approvals feed scores 0 and forces pendingFeeds (missing-surface rule)", () => {
+  for (const approvals of [
+    { status: "unavailable", error: "rpc down" },
+    { status: "pending-feed" },
+    { items: [], score: 0, chainsScanned: 0, skipped: ["Ethereum", "Base"], counts: { total: 0, critical: 0, unlimited: 0 } },
+    undefined,
+  ]) {
+    const r = computeComponents({ ...SURFACES, approvals });
+    assert.equal(r.components.wounds, 0);
+    assert.deepEqual(r.pendingFeeds, ["approvals(40%)"]);
+  }
 });
 
 test("bands cover the range at the documented cut points", () => {
