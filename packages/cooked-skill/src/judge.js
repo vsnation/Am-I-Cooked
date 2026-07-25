@@ -8,7 +8,9 @@ import { keccak256 } from "js-sha3";
 export const RUBRIC_VERSION = "v1";
 export const RUBRIC_WEIGHTS = { wounds: 0.40, exploitExposure: 0.25, ghostPortfolio: 0.20, behavioral: 0.15 };
 export const BANDS = [[20, "RARE"], [40, "MEDIUM RARE"], [60, "MEDIUM WELL"], [80, "COOKED"], [100, "CHARCOAL"]];
-export const band = (score) => BANDS.find(([max]) => score <= max)[1];
+// Total over any input: an out-of-range score yields undefined and fails the band
+// check in parseVerdict as a rubric violation — never a TypeError.
+export const band = (score) => (BANDS.find(([max]) => score <= max) ?? [])[1];
 
 /** The exact prompt sent through seal.infer. rubricText MUST be the deployed
  *  contracts/rubric.md content — the same bytes the registry's rubricHash commits to. */

@@ -112,6 +112,9 @@ test("parseVerdict rejects tampered scores, bands and off-rubric math", () => {
   assert.throws(() => parseVerdict(JSON.stringify({ ...v, band: "CHARCOAL" })), /band/);
   assert.throws(() => parseVerdict(JSON.stringify({ ...v, components: { ...v.components, ghostPortfolio: 100 } })), /weights/);
   assert.throws(() => parseVerdict("no json here"), /no JSON/);
+  // Out-of-range scores are rubric violations, never TypeErrors (band() is total).
+  assert.throws(() => parseVerdict(JSON.stringify({ ...v, score: 120, band: "CHARCOAL" })), /violates rubric/);
+  assert.throws(() => parseVerdict(JSON.stringify({ ...v, score: -3 })), /violates rubric/);
 });
 
 test("canonicalize is key-order independent → stable scoreHash", () => {
