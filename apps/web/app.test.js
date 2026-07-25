@@ -20,9 +20,10 @@ ok('html/body background is dark (no white leak)', bgs.every(c => c.includes('13
 const overflow = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
 ok('no horizontal overflow on 390px viewport', overflow <= 0, 'scrollWidth - innerWidth = ' + overflow);
 
-// 3 · grief ticker is alive
-const g1 = await p.textContent('#grief'); await p.waitForTimeout(1600); const g2 = await p.textContent('#grief');
-ok('grief ticker counts live', g1 !== g2, g1 + ' → ' + g2);
+// 3 · grief counter shows the real registry loss total (the counting animation was
+// fabricated data and got removed in the honesty audit)
+const g1 = await p.textContent('#grief');
+ok('grief counter shows real registry losses', /[\$€]\s?[\d.,]+\s?[BMK]?/.test(g1), g1);
 await shot('t1-landing');
 
 // 4a · garbage address is rejected with a shake, no scan
