@@ -74,6 +74,17 @@ function referenceVerdict(report) {
   };
 }
 
+async function findAttestTx(sh) {
+  const topic0 = "0x" + keccak256("Attested(bytes32,bytes32,address,uint64)");
+  const r = await fetch(OG_RPC, {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_getLogs",
+      params: [{ address: REGISTRY_ADDR, fromBlock: "0x1", toBlock: "latest", topics: [topic0, sh] }] }),
+  });
+  const logs = (await r.json()).result;
+  return Array.isArray(logs) && logs[0] ? logs[0].transactionHash : null;
+}
+
 /** Seal a completed report: TEE inference, rubric validation, on-chain attest. */
 export async function sealReport(report) {
   if (!(await assertRegistryRubric())) throw new Error("registry rubricHash mismatch — sealing disabled");
@@ -101,7 +112,15 @@ export async function sealReport(report) {
 
   const sh = scoreHash(verdict), ah = attestationHash(attestation);
   const data = "0x" + keccak256("attest(bytes32,bytes32)").slice(0, 8) + sh.slice(2) + ah.slice(2);
-  const { txHash } = await backend.chainCall(REGISTRY_ADDR, data);
+  let txHash;
+  try { ({ txHash } = await backend.chainCall(REGISTRY_ADDR, data)); }
+  catch (e) {
+    // The registry is idempotent per scoreHash — an identical verdict is already
+    // anchored. Recover the ORIGINAL attest tx from the Attested event log.
+    if (!/already attested/i.test(String(e.message))) throw e;
+    txHash = await findAttestTx(sh);
+    if (!txHash) throw e;
+  }
   const ver = await backend.verify(attestation).catch(() => null);
   return {
     sealedAt: new Date().toISOString(),
