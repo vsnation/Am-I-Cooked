@@ -261,3 +261,32 @@ of your track. Repo's open, SKILL-dot-M-D included."
 *≈ 1:50 spoken with pauses. Stretch to 2:00+ by holding on the live tool-call output.
 If you also attempt the Substreams featured challenge later, that's a SEPARATE claim —
 do not fold it into this script.*
+
+---
+
+## 4c · COMPOSABLE / STANDARDIZED scheme — `composable-scheme.mp4` (18.7s)
+
+*Tight voiceover to fit the animation (~45 words). `[ … ]` = short pause. If you want
+to talk longer, pause playback on the "+1 line" beat and the composition strip.*
+
+**0:00 — title + code appears.** "A wallet checker that covers two protocols tells you
+you're safe —" (beat) "— while a third one drains you."
+
+**0:06 — query fans to three.** "So we used The Graph's standardized schema. One query,
+written once —" [ … ] "— runs across every protocol at once. Live."
+
+**0:11 — the +1 line / Morpho.** "Another protocol?" (beat) "One line."
+
+**0:14 — composition strip.** "And it composes — a second Graph product becomes a live
+drain alarm." [ … ]
+
+**0:17 — close.** "Total coverage. In an afternoon."
+
+### Alt one-liner (if you want a single sentence over the whole clip)
+"One standardized query covers the entire DeFi map, adding a protocol is one line, and
+a second Graph product composes straight in — that's total coverage in an afternoon."
+
+### On-screen text is already baked in
+The clip carries its own captions (the read/understand/act line, "+1 line = +1
+protocol", "$0 extra code", the composition strip). If you'd rather it be silent, it
+reads on its own — the voiceover is optional polish.
