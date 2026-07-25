@@ -1,4 +1,62 @@
-# Problems we found & solved — per sponsor
+# Why this needed to exist — the problems, globally
+
+*Part 1: the real-world problem each sponsor's tech was NECESSARY to solve.
+Part 2 (below): concrete gaps we hit in the stacks and fixed along the way.*
+
+## The master problem
+
+Billions are stolen from wallets every year — and the biggest share isn't stolen
+keys. It's **permissions people granted and forgot**. You approve unlimited spending
+"just once" to swap a token; months later that contract is exploited, and it can
+drain you TODAY with no signature, while your balance looks perfectly fine. Nobody's
+wallet UI shows this. Explorers show raw logs. Revoke tools show a table with no
+diagnosis. Checkers log the address you paste. And everything is a post-mortem —
+by the time you read about the hack, your window to act is gone.
+
+Four sub-problems, four pillars:
+
+## 1 · You can't see the danger — the DATA problem → The Graph
+
+Your risk lives scattered across every lending market, DEX and pool you ever
+touched — dozens of protocols, dozens of custom APIs. Integrating them one by one is
+why every wallet checker covers two protocols and dies. **We needed The Graph's
+standardized schemas** to make TOTAL coverage feasible: one query shape across every
+conforming protocol, live. Solved: a full cross-protocol autopsy in ~10 seconds —
+exploit exposure, forgotten money, live wounds — that was economically impossible
+to build protocol-by-protocol.
+
+## 2 · You can't trust the verdict — the TRUST problem → 0G
+
+Say a website scores your wallet 92% at risk. Why believe it? It could be wrong,
+could quietly change its rules, could be farming the addresses people paste. A risk
+score you can't verify is just content. **We needed 0G** to make the verdict
+self-proving: judged inside a TEE, rules hash-committed on-chain before launch,
+every verdict attested in a registry — and the scan cached only by a hash of your
+address. Solved: the first wallet checker where you don't trust the score — you
+tap the seal and verify it, and it provably never kept your address.
+
+## 3 · Knowing isn't fixing — the ACTION problem → World
+
+People don't revoke. It's tedious, technical, and scary — and the obvious fix, "let
+an AI do it," is the scariest thing in crypto: an autonomous agent with power over
+funds IS the attack vector. **We needed World** to make automation safe to accept:
+the Surgeon may only act while a verified human stands behind it (AgentBook), its
+authority decays without daily liveness (Selfie Check), and it never signs — it
+prepares the exact revoke and YOU sign. Solved: the first revoke agent a rational
+person can say yes to, because its power has a human-shaped off switch.
+
+## 4 · Help arrives after the funeral — the TIME problem → the Guardian
+
+Drains take minutes; news takes hours. A protocol you're exposed to starts bleeding
+liquidity and every existing tool tells you tomorrow. **We needed a live feed** (The
+Graph's pool TVL, Substreams-ready) to close the gap: the guardian watches outflows
+in real time and fires a siren pointing at YOUR revocable approvals while there's
+still a window. Solved: the checker stops being a coroner and becomes a smoke
+detector.
+
+---
+
+# Part 2 · Gaps we hit in the stacks & fixed — per sponsor
 
 *The "we hit a real wall in your stack, built the fix, and you can take it upstream"
 list. Every item is reproducible from this repo — use these in the feedback fields
