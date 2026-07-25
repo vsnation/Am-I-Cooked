@@ -29,7 +29,7 @@ for (const input of inputs) {
   const resolved = await resolveAddress(input);
   process.stdout.write(`${input} -> ${resolved} … `);
   const report = await autopsy(KEY, resolved, {
-    approvals: addr => multichainApprovals(addr, REGISTRY, { perChainMs: 600000 }), // patient: build-time, not request-time
+    approvals: addr => multichainApprovals(addr, REGISTRY, { perChainMs: 1800000 }), // patient: build-time, not request-time — a heavy mainnet history legitimately runs >10 min
   });
   report.input = input; report.resolved = resolved;
   if (report.cooked.partial) {
