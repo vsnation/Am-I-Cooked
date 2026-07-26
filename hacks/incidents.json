@@ -2584,53 +2584,6 @@
    ]
   },
   {
-   "target": "AFX Trade",
-   "date": "Aug 2026",
-   "year": 2026,
-   "month": 8,
-   "lostUSD": 24000000,
-   "type": "Perps",
-   "bridge": true,
-   "recovered": "gone",
-   "vector": "Validator signing keys compromised; USDC bridged out to ETH.",
-   "matchKeys": [
-    "afx trade",
-    "trade"
-   ]
-  },
-  {
-   "target": "Wanchain (NIGHT)",
-   "date": "Aug 2026",
-   "year": 2026,
-   "month": 8,
-   "lostUSD": 10000000,
-   "type": "Bridge",
-   "bridge": true,
-   "recovered": "gone",
-   "vector": "Non-injective signed-message encoding flaw in the TreasuryCheck validator.",
-   "matchKeys": [
-    "wanchain (night)",
-    "wanchain",
-    "night"
-   ]
-  },
-  {
-   "target": "Verus - Ethereum",
-   "date": "Aug 2026",
-   "year": 2026,
-   "month": 8,
-   "lostUSD": 7500000,
-   "type": "Bridge",
-   "bridge": true,
-   "recovered": "gone",
-   "vector": "Missing validation minted more on Ethereum than was backed - a repeat of May.",
-   "matchKeys": [
-    "verus - ethereum",
-    "verus",
-    "ethereum"
-   ]
-  },
-  {
    "target": "IoTeX ioTube",
    "date": "Feb 2026",
    "year": 2026,
@@ -2647,21 +2600,6 @@
    ]
   },
   {
-   "target": "BSquared Network",
-   "date": "Aug 2026",
-   "year": 2026,
-   "month": 8,
-   "lostUSD": 3900000,
-   "type": "Bridge",
-   "bridge": true,
-   "recovered": "gone",
-   "vector": "8.59M B2 tokens drained.",
-   "matchKeys": [
-    "bsquared network",
-    "bsquared"
-   ]
-  },
-  {
    "target": "CrossCurve",
    "date": "Feb 2026",
    "year": 2026,
@@ -2674,22 +2612,6 @@
    "matchKeys": [
     "crosscurve",
     "crosscurve"
-   ]
-  },
-  {
-   "target": "Allbridge Core",
-   "date": "Aug 2026",
-   "year": 2026,
-   "month": 8,
-   "lostUSD": 1600000,
-   "type": "Bridge",
-   "bridge": true,
-   "recovered": "partial",
-   "vector": "Flash-loan on a single pool the Solana fix missed.",
-   "matchKeys": [
-    "allbridge core",
-    "allbridge",
-    "core"
    ]
   }
  ],
